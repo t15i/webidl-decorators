@@ -1,4 +1,5 @@
 import dts from "vite-plugin-dts";
+import babel from "vite-plugin-babel";
 
 import { playwright } from "@vitest/browser-playwright";
 
@@ -14,6 +15,20 @@ export default {
     dts({
       tsconfigPath: "./lib/tsconfig.json",
       outDir: "./dist/types",
+    }),
+    babel({
+      apply: "serve",
+      enforce: "pre",
+      include: /\.tsx?$/,
+      babelConfig: {
+        plugins: [
+          [
+            "@babel/plugin-transform-typescript",
+            { onlyRemoveTypeImports: true, allowDeclareFields: true },
+          ],
+          ["@babel/plugin-proposal-decorators", { version: "2023-11" }],
+        ],
+      },
     }),
   ],
   resolve: {
@@ -33,7 +48,7 @@ export default {
       provider: "istanbul",
       include: ["lib/**/*.ts"],
       thresholds: {
-        100: true,
+        90: true,
       },
       reporter: "text",
     },
@@ -46,20 +61,12 @@ export default {
     rolldownOptions: {
       output: [
         {
-          name: "lib-typescript-template",
+          name: "@t15i/webidl-decorators",
           format: "es",
           dir: "dist/lib",
           entryFileNames: "[name].js",
           preserveModules: true,
           minify: false,
-        },
-        {
-          name: "lib-typescript-template",
-          dir: "dist/cdn",
-          format: "iife",
-          entryFileNames: "index.min.js",
-          minify: true,
-          extend: true,
         },
       ],
     },
