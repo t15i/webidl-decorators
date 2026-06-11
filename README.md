@@ -1,49 +1,104 @@
-# lib-typescript-template
+# webidl-decorators - TypeScript decorators for WebIDL interfaces
 
-> **Warning!** You may use this template as a general reference for 
-structuring and configuring your repository, but please do **not** use it as 
-a GitHub template outside of this organization. This repository includes 
-automation that depends on this organization’s reusable workflows, 
-which *may* and *will* change at any time without prior notice.
+A set of TypeScript decorators that let you declare
+[WebIDL](https://webidl.spec.whatwg.org/) interfaces, attributes, and special
+operations directly on classes. The runtime semantics — platform object
+behavior, indexed/named property access, setters, and deleters — are provided
+by [`@t15i/webspecs`](https://github.com/t15i/webspecs).
 
-## Features
+> **Coverage is intentionally narrow** — this is a knowledge base, not a
+> polyfill. Only the decorators that have been ported so far are listed below;
+> everything else is marked with `...`.
 
-This repository contains a template for TypeScript libraries.
+## Install
 
-Template provides:
+```sh
+npm install @t15i/webidl-decorators
+```
 
-1. **TypeScript development** with enforced best practices, including:
-   - strict mode;
-   - composite;
-   - verbatim syntax;
-   - separation of library code and tests, connected via [project references](https://www.typescriptlang.org/tsconfig#references);
-   - and more (see `tsconfig.json` and [tsconfig reference](https://www.typescriptlang.org/tsconfig/));
+## Usage
 
-2. **Code linting** with [Eslint](https://eslint.org/) and [typescript-eslint](https://typescript-eslint.io/);
+All decorators are exposed from a single entry point:
 
-3. **Code formatting** with [Prettier](https://prettier.io/);
+```ts
+import {
+  Interface,
+  Attribute,
+  IndexedPropertyGetter,
+  NamedPropertyGetter,
+  // ...
+} from "@t15i/webidl-decorators";
+```
 
-4. **Testing**, including browser mode, with [Vitest](https://vitest.dev/);
+Decorate a class with `@Interface` and any of its members with the appropriate
+decorators. Once instantiated, the class behaves as a WebIDL platform object:
 
-5. **Build tooling** with [Vite](https://vite.dev/), producing the following artifacts:
-   - type declarations;
-   - minified IIFE bundle for [unpkg](https://unpkg.com/) and [jsDelivr](https://www.jsdelivr.com/);
-   - unminified ES code for development;
+```ts
+import { Interface, Attribute, IndexedPropertyGetter } from "@t15i/webidl-decorators";
+import { Nullable, Type, UnsignedLong } from "@t15i/webspecs/webidl";
 
-6. **Automated checks** for pull requests and merge queue;
+@Interface
+class HTMLCollection {
+  @Attribute(UnsignedLong)
+  get length(): number {
+    // ...
+  }
 
-7. **Automated release pipeline** for npm that automatically bumps the version according to SemVer.
+  @IndexedPropertyGetter(Nullable(Type(Element)))
+  item(index: number): Element | null {
+    // ...
+  }
+}
+```
 
-## Post-creation TODO:
+> The decorator proposal used is the
+> [TC39 stage-3 / 2023-11](https://github.com/tc39/proposal-decorators)
+> variant. Make sure your toolchain supports it.
 
-Please make sure to:
+## What's implemented
 
-* [ ] Change all occurrences of `lib-typescript-template` in `package.json`, 
-`package-lock.json`, and `vite.config.js` with the name of your repository;
+Expand a section to see what is currently ported. `...` marks sections with
+un-ported content.
 
-* [ ] Change the name, author, license, description, and keywords 
-in `package.json`;
+<details>
+<summary><strong>WebIDL</strong> (<a href="https://webidl.spec.whatwg.org/">spec</a>)</summary>
 
-* [ ] Change this `README.md`;
+- **§2 Interface definition language**
+  - **§2.2 Interfaces**
+    - [x] `@Interface`
+  - **§2.5 Members**
+    - **§2.5.2 Attributes**
+      - [x] `@Attribute`
+    - **§2.5.6 Special operations**
+      - **§2.5.6.1 Indexed properties**
+        - [x] `@IndexedPropertyGetter`
+        - [x] `@IndexedPropertySetter`
+        - [x] `@IndexedPropertyDeterminator`
+        - [x] `@NewIndexedPropertySetter`
+        - [x] `@ExistingIndexedPropertySetter`
+        - [x] `@SupportedPropertyIndices`
+      - **§2.5.6.2 Named properties**
+        - [x] `@NamedPropertyGetter`
+        - [x] `@NamedPropertySetter`
+        - [x] `@NamedPropertyDeleter`
+        - [x] `@NamedPropertyDeterminator`
+        - [x] `@NewNamedPropertySetter`
+        - [x] `@ExistingNamedPropertySetter`
+        - [x] `@ExistingNamedPropertyDeleter`
+        - [x] `@SupportedPropertyNames`
+      - ...
+    - ...
+  - ...
+- **§3 ECMAScript binding**
+  - **§3.4 Legacy extended attributes**
+    - **§3.4.9 [LegacyUnenumerableNamedProperties]**
+      - [x] `@LegacyUnenumerableNamedProperties`
+    - ...
+  - ...
+- ...
 
-Happy hacking!
+</details>
+
+## License
+
+[MIT](./LICENSE)
