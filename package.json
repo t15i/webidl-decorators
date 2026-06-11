@@ -1,7 +1,7 @@
 {
   "name": "@t15i/webidl-decorators",
   "type": "module",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "",
   "keywords": [],
   "author": "Aleksandr Boiarnikov <dev@gmvr.pw> (https://gmvr.pw)",
