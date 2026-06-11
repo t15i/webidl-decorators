@@ -63,5 +63,8 @@
   },
   "peerDependencies": {
     "@t15i/webspecs": "^0.5.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
