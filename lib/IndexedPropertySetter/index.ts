@@ -48,11 +48,12 @@ function defineIndexedPropertySetter<T, Return>(
   const identifier = getIdentifierByName(context.name);
   const args: ArgumentList<[number, T]> = [{ type: UnsignedLong }, { type: T }];
   const methodSteps = getMethodSteps(target, {
+    interface: i,
     arguments: args,
     returnType: Return,
   });
 
-  i[IndexedPropertySetterSymbol] = Object.create(SetterPrototype, {
+  i.members[IndexedPropertySetterSymbol] = Object.create(SetterPrototype, {
     identifier: { value: identifier },
     returnType: { value: Return },
     arguments: { value: args },
@@ -60,8 +61,8 @@ function defineIndexedPropertySetter<T, Return>(
   });
 
   if (identifier === undefined) {
-    i[NewIndexedPropertySetterSymbol] ??= methodSteps;
-    i[ExistingIndexedPropertySetterSymbol] ??= methodSteps;
+    i.members[NewIndexedPropertySetterSymbol] ??= methodSteps;
+    i.members[ExistingIndexedPropertySetterSymbol] ??= methodSteps;
   }
 
   return methodSteps;

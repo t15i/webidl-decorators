@@ -14,8 +14,8 @@ describe("@ExistingNamedPropertySetter", () => {
       existingNamedPropertySetter() {}
     }
 
-    expect(getInterface(new Test())[ExistingNamedPropertySetterSymbol]).toBe(
-      Test.prototype.existingNamedPropertySetter,
-    );
+    expect(
+      getInterface(new Test()).members[ExistingNamedPropertySetterSymbol],
+    ).toBe(Test.prototype.existingNamedPropertySetter);
   });
 });

@@ -48,11 +48,12 @@ function defineNamedPropertySetter<T, Return>(
   const identifier = getIdentifierByName(context.name);
   const args: ArgumentList<[string, T]> = [{ type: DOMString }, { type: T }];
   const methodSteps = getMethodSteps(target, {
+    interface: i,
     arguments: args,
     returnType: Return,
   });
 
-  i[NamedPropertySetterSymbol] = Object.create(SetterPrototype, {
+  i.members[NamedPropertySetterSymbol] = Object.create(SetterPrototype, {
     identifier: { value: identifier },
     returnType: { value: Return },
     arguments: { value: args },
@@ -60,8 +61,8 @@ function defineNamedPropertySetter<T, Return>(
   });
 
   if (identifier === undefined) {
-    i[NewNamedPropertySetterSymbol] ??= methodSteps;
-    i[ExistingNamedPropertySetterSymbol] ??= methodSteps;
+    i.members[NewNamedPropertySetterSymbol] ??= methodSteps;
+    i.members[ExistingNamedPropertySetterSymbol] ??= methodSteps;
   }
 
   return methodSteps;

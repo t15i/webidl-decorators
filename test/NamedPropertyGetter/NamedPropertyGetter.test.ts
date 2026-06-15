@@ -15,12 +15,16 @@ describe("@NamedPropertyGetter", () => {
     @Interface
     class Test {
       @NamedPropertyGetter(DOMString)
-      namedItem() {
-        return "";
+      namedItem(name: string) {
+        return name;
       }
     }
 
-    const operation = getInterface(new Test())[NamedPropertyGetterSymbol]!;
+    const instance = new Test();
+    const operation =
+      getInterface(instance).members[NamedPropertyGetterSymbol]!;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const methodSteps = Test.prototype.namedItem as any;
 
     expect(operation.memberType).toBe("operation");
     expect(operation.keywords).toBeInstanceOf(Set);
@@ -29,6 +33,18 @@ describe("@NamedPropertyGetter", () => {
     expect(operation.returnType).toBe(DOMString);
     expect(operation.arguments).toEqual([{ type: DOMString }]);
     expect(operation.methodSteps).toBe(Test.prototype.namedItem);
+    expect(methodSteps.length).toBe(1);
+    expect(methodSteps.name).toBe("namedItem");
+    expect(() => methodSteps.call({}, "x")).toThrow(
+      new TypeError("Illegal invocation"),
+    );
+    expect(() => methodSteps.call(instance)).toThrow(
+      new TypeError(
+        "Failed to execute 'namedItem' on 'Test': 1 argument required, but only 0 present.",
+      ),
+    );
+    expect(() => methodSteps.call(instance, "x")).not.toThrow();
+    expect(() => methodSteps.call(instance, "x", "y")).not.toThrow();
   });
 
   test("should leave identifier undefined when name is a symbol", () => {
@@ -42,7 +58,9 @@ describe("@NamedPropertyGetter", () => {
       }
     }
 
-    const operation = getInterface(new Test())[NamedPropertyGetterSymbol]!;
+    const operation = getInterface(new Test()).members[
+      NamedPropertyGetterSymbol
+    ]!;
 
     expect(operation.identifier).toBeUndefined();
   });
@@ -58,7 +76,7 @@ describe("@NamedPropertyGetter", () => {
 
     const i = getInterface(new Test());
 
-    expect(i[NamedPropertyDeterminatorSymbol]).toBeUndefined();
+    expect(i.members[NamedPropertyDeterminatorSymbol]).toBeUndefined();
   });
 
   test("should also register the behavior to determine the value of a named property for an anonymous getter", () => {
@@ -74,7 +92,9 @@ describe("@NamedPropertyGetter", () => {
 
     const i = getInterface(new Test());
 
-    expect(i[NamedPropertyGetterSymbol]!.identifier).toBeUndefined();
-    expect(i[NamedPropertyDeterminatorSymbol]).toBe(Test.prototype[anonymous]);
+    expect(i.members[NamedPropertyGetterSymbol]!.identifier).toBeUndefined();
+    expect(i.members[NamedPropertyDeterminatorSymbol]).toBe(
+      Test.prototype[anonymous],
+    );
   });
 });

@@ -18,10 +18,17 @@ describe("@NamedPropertySetter", () => {
     @Interface
     class Test {
       @NamedPropertySetter(DOMString)
-      namedPropertySetter() {}
+      namedPropertySetter(name: string, value: string) {
+        void name;
+        void value;
+      }
     }
 
-    const operation = getInterface(new Test())[NamedPropertySetterSymbol]!;
+    const instance = new Test();
+    const operation =
+      getInterface(instance).members[NamedPropertySetterSymbol]!;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const methodSteps = Test.prototype.namedPropertySetter as any;
 
     expect(operation.memberType).toBe("operation");
     expect(operation.keywords).toBeInstanceOf(Set);
@@ -31,6 +38,18 @@ describe("@NamedPropertySetter", () => {
     expect(operation.arguments[0]).toEqual({ type: DOMString });
     expect(operation.arguments[1]).toEqual({ type: DOMString });
     expect(operation.methodSteps).toBe(Test.prototype.namedPropertySetter);
+    expect(methodSteps.length).toBe(2);
+    expect(methodSteps.name).toBe("namedPropertySetter");
+    expect(() => methodSteps.call({}, "x", "y")).toThrow(
+      new TypeError("Illegal invocation"),
+    );
+    expect(() => methodSteps.call(instance, "x")).toThrow(
+      new TypeError(
+        "Failed to execute 'namedPropertySetter' on 'Test': 2 arguments required, but only 1 present.",
+      ),
+    );
+    expect(() => methodSteps.call(instance, "x", "y")).not.toThrow();
+    expect(() => methodSteps.call(instance, "x", "y", "z")).not.toThrow();
   });
 
   test("should use the provided Return type when supplied", () => {
@@ -42,7 +61,9 @@ describe("@NamedPropertySetter", () => {
       }
     }
 
-    const operation = getInterface(new Test())[NamedPropertySetterSymbol]!;
+    const operation = getInterface(new Test()).members[
+      NamedPropertySetterSymbol
+    ]!;
 
     expect(operation.returnType).toBe(Boolean);
   });
@@ -56,8 +77,8 @@ describe("@NamedPropertySetter", () => {
 
     const i = getInterface(new Test());
 
-    expect(i[NewNamedPropertySetterSymbol]).toBeUndefined();
-    expect(i[ExistingNamedPropertySetterSymbol]).toBeUndefined();
+    expect(i.members[NewNamedPropertySetterSymbol]).toBeUndefined();
+    expect(i.members[ExistingNamedPropertySetterSymbol]).toBeUndefined();
   });
 
   test("should also register the behaviors to set the value of a new and existing named property for an anonymous setter", () => {
@@ -71,9 +92,11 @@ describe("@NamedPropertySetter", () => {
 
     const i = getInterface(new Test());
 
-    expect(i[NamedPropertySetterSymbol]!.identifier).toBeUndefined();
-    expect(i[NewNamedPropertySetterSymbol]).toBe(Test.prototype[anonymous]);
-    expect(i[ExistingNamedPropertySetterSymbol]).toBe(
+    expect(i.members[NamedPropertySetterSymbol]!.identifier).toBeUndefined();
+    expect(i.members[NewNamedPropertySetterSymbol]).toBe(
+      Test.prototype[anonymous],
+    );
+    expect(i.members[ExistingNamedPropertySetterSymbol]).toBe(
       Test.prototype[anonymous],
     );
   });

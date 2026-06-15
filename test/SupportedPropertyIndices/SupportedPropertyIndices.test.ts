@@ -16,8 +16,8 @@ describe("@SupportedPropertyIndices", () => {
       }
     }
 
-    expect(getInterface(new Test())[SupportedPropertyIndicesSymbol]).toBe(
-      Test.prototype.supportedPropertyIndices,
-    );
+    expect(
+      getInterface(new Test()).members[SupportedPropertyIndicesSymbol],
+    ).toBe(Test.prototype.supportedPropertyIndices);
   });
 });

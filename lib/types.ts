@@ -18,6 +18,11 @@ export interface DecoratorContext {
   metadata: object;
 }
 
+export interface InterfaceDecoratorContext extends DecoratorContext {
+  kind: "class";
+  name: string | undefined;
+}
+
 export interface MemberDecoratorContext extends DecoratorContext {
   name: symbol | string;
   static: boolean;

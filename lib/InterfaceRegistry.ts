@@ -1,4 +1,4 @@
-import { staticMembers, type Interface } from "@t15i/webspecs/webidl";
+import type { Interface } from "@t15i/webspecs/webidl";
 
 export class InterfaceRegistry {
   protected interfaces_: WeakMap<object, Interface> = new WeakMap();
@@ -20,8 +20,11 @@ export class InterfaceRegistry {
     }
 
     const i = Object.create(parentInterface, {
-      [staticMembers]: {
-        value: Object.create(parentInterface?.[staticMembers] ?? null),
+      staticMembers: {
+        value: Object.create(parentInterface?.staticMembers ?? null),
+      },
+      members: {
+        value: Object.create(parentInterface?.members ?? null),
       },
     });
     this.interfaces_.set(metadata, i);

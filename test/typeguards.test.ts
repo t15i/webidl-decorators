@@ -139,21 +139,20 @@ const specialOperationContextTests = [
 
 describe("typeguard tests", () => {
   describe("@Interface (toInterfaceDecoratorTarget, toDecoratorContext)", () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const fn = Interface("Test") as any;
+
     test.for(targetTests)(
       "should throw if target $details",
       ({ target, error }) => {
-        expect(() =>
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          Interface(target as any, { metadata: {} }),
-        ).toThrow(error);
+        expect(() => fn(target, { metadata: {} })).toThrow(error);
       },
     );
 
     test.for(contextTests)(
       "should throw if context $details",
       ({ context, error }) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        expect(() => Interface(class {}, context as any)).toThrow(error);
+        expect(() => fn(class {}, context)).toThrow(error);
       },
     );
   });
