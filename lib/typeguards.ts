@@ -1,8 +1,10 @@
 import type {
+  AnyConstructor,
   AnyFunction,
   AttributeDecoratorContext,
   AttributeDecoratorTarget,
   DecoratorContext,
+  InterfaceDecoratorContext,
   InterfaceDecoratorTarget,
   MemberDecoratorContext,
   OperationDecoratorContext,
@@ -97,6 +99,35 @@ export function toDecoratorContext(context: unknown) {
   return context as DecoratorContext;
 }
 
+export function toInterfaceDecoratorContext(context: unknown) {
+  const decoratorContext = toDecoratorContext(context);
+
+  if (!("kind" in decoratorContext)) {
+    throw TypeError(`context.kind is required, but does not exist`);
+  }
+
+  if (decoratorContext.kind !== "class") {
+    throw TypeError(
+      `Expected context.kind to be 'class', got '${typeof decoratorContext.kind === "string" ? decoratorContext.kind : typeof decoratorContext.kind}'`,
+    );
+  }
+
+  if (!("name" in decoratorContext)) {
+    throw TypeError(`context.name is required, but does not exist`);
+  }
+
+  if (
+    typeof decoratorContext.name !== "string" &&
+    typeof decoratorContext.name !== "undefined"
+  ) {
+    throw TypeError(
+      `Expected context.name to be 'string' or 'undefined', got '${typeof decoratorContext.name}'`,
+    );
+  }
+
+  return decoratorContext as InterfaceDecoratorContext;
+}
+
 export function toMemberDecoratorContext(context: unknown) {
   const decoratorContext = toDecoratorContext(context);
 
@@ -181,9 +212,20 @@ export function toAttributeDecoratorContext(context: unknown) {
   return decoratorContext as AttributeDecoratorContext;
 }
 
-export function isDecoratorArgs<T extends [AnyFunction, DecoratorContext]>(
-  args: unknown[],
-): args is T {
+export function isFunctionDecoratorArgs<
+  T extends [AnyFunction, DecoratorContext],
+>(args: unknown[]): args is T {
+  return (
+    args.length === 2 &&
+    typeof args[0] === "function" &&
+    typeof args[1] === "object" &&
+    args[1] !== null
+  );
+}
+
+export function isConstructorDecoratorArgs<
+  T extends [AnyConstructor, DecoratorContext],
+>(args: unknown[]): args is T {
   return (
     args.length === 2 &&
     typeof args[0] === "function" &&

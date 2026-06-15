@@ -15,12 +15,16 @@ describe("@IndexedPropertyGetter", () => {
     @Interface
     class Test {
       @IndexedPropertyGetter(UnsignedLong)
-      item() {
-        return 0;
+      item(i: number) {
+        return i;
       }
     }
 
-    const operation = getInterface(new Test())[IndexedPropertyGetterSymbol]!;
+    const instance = new Test();
+    const operation =
+      getInterface(instance).members[IndexedPropertyGetterSymbol]!;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const methodSteps = Test.prototype.item as any;
 
     expect(operation.memberType).toBe("operation");
     expect(operation.keywords).toBeInstanceOf(Set);
@@ -29,6 +33,18 @@ describe("@IndexedPropertyGetter", () => {
     expect(operation.returnType).toBe(UnsignedLong);
     expect(operation.arguments).toEqual([{ type: UnsignedLong }]);
     expect(operation.methodSteps).toBe(Test.prototype.item);
+    expect(methodSteps.length).toBe(1);
+    expect(methodSteps.name).toBe("item");
+    expect(() => methodSteps.call({}, 0)).toThrow(
+      new TypeError("Illegal invocation"),
+    );
+    expect(() => methodSteps.call(instance)).toThrow(
+      new TypeError(
+        "Failed to execute 'item' on 'Test': 1 argument required, but only 0 present.",
+      ),
+    );
+    expect(() => methodSteps.call(instance, 0)).not.toThrow();
+    expect(() => methodSteps.call(instance, 0, 1)).not.toThrow();
   });
 
   test("should leave identifier undefined when name is a symbol", () => {
@@ -42,7 +58,9 @@ describe("@IndexedPropertyGetter", () => {
       }
     }
 
-    const operation = getInterface(new Test())[IndexedPropertyGetterSymbol]!;
+    const operation = getInterface(new Test()).members[
+      IndexedPropertyGetterSymbol
+    ]!;
 
     expect(operation.identifier).toBeUndefined();
     expect(operation.methodSteps).toBe(Test.prototype[anonymous]);
@@ -59,7 +77,7 @@ describe("@IndexedPropertyGetter", () => {
 
     const i = getInterface(new Test());
 
-    expect(i[IndexedPropertyDeterminatorSymbol]).toBeUndefined();
+    expect(i.members[IndexedPropertyDeterminatorSymbol]).toBeUndefined();
   });
 
   test("should also register the behavior to determine the value of an indexed property for an anonymous getter", () => {
@@ -75,8 +93,8 @@ describe("@IndexedPropertyGetter", () => {
 
     const i = getInterface(new Test());
 
-    expect(i[IndexedPropertyGetterSymbol]!.identifier).toBeUndefined();
-    expect(i[IndexedPropertyDeterminatorSymbol]).toBe(
+    expect(i.members[IndexedPropertyGetterSymbol]!.identifier).toBeUndefined();
+    expect(i.members[IndexedPropertyDeterminatorSymbol]).toBe(
       Test.prototype[anonymous],
     );
   });

@@ -47,11 +47,12 @@ function defineIndexedPropertyGetter<T>(
   const i = interfaceRegistry.get(context.metadata);
   const identifier = getIdentifierByName(context.name);
   const methodSteps = getMethodSteps(target, {
+    interface: i,
     arguments: IndexedPropertyGetterPrototype.arguments,
     returnType: T,
   });
 
-  i[IndexedPropertyGetterSymbol] = Object.create(
+  i.members[IndexedPropertyGetterSymbol] = Object.create(
     IndexedPropertyGetterPrototype,
     {
       identifier: { value: identifier },
@@ -61,7 +62,7 @@ function defineIndexedPropertyGetter<T>(
   );
 
   if (identifier === undefined) {
-    i[IndexedPropertyDeterminatorSymbol] ??= methodSteps;
+    i.members[IndexedPropertyDeterminatorSymbol] ??= methodSteps;
   }
 
   return methodSteps;

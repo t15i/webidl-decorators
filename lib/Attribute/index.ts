@@ -1,4 +1,4 @@
-import { isAttribute, staticMembers, type Type } from "@t15i/webspecs/webidl";
+import { isAttribute, type Type } from "@t15i/webspecs/webidl";
 
 import { interfaceRegistry } from "../InterfaceRegistry";
 import { AttributePrototype } from "../proto";
@@ -53,7 +53,7 @@ function defineAttribute<T>(
     );
   }
 
-  const members = context.static ? i[staticMembers] : i;
+  const members = context.static ? i.staticMembers : i.members;
   const attribute = Object.hasOwn(members, identifier)
     ? members[identifier]
     : undefined;

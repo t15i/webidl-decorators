@@ -16,10 +16,16 @@ describe("@NamedPropertyDeleter", () => {
     @Interface
     class Test {
       @NamedPropertyDeleter
-      namedPropertyDeleter() {}
+      namedPropertyDeleter(name: string) {
+        void name;
+      }
     }
 
-    const operation = getInterface(new Test())[NamedPropertyDeleterSymbol]!;
+    const instance = new Test();
+    const operation =
+      getInterface(instance).members[NamedPropertyDeleterSymbol]!;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const methodSteps = Test.prototype.namedPropertyDeleter as any;
 
     expect(operation.memberType).toBe("operation");
     expect(operation.keywords).toBeInstanceOf(Set);
@@ -28,6 +34,18 @@ describe("@NamedPropertyDeleter", () => {
     expect(operation.returnType).toBe(Undefined);
     expect(operation.arguments).toEqual([{ type: DOMString }]);
     expect(operation.methodSteps).toBe(Test.prototype.namedPropertyDeleter);
+    expect(methodSteps.length).toBe(1);
+    expect(methodSteps.name).toBe("namedPropertyDeleter");
+    expect(() => methodSteps.call({}, "x")).toThrow(
+      new TypeError("Illegal invocation"),
+    );
+    expect(() => methodSteps.call(instance)).toThrow(
+      new TypeError(
+        "Failed to execute 'namedPropertyDeleter' on 'Test': 1 argument required, but only 0 present.",
+      ),
+    );
+    expect(() => methodSteps.call(instance, "x")).not.toThrow();
+    expect(() => methodSteps.call(instance, "x", "y")).not.toThrow();
   });
 
   test("should use the provided Return type when supplied", () => {
@@ -39,7 +57,9 @@ describe("@NamedPropertyDeleter", () => {
       }
     }
 
-    const operation = getInterface(new Test())[NamedPropertyDeleterSymbol]!;
+    const operation = getInterface(new Test()).members[
+      NamedPropertyDeleterSymbol
+    ]!;
 
     expect(operation.returnType).toBe(Boolean);
   });
@@ -55,7 +75,9 @@ describe("@NamedPropertyDeleter", () => {
       }
     }
 
-    const operation = getInterface(new Test())[NamedPropertyDeleterSymbol]!;
+    const operation = getInterface(new Test()).members[
+      NamedPropertyDeleterSymbol
+    ]!;
 
     expect(operation.identifier).toBeUndefined();
   });

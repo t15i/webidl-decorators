@@ -1,9 +1,6 @@
 import { ExistingIndexedPropertySetter, Interface, Internals } from "lib";
 
-import {
-  ExistingIndexedPropertySetter as ExistingIndexedPropertySetterSymbol,
-  staticMembers,
-} from "@t15i/webspecs/webidl";
+import { ExistingIndexedPropertySetter as ExistingIndexedPropertySetterSymbol } from "@t15i/webspecs/webidl";
 
 import { describe, expect, test } from "vitest";
 
@@ -30,6 +27,8 @@ describe("@Interface", () => {
 
     expect(instance.foo).toBe(42);
     expect(instance).toBeInstanceOf(Test);
+    expect(Test.name).toBe("Test");
+    expect(Test.length).toBe(1);
   });
 
   test("should share the same interface object across instances of the same class", () => {
@@ -52,28 +51,78 @@ describe("@Interface", () => {
     expect(getInterface(new A())).not.toBe(getInterface(new B()));
   });
 
-  test("should always create a [staticMembers] object on the interface", () => {
+  test("should use the class name as the WebIDL identifier", () => {
+    @Interface
+    class HTMLCollection {}
+
+    expect(getInterface(new HTMLCollection()).identifier).toBe(
+      "HTMLCollection",
+    );
+  });
+
+  test("should use the supplied identifier when applied as a factory", () => {
+    @Interface("HTMLCollection")
+    class HTMLCollectionImpl {}
+
+    expect(getInterface(new HTMLCollectionImpl()).identifier).toBe(
+      "HTMLCollection",
+    );
+  });
+
+  test("should let each subsequent @Interface decorator overwrite the previous identifier", () => {
+    @Interface
+    @Interface("First")
+    class Second {}
+
+    expect(getInterface(new Second()).identifier).toBe("Second");
+  });
+
+  test("should always create a staticMembers object on the interface", () => {
     @Interface
     class Test {}
 
     const i = getInterface(new Test());
 
-    expect(typeof i[staticMembers]).toBe("object");
-    expect(i[staticMembers]).not.toBeNull();
+    expect(typeof i.staticMembers).toBe("object");
+    expect(i.staticMembers).not.toBeNull();
   });
 
-  test("should inherit [staticMembers] from a parent metadata via the prototype chain", () => {
+  test("should always create a members object on the interface", () => {
+    @Interface
+    class Test {}
+
+    const i = getInterface(new Test());
+
+    expect(typeof i.members).toBe("object");
+    expect(i.members).not.toBeNull();
+  });
+
+  test("should inherit staticMembers from a parent metadata via the prototype chain", () => {
     @Interface
     class Base {}
 
     @Interface
     class Derived extends Base {}
 
-    const baseStatic = getInterface(new Base())[staticMembers];
-    const derivedStatic = getInterface(new Derived())[staticMembers];
+    const baseStatic = getInterface(new Base()).staticMembers;
+    const derivedStatic = getInterface(new Derived()).staticMembers;
 
     expect(derivedStatic).not.toBe(baseStatic);
     expect(Object.getPrototypeOf(derivedStatic)).toBe(baseStatic);
+  });
+
+  test("should inherit members from a parent metadata via the prototype chain", () => {
+    @Interface
+    class Base {}
+
+    @Interface
+    class Derived extends Base {}
+
+    const baseMembers = getInterface(new Base()).members;
+    const derivedMembers = getInterface(new Derived()).members;
+
+    expect(derivedMembers).not.toBe(baseMembers);
+    expect(Object.getPrototypeOf(derivedMembers)).toBe(baseMembers);
   });
 
   test("should inherit interface members from a parent metadata via the prototype chain", () => {
@@ -91,12 +140,12 @@ describe("@Interface", () => {
 
     const i = getInterface(new Derived());
 
-    expect(i[ExistingIndexedPropertySetterSymbol]).toBe(
+    expect(i.members[ExistingIndexedPropertySetterSymbol]).toBe(
       Derived.prototype.existingIndexedPropertySetter,
     );
-    expect(Object.getPrototypeOf(i)[ExistingIndexedPropertySetterSymbol]).toBe(
-      Base.prototype.existingIndexedPropertySetter,
-    );
+    expect(
+      Object.getPrototypeOf(i.members)[ExistingIndexedPropertySetterSymbol],
+    ).toBe(Base.prototype.existingIndexedPropertySetter);
   });
 
   test("should be a no-op when applied a second time to the same class", () => {

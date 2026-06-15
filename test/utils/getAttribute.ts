@@ -8,7 +8,7 @@ export function getAttribute(
   i: Interface,
   identifier: string,
 ): Attribute<unknown> | undefined {
-  const member = i[identifier];
+  const member = i.members[identifier];
 
   if (member === undefined) {
     return undefined;

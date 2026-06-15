@@ -47,18 +47,22 @@ function defineNamedPropertyGetter<T>(
   const i = interfaceRegistry.get(context.metadata);
   const identifier = getIdentifierByName(context.name);
   const methodSteps = getMethodSteps(target, {
+    interface: i,
     arguments: NamedPropertyGetterPrototype.arguments,
     returnType: T,
   });
 
-  i[NamedPropertyGetterSymbol] = Object.create(NamedPropertyGetterPrototype, {
-    identifier: { value: identifier },
-    returnType: { value: T },
-    methodSteps: { value: methodSteps },
-  });
+  i.members[NamedPropertyGetterSymbol] = Object.create(
+    NamedPropertyGetterPrototype,
+    {
+      identifier: { value: identifier },
+      returnType: { value: T },
+      methodSteps: { value: methodSteps },
+    },
+  );
 
   if (identifier === undefined) {
-    i[NamedPropertyDeterminatorSymbol] ??= methodSteps;
+    i.members[NamedPropertyDeterminatorSymbol] ??= methodSteps;
   }
 
   return methodSteps;

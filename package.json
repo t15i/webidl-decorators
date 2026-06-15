@@ -46,7 +46,7 @@
     "@babel/plugin-proposal-decorators": "^7.29.7",
     "@babel/preset-typescript": "^7.29.7",
     "@eslint/js": "^10.0.1",
-    "@t15i/webspecs": "^0.5.0",
+    "@t15i/webspecs": "^0.6.0",
     "@vitest/browser-playwright": "^4.1.4",
     "@vitest/coverage-istanbul": "^4.1.4",
     "eslint": "^10.4.1",
@@ -62,7 +62,7 @@
     "vitest": "^4.1.4"
   },
   "peerDependencies": {
-    "@t15i/webspecs": "^0.5.0"
+    "@t15i/webspecs": "^0.6.0"
   },
   "publishConfig": {
     "access": "public"

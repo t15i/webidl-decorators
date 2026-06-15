@@ -17,10 +17,17 @@ describe("@IndexedPropertySetter", () => {
     @Interface
     class Test {
       @IndexedPropertySetter(UnsignedLong)
-      indexedPropertySetter() {}
+      indexedPropertySetter(i: number, v: number) {
+        void i;
+        void v;
+      }
     }
 
-    const operation = getInterface(new Test())[IndexedPropertySetterSymbol]!;
+    const instance = new Test();
+    const operation =
+      getInterface(instance).members[IndexedPropertySetterSymbol]!;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const methodSteps = Test.prototype.indexedPropertySetter as any;
 
     expect(operation.memberType).toBe("operation");
     expect(operation.keywords).toBeInstanceOf(Set);
@@ -30,6 +37,18 @@ describe("@IndexedPropertySetter", () => {
     expect(operation.arguments[0]).toEqual({ type: UnsignedLong });
     expect(operation.arguments[1]).toEqual({ type: UnsignedLong });
     expect(operation.methodSteps).toBe(Test.prototype.indexedPropertySetter);
+    expect(methodSteps.length).toBe(2);
+    expect(methodSteps.name).toBe("indexedPropertySetter");
+    expect(() => methodSteps.call({}, 0, 0)).toThrow(
+      new TypeError("Illegal invocation"),
+    );
+    expect(() => methodSteps.call(instance, 0)).toThrow(
+      new TypeError(
+        "Failed to execute 'indexedPropertySetter' on 'Test': 2 arguments required, but only 1 present.",
+      ),
+    );
+    expect(() => methodSteps.call(instance, 0, 0)).not.toThrow();
+    expect(() => methodSteps.call(instance, 0, 0, 0)).not.toThrow();
   });
 
   test("should use the provided Return type when supplied", () => {
@@ -41,7 +60,9 @@ describe("@IndexedPropertySetter", () => {
       }
     }
 
-    const operation = getInterface(new Test())[IndexedPropertySetterSymbol]!;
+    const operation = getInterface(new Test()).members[
+      IndexedPropertySetterSymbol
+    ]!;
 
     expect(operation.returnType).toBe(UnsignedLong);
   });
@@ -55,8 +76,8 @@ describe("@IndexedPropertySetter", () => {
 
     const i = getInterface(new Test());
 
-    expect(i[NewIndexedPropertySetterSymbol]).toBeUndefined();
-    expect(i[ExistingIndexedPropertySetterSymbol]).toBeUndefined();
+    expect(i.members[NewIndexedPropertySetterSymbol]).toBeUndefined();
+    expect(i.members[ExistingIndexedPropertySetterSymbol]).toBeUndefined();
   });
 
   test("should also register the behaviors to set the value of a new and existing indexed property for an anonymous setter", () => {
@@ -70,9 +91,11 @@ describe("@IndexedPropertySetter", () => {
 
     const i = getInterface(new Test());
 
-    expect(i[IndexedPropertySetterSymbol]!.identifier).toBeUndefined();
-    expect(i[NewIndexedPropertySetterSymbol]).toBe(Test.prototype[anonymous]);
-    expect(i[ExistingIndexedPropertySetterSymbol]).toBe(
+    expect(i.members[IndexedPropertySetterSymbol]!.identifier).toBeUndefined();
+    expect(i.members[NewIndexedPropertySetterSymbol]).toBe(
+      Test.prototype[anonymous],
+    );
+    expect(i.members[ExistingIndexedPropertySetterSymbol]).toBe(
       Test.prototype[anonymous],
     );
   });
