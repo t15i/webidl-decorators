@@ -92,6 +92,56 @@ describe("PlatformObject proxy", () => {
       expect(o.calls.length).toBe(0);
     });
 
+    test("has with string key should return true when [[GetOwnProperty]] returns a descriptor with a value", () => {
+      const o = override("getOwnProperty", () => ({ value: 42 }));
+      restore = o.restore;
+
+      const Test = defineLegacyClass();
+      const instance = new Test();
+
+      expect("0" in instance).toBe(true);
+      expect(o.calls.length).toBe(1);
+      expect(o.calls[0]![1]).toBe("0");
+    });
+
+    test("has with string key should return false when [[GetOwnProperty]] returns undefined", () => {
+      const o = override("getOwnProperty", () => undefined);
+      restore = o.restore;
+
+      const Test = defineLegacyClass();
+      const instance = new Test();
+
+      expect("missing" in instance).toBe(false);
+      expect(o.calls.length).toBe(1);
+      expect(o.calls[0]![1]).toBe("missing");
+    });
+
+    test("has with string key should return false when the descriptor has no value", () => {
+      const o = override("getOwnProperty", () => ({ get: () => undefined }));
+      restore = o.restore;
+
+      const Test = defineLegacyClass();
+      const instance = new Test();
+
+      expect("accessor" in instance).toBe(false);
+      expect(o.calls.length).toBe(1);
+    });
+
+    test("has with symbol key should fall back to Reflect.has", () => {
+      const o = override("getOwnProperty", () => undefined);
+      restore = o.restore;
+
+      const Test = defineLegacyClass();
+      const instance = new Test();
+      const key = Symbol("key");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (instance as any)[key] = 1;
+
+      expect(Reflect.has(instance, key)).toBe(true);
+      expect(Reflect.has(instance, Symbol("missing"))).toBe(false);
+      expect(o.calls.length).toBe(0);
+    });
+
     test("set with string key should forward to [[Set]]", () => {
       const o = override("set", () => true);
       restore = o.restore;
