@@ -14,6 +14,12 @@ export const LegacyPlatformObjectProxyHandler: ProxyHandler<PlatformObject> = {
     return Reflect.get(o, p, receiver);
   },
   has(o, p) {
+    if (typeof p === "string") {
+      return (
+        LegacyPlatformObjectInternalMethods.getOwnProperty(o, p)?.value !==
+        undefined
+      );
+    }
     return Reflect.has(o, p);
   },
   getOwnPropertyDescriptor(o, p) {
