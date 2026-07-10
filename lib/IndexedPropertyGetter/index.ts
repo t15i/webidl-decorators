@@ -10,10 +10,6 @@ import { interfaceRegistry } from "../InterfaceRegistry";
 import { GetterPrototype } from "../proto";
 import { getIdentifierByName, getMethodSteps, guard } from "../utils";
 
-import {
-  toSpecialOperationDecoratorContext,
-  toOperationDecoratorTarget,
-} from "../typeguards";
 import type { SpecialOperationDecoratorContext } from "../types";
 
 import type {
@@ -44,15 +40,12 @@ function defineIndexedPropertyGetter<T>(
   target: IndexedPropertyGetterDecoratorTarget<T>,
   context: SpecialOperationDecoratorContext,
 ) {
-  target = toOperationDecoratorTarget(target);
-  context = toSpecialOperationDecoratorContext(context);
-
   const i = interfaceRegistry.get(context.metadata);
   const operation = (i.members[IndexedPropertyGetterSymbol] = Object.create(
     IndexedPropertyGetterPrototype,
     {
       identifier: { value: getIdentifierByName(context.name) },
-      methodSteps: { value: getMethodSteps(context.access.get!) },
+      methodSteps: { value: getMethodSteps(context.access.get) },
       returnType: { value: T },
     },
   ));

@@ -1,7 +1,7 @@
 import { Attribute, Interface } from "lib";
 
 import { isReadonlyAttribute, isStaticAttribute } from "@t15i/webspecs/webidl";
-import { DOMString, UnsignedLong } from "@t15i/webidl-types";
+import { DOMString, USVString } from "@t15i/webidl-types";
 
 import { describe, expect, test } from "vitest";
 
@@ -202,9 +202,9 @@ describe("@Attribute", () => {
 
     @Interface
     class Derived extends Base {
-      @Attribute(UnsignedLong)
+      @Attribute(USVString)
       override get foo() {
-        return 0 as unknown as string;
+        return "derived";
       }
     }
 
@@ -212,7 +212,7 @@ describe("@Attribute", () => {
     const own = getAttribute(i, "foo")!;
     const inherited = getAttribute(Object.getPrototypeOf(i), "foo")!;
 
-    expect(own.type).toBe(UnsignedLong);
+    expect(own.type).toBe(USVString);
     expect(inherited.type).toBe(DOMString);
     expect(own).not.toBe(inherited);
   });

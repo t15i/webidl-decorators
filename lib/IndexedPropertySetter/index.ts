@@ -11,10 +11,6 @@ import { interfaceRegistry } from "../InterfaceRegistry";
 import { SetterPrototype } from "../proto";
 import { getIdentifierByName, getMethodSteps, guard } from "../utils";
 
-import {
-  toSpecialOperationDecoratorContext,
-  toOperationDecoratorTarget,
-} from "../typeguards";
 import type { SpecialOperationDecoratorContext } from "../types";
 
 import type {
@@ -40,9 +36,6 @@ function defineIndexedPropertySetter<T, Return>(
   target: IndexedPropertySetterDecoratorTarget<T, Return>,
   context: SpecialOperationDecoratorContext,
 ) {
-  target = toOperationDecoratorTarget(target);
-  context = toSpecialOperationDecoratorContext(context);
-
   const i = interfaceRegistry.get(context.metadata);
   const args: ArgumentList<[typeof UnsignedLong, Type<T>]> = [
     { type: UnsignedLong },
@@ -53,7 +46,7 @@ function defineIndexedPropertySetter<T, Return>(
     SetterPrototype,
     {
       identifier: { value: getIdentifierByName(context.name) },
-      methodSteps: { value: getMethodSteps(context.access.get!) },
+      methodSteps: { value: getMethodSteps(context.access.get) },
       returnType: { value: Return },
       arguments: { value: args },
     },

@@ -2,7 +2,6 @@ import { LegacyUnenumerableNamedProperties as LegacyUnenumerableNamedPropertiesS
 
 import { interfaceRegistry } from "../InterfaceRegistry";
 
-import { toDecoratorContext } from "../typeguards";
 import type { DecoratorContext } from "../types";
 
 /**
@@ -34,8 +33,6 @@ export function LegacyUnenumerableNamedProperties(
   _: unknown,
   context: DecoratorContext,
 ): void {
-  context = toDecoratorContext(context);
-
   interfaceRegistry.get(context.metadata)[
     LegacyUnenumerableNamedPropertiesSymbol
   ] = true;

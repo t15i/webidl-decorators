@@ -1,11 +1,6 @@
 import { PlatformObject } from "./PlatformObject";
 
 import { interfaceRegistry } from "../InterfaceRegistry";
-import {
-  isConstructorDecoratorArgs,
-  toInterfaceDecoratorContext,
-  toInterfaceDecoratorTarget,
-} from "../typeguards";
 import type {
   InterfaceDecoratorContext,
   InterfaceDecoratorTarget,
@@ -25,9 +20,6 @@ function defineInterface<T extends InterfaceDecoratorTarget>(
   target: T,
   context: InterfaceDecoratorContext,
 ): T {
-  target = toInterfaceDecoratorTarget(target);
-  context = toInterfaceDecoratorContext(context);
-
   if (identifier === undefined && context.name === undefined) {
     throw TypeError(
       "Expected at least one identifier or context.name to be 'string'",
@@ -124,7 +116,7 @@ export function Interface<T extends InterfaceDecoratorTarget>(
 export function Interface(identifier: string): InterfaceDecorator;
 
 export function Interface(...args: unknown[]) {
-  if (isConstructorDecoratorArgs(args)) {
+  if (args.length === 2 && typeof args[0] === "function") {
     return InterfaceDefault(
       args[0] as InterfaceDecoratorTarget,
       args[1] as InterfaceDecoratorContext,

@@ -18,5 +18,5 @@ export type AttributeDecorator<T> = <
   Target extends AttributeDecoratorTarget<T>,
 >(
   target: Target,
-  context: AttributeDecoratorContext,
+  context: AttributeDecoratorContext<T>,
 ) => Target;

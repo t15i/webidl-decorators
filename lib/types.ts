@@ -18,33 +18,68 @@ export interface DecoratorContext {
   metadata: object;
 }
 
-export interface InterfaceDecoratorContext extends DecoratorContext {
+export interface InterfaceDecoratorContext {
+  metadata: object;
   kind: "class";
   name: string | undefined;
 }
 
-export interface MemberDecoratorContext extends DecoratorContext {
-  name: symbol | string;
-  static: boolean;
-  kind: "method" | "getter" | "setter" | "accessor";
-}
-
-export interface OperationDecoratorContext extends MemberDecoratorContext {
-  kind: "method";
-  access: {
-    get?(object: object): AnyFunction;
-  };
-}
-
-export interface SpecialOperationDecoratorContext extends OperationDecoratorContext {
-  static: false;
-}
-
-export interface AttributeDecoratorContext extends MemberDecoratorContext {
+export interface AttributeDecoratorContext<T = unknown> {
+  metadata: object;
   kind: "getter" | "setter" | "accessor";
   name: string;
+  static: boolean;
+  private: false;
   access: {
-    get?(object: object): unknown;
-    set?(object: object, value: unknown): void;
+    get?(object: object): T;
+    set?(object: object, value: T): void;
   };
 }
+
+export interface RegularOperationDecoratorContext<
+  Fn extends AnyFunction = AnyFunction,
+> {
+  metadata: object;
+  kind: "method";
+  name: string;
+  static: false;
+  private: false;
+  access: {
+    get(object: object): Fn;
+  };
+}
+
+export interface StaticOperationDecoratorContext<
+  Fn extends AnyFunction = AnyFunction,
+> {
+  metadata: object;
+  kind: "method";
+  name: string;
+  static: true;
+  private: false;
+  access: {
+    get(object: object): Fn;
+  };
+}
+
+export interface SpecialOperationDecoratorContext<
+  Fn extends AnyFunction = AnyFunction,
+> {
+  metadata: object;
+  kind: "method";
+  name: string | symbol;
+  static: false;
+  private: boolean;
+  access: {
+    get(object: object): Fn;
+  };
+}
+
+export type OperationDecoratorContext<Fn extends AnyFunction = AnyFunction> =
+  | RegularOperationDecoratorContext<Fn>
+  | StaticOperationDecoratorContext<Fn>
+  | SpecialOperationDecoratorContext<Fn>;
+
+export type MemberDecoratorContext =
+  | AttributeDecoratorContext
+  | OperationDecoratorContext;

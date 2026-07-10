@@ -9,5 +9,5 @@ export type IndexedPropertySetterDecorator<T, Return> = <
   Target extends IndexedPropertySetterDecoratorTarget<T, Return>,
 >(
   target: Target,
-  context: SpecialOperationDecoratorContext,
+  context: SpecialOperationDecoratorContext<Target>,
 ) => Target;

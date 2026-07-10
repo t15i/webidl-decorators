@@ -1,8 +1,7 @@
-import { interfaceRegistry } from "./InterfaceRegistry";
-
-import type { AnyFunction, DecoratorContext } from "./types";
-import { toBehaviorDecoratorTarget, toDecoratorContext } from "./typeguards";
 import type { InterfaceMembers } from "@t15i/webspecs/webidl";
+
+import { interfaceRegistry } from "./InterfaceRegistry";
+import type { AnyFunction, DecoratorContext } from "./types";
 
 type BehaviorKeys<T> = {
   [K in keyof T]: T[K] extends AnyFunction ? K : never;
@@ -53,8 +52,5 @@ export function defineBehavior<K extends BehaviorKey>(
   target: BehaviorDecoratorTarget<K>,
   context: DecoratorContext,
 ): void {
-  target = toBehaviorDecoratorTarget(target);
-  context = toDecoratorContext(context);
-
   interfaceRegistry.get(context.metadata).members[key] = target;
 }

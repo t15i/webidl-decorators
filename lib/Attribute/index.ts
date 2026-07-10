@@ -1,4 +1,5 @@
 import { isAttribute, type Attribute, type Type } from "@t15i/webspecs/webidl";
+import { Undefined, typeRegistry } from "@t15i/webidl-types";
 
 import { interfaceRegistry } from "../InterfaceRegistry";
 import { AttributePrototype } from "../proto";
@@ -9,10 +10,6 @@ import {
   guard,
 } from "../utils";
 
-import {
-  toAttributeDecoratorContext,
-  toAttributeDecoratorTarget,
-} from "../typeguards";
 import type { AttributeDecoratorContext } from "../types";
 
 import type {
@@ -21,7 +18,6 @@ import type {
   GetterAttributeDecoratorTarget,
   SetterAttributeDecoratorTarget,
 } from "./types";
-import { Undefined, typeRegistry } from "@t15i/webidl-types";
 
 /**
  * Defines the decorated member as a WebIDL attribute of the WebIDL interface,
@@ -34,11 +30,8 @@ import { Undefined, typeRegistry } from "@t15i/webidl-types";
 function defineAttribute<T>(
   T: Type<T>,
   target: AttributeDecoratorTarget<T>,
-  context: AttributeDecoratorContext,
+  context: AttributeDecoratorContext<T>,
 ) {
-  target = toAttributeDecoratorTarget(target);
-  context = toAttributeDecoratorContext(context);
-
   const i = interfaceRegistry.get(context.metadata);
   const identifier = getIdentifierByName(context.name);
 

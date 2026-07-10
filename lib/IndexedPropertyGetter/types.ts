@@ -6,5 +6,5 @@ export type IndexedPropertyGetterDecorator<T> = <
   Target extends IndexedPropertyGetterDecoratorTarget<T>,
 >(
   target: Target,
-  context: SpecialOperationDecoratorContext,
+  context: SpecialOperationDecoratorContext<Target>,
 ) => Target;

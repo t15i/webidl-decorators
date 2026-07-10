@@ -9,5 +9,5 @@ export type NamedPropertySetterDecorator<T, Return> = <
   Target extends NamedPropertySetterDecoratorTarget<T, Return>,
 >(
   target: Target,
-  context: SpecialOperationDecoratorContext,
+  context: SpecialOperationDecoratorContext<Target>,
 ) => Target;

@@ -9,11 +9,6 @@ import { interfaceRegistry } from "../InterfaceRegistry";
 import { DeleterPrototype } from "../proto";
 import { getIdentifierByName, getMethodSteps, guard } from "../utils";
 
-import {
-  toSpecialOperationDecoratorContext,
-  toOperationDecoratorTarget,
-  isFunctionDecoratorArgs,
-} from "../typeguards";
 import type { SpecialOperationDecoratorContext } from "../types";
 
 import type {
@@ -38,16 +33,13 @@ function defineNamedPropertyDeleter<Return>(
   target: NamedPropertyDeleterDecoratorTarget<Return>,
   context: SpecialOperationDecoratorContext,
 ) {
-  target = toOperationDecoratorTarget(target);
-  context = toSpecialOperationDecoratorContext(context);
-
   const i = interfaceRegistry.get(context.metadata);
 
   const operation = (i.members[NamedPropertyDeleterSymbol] = Object.create(
     NamedPropertyDeleterPrototype,
     {
       identifier: { value: getIdentifierByName(context.name) },
-      methodSteps: { value: getMethodSteps(context.access.get!) },
+      methodSteps: { value: getMethodSteps(context.access.get) },
       returnType: { value: Return },
     },
   ));
@@ -140,7 +132,7 @@ export function NamedPropertyDeleter<Return>(
 ): NamedPropertyDeleterDecorator<Return>;
 
 export function NamedPropertyDeleter(...args: unknown[]) {
-  if (isFunctionDecoratorArgs(args)) {
+  if (args.length === 2 && typeof args[0] === "function") {
     return NamedPropertyDeleterDefault(
       args[0] as NamedPropertyDeleterDecoratorTarget<undefined>,
       args[1] as SpecialOperationDecoratorContext,

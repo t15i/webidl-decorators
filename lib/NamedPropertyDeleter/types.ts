@@ -8,5 +8,5 @@ export type NamedPropertyDeleterDecorator<Return> = <
   Target extends NamedPropertyDeleterDecoratorTarget<Return>,
 >(
   target: Target,
-  context: SpecialOperationDecoratorContext,
+  context: SpecialOperationDecoratorContext<Target>,
 ) => Target;

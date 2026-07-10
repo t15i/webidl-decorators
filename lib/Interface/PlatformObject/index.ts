@@ -4,10 +4,6 @@ import {
 } from "@t15i/webspecs/webidl";
 
 import { interfaceRegistry } from "../../InterfaceRegistry";
-import {
-  toDecoratorContext,
-  toInterfaceDecoratorTarget,
-} from "../../typeguards";
 import type { DecoratorContext, InterfaceDecoratorTarget } from "../../types";
 
 import { LegacyPlatformObjectConstructorProxyHandler } from "./LegacyPlatformObjectConstructorProxyHandler";
@@ -18,9 +14,6 @@ export function PlatformObject<T extends InterfaceDecoratorTarget>(
   target: T,
   context: DecoratorContext,
 ): T {
-  target = toInterfaceDecoratorTarget(target);
-  context = toDecoratorContext(context);
-
   WebIDLPlatformObject.setPrimaryInterfaceOf(
     target.prototype,
     interfaceRegistry.get(context.metadata),
