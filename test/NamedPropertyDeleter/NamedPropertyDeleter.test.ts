@@ -1,11 +1,7 @@
 import { Interface, NamedPropertyDeleter } from "lib";
 
-import {
-  Boolean,
-  DOMString,
-  NamedPropertyDeleter as NamedPropertyDeleterSymbol,
-  Undefined,
-} from "@t15i/webspecs/webidl";
+import { NamedPropertyDeleter as NamedPropertyDeleterSymbol } from "@t15i/webspecs/webidl";
+import { Boolean, DOMString, Undefined } from "@t15i/webidl-types";
 
 import { describe, expect, test } from "vitest";
 
@@ -22,8 +18,7 @@ describe("@NamedPropertyDeleter", () => {
     }
 
     const instance = new Test();
-    const operation =
-      getInterface(instance).members[NamedPropertyDeleterSymbol]!;
+    const operation = getInterface(Test).members[NamedPropertyDeleterSymbol]!;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const methodSteps = Test.prototype.namedPropertyDeleter as any;
 
@@ -33,7 +28,7 @@ describe("@NamedPropertyDeleter", () => {
     expect(operation.identifier).toBe("namedPropertyDeleter");
     expect(operation.returnType).toBe(Undefined);
     expect(operation.arguments).toEqual([{ type: DOMString }]);
-    expect(operation.methodSteps).toBe(Test.prototype.namedPropertyDeleter);
+    expect(typeof operation.methodSteps).toBe("function");
     expect(methodSteps.length).toBe(1);
     expect(methodSteps.name).toBe("namedPropertyDeleter");
     expect(() => methodSteps.call({}, "x")).toThrow(
@@ -57,9 +52,7 @@ describe("@NamedPropertyDeleter", () => {
       }
     }
 
-    const operation = getInterface(new Test()).members[
-      NamedPropertyDeleterSymbol
-    ]!;
+    const operation = getInterface(Test).members[NamedPropertyDeleterSymbol]!;
 
     expect(operation.returnType).toBe(Boolean);
   });
@@ -75,9 +68,7 @@ describe("@NamedPropertyDeleter", () => {
       }
     }
 
-    const operation = getInterface(new Test()).members[
-      NamedPropertyDeleterSymbol
-    ]!;
+    const operation = getInterface(Test).members[NamedPropertyDeleterSymbol]!;
 
     expect(operation.identifier).toBeUndefined();
   });

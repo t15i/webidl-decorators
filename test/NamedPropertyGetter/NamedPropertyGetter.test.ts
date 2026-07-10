@@ -1,10 +1,10 @@
 import { Interface, NamedPropertyGetter } from "lib";
 
 import {
-  DOMString,
   NamedPropertyDeterminator as NamedPropertyDeterminatorSymbol,
   NamedPropertyGetter as NamedPropertyGetterSymbol,
 } from "@t15i/webspecs/webidl";
+import { DOMString } from "@t15i/webidl-types";
 
 import { describe, expect, test } from "vitest";
 
@@ -21,8 +21,7 @@ describe("@NamedPropertyGetter", () => {
     }
 
     const instance = new Test();
-    const operation =
-      getInterface(instance).members[NamedPropertyGetterSymbol]!;
+    const operation = getInterface(Test).members[NamedPropertyGetterSymbol]!;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const methodSteps = Test.prototype.namedItem as any;
 
@@ -32,7 +31,7 @@ describe("@NamedPropertyGetter", () => {
     expect(operation.identifier).toBe("namedItem");
     expect(operation.returnType).toBe(DOMString);
     expect(operation.arguments).toEqual([{ type: DOMString }]);
-    expect(operation.methodSteps).toBe(Test.prototype.namedItem);
+    expect(typeof operation.methodSteps).toBe("function");
     expect(methodSteps.length).toBe(1);
     expect(methodSteps.name).toBe("namedItem");
     expect(() => methodSteps.call({}, "x")).toThrow(
@@ -58,9 +57,7 @@ describe("@NamedPropertyGetter", () => {
       }
     }
 
-    const operation = getInterface(new Test()).members[
-      NamedPropertyGetterSymbol
-    ]!;
+    const operation = getInterface(Test).members[NamedPropertyGetterSymbol]!;
 
     expect(operation.identifier).toBeUndefined();
   });
@@ -74,7 +71,7 @@ describe("@NamedPropertyGetter", () => {
       }
     }
 
-    const i = getInterface(new Test());
+    const i = getInterface(Test);
 
     expect(i.members[NamedPropertyDeterminatorSymbol]).toBeUndefined();
   });
@@ -90,11 +87,11 @@ describe("@NamedPropertyGetter", () => {
       }
     }
 
-    const i = getInterface(new Test());
+    const i = getInterface(Test);
 
     expect(i.members[NamedPropertyGetterSymbol]!.identifier).toBeUndefined();
     expect(i.members[NamedPropertyDeterminatorSymbol]).toBe(
-      Test.prototype[anonymous],
+      i.members[NamedPropertyGetterSymbol]!.methodSteps,
     );
   });
 });

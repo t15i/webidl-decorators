@@ -1,11 +1,7 @@
 import { Attribute, Interface } from "lib";
 
-import {
-  DOMString,
-  UnsignedLong,
-  isReadonlyAttribute,
-  isStaticAttribute,
-} from "@t15i/webspecs/webidl";
+import { isReadonlyAttribute, isStaticAttribute } from "@t15i/webspecs/webidl";
+import { DOMString, UnsignedLong } from "@t15i/webidl-types";
 
 import { describe, expect, test } from "vitest";
 
@@ -21,7 +17,7 @@ describe("@Attribute", () => {
       }
     }
 
-    const attribute = getAttribute(getInterface(new Test()), "foo")!;
+    const attribute = getAttribute(getInterface(Test), "foo")!;
 
     expect(attribute.memberType).toBe("attribute");
     expect(attribute.keywords).toBeInstanceOf(Set);
@@ -40,7 +36,7 @@ describe("@Attribute", () => {
       set foo(_value: string) {}
     }
 
-    const attribute = getAttribute(getInterface(new Test()), "foo")!;
+    const attribute = getAttribute(getInterface(Test), "foo")!;
 
     expect(attribute.keywords.has("readonly")).toBe(false);
     expect(attribute.identifier).toBe("foo");
@@ -55,7 +51,7 @@ describe("@Attribute", () => {
       accessor foo = "";
     }
 
-    const attribute = getAttribute(getInterface(new Test()), "foo")!;
+    const attribute = getAttribute(getInterface(Test), "foo")!;
 
     expect(attribute.keywords.has("readonly")).toBe(false);
     expect(attribute.identifier).toBe("foo");
@@ -77,7 +73,7 @@ describe("@Attribute", () => {
       set foo(_value: string) {}
     }
 
-    const attribute = getAttribute(getInterface(new Test()), "foo")!;
+    const attribute = getAttribute(getInterface(Test), "foo")!;
 
     expect(attribute.keywords.has("readonly")).toBe(false);
     expect(typeof attribute.getterSteps).toBe("function");
@@ -96,7 +92,7 @@ describe("@Attribute", () => {
       }
     }
 
-    const attribute = getAttribute(getInterface(new Test()), "foo")!;
+    const attribute = getAttribute(getInterface(Test), "foo")!;
 
     expect(attribute.keywords.has("readonly")).toBe(false);
     expect(typeof attribute.getterSteps).toBe("function");
@@ -112,7 +108,7 @@ describe("@Attribute", () => {
       }
     }
 
-    const i = getInterface(new Test());
+    const i = getInterface(Test);
 
     expect(getAttribute(i, "foo")).toBeUndefined();
     expect(getStaticAttribute(i, "foo")).toBeDefined();
@@ -127,7 +123,7 @@ describe("@Attribute", () => {
       }
     }
 
-    const attribute = getStaticAttribute(getInterface(new Test()), "foo")!;
+    const attribute = getStaticAttribute(getInterface(Test), "foo")!;
 
     expect(isStaticAttribute(attribute)).toBe(true);
     expect(isReadonlyAttribute(attribute)).toBe(true);
@@ -140,7 +136,7 @@ describe("@Attribute", () => {
       static accessor foo = "";
     }
 
-    const attribute = getStaticAttribute(getInterface(new Test()), "foo")!;
+    const attribute = getStaticAttribute(getInterface(Test), "foo")!;
 
     expect(isStaticAttribute(attribute)).toBe(true);
     expect(isReadonlyAttribute(attribute)).toBe(false);
@@ -155,7 +151,7 @@ describe("@Attribute", () => {
       }
     }
 
-    const attribute = getAttribute(getInterface(new Test()), "foo")!;
+    const attribute = getAttribute(getInterface(Test), "foo")!;
     const instance = new Test();
 
     expect(attribute.getterSteps.call(instance)).toBe("42");
@@ -172,7 +168,7 @@ describe("@Attribute", () => {
       }
     }
 
-    const attribute = getAttribute(getInterface(new Test()), "foo")!;
+    const attribute = getAttribute(getInterface(Test), "foo")!;
     const instance = new Test();
 
     attribute.setterSteps.call(instance, 42 as unknown as string);
@@ -180,19 +176,19 @@ describe("@Attribute", () => {
     expect(received).toBe("42");
   });
 
-  test("should replace the decorated getter with the wrapped getter steps on the prototype", () => {
+  test("should replace the decorated getter with a wrapped getter that coerces through the attribute type on the prototype", () => {
     @Interface
     class Test {
       @Attribute(DOMString)
       get foo() {
-        return "";
+        return 42 as unknown as string;
       }
     }
 
-    const attribute = getAttribute(getInterface(new Test()), "foo")!;
     const descriptor = Object.getOwnPropertyDescriptor(Test.prototype, "foo")!;
 
-    expect(descriptor.get).toBe(attribute.getterSteps);
+    expect(typeof descriptor.get).toBe("function");
+    expect(descriptor.get!.call(new Test())).toBe("42");
   });
 
   test("should shadow an inherited attribute when redeclared on a derived class", () => {
@@ -212,7 +208,7 @@ describe("@Attribute", () => {
       }
     }
 
-    const i = getInterface(new Derived());
+    const i = getInterface(Derived);
     const own = getAttribute(i, "foo")!;
     const inherited = getAttribute(Object.getPrototypeOf(i), "foo")!;
 
@@ -228,6 +224,7 @@ describe("@Attribute", () => {
       @Interface
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       class Test {
+        // @ts-expect-error it is invalid usecase ofc
         @Attribute(DOMString)
         get [anonymous]() {
           return "";

@@ -12,7 +12,7 @@ describe("@LegacyUnenumerableNamedProperties", () => {
     @LegacyUnenumerableNamedProperties
     class Test {}
 
-    const i = getInterface(new Test());
+    const i = getInterface(Test);
 
     expect(i[LegacyUnenumerableNamedPropertiesSymbol]).toBe(true);
   });
@@ -21,7 +21,7 @@ describe("@LegacyUnenumerableNamedProperties", () => {
     @Interface
     class Test {}
 
-    const i = getInterface(new Test());
+    const i = getInterface(Test);
 
     expect(i[LegacyUnenumerableNamedPropertiesSymbol]).toBeUndefined();
   });

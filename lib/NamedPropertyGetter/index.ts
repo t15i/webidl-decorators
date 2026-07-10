@@ -1,13 +1,14 @@
 import {
-  DOMString,
   NamedPropertyDeterminator as NamedPropertyDeterminatorSymbol,
   NamedPropertyGetter as NamedPropertyGetterSymbol,
+  SupportedPropertyNames as SupportedPropertyNamesSymbol,
   type Type,
 } from "@t15i/webspecs/webidl";
+import { DOMString } from "@t15i/webidl-types";
 
 import { interfaceRegistry } from "../InterfaceRegistry";
 import { GetterPrototype } from "../proto";
-import { getIdentifierByName, getMethodSteps } from "../utils";
+import { getIdentifierByName, getMethodSteps, guard } from "../utils";
 
 import {
   toSpecialOperationDecoratorContext,
@@ -19,6 +20,7 @@ import type {
   NamedPropertyGetterDecorator,
   NamedPropertyGetterDecoratorTarget,
 } from "./types";
+import { NaiveSupportedPropertyNames } from "./NaiveSupportedPropertyNames";
 
 const NamedPropertyGetterPrototype = Object.create(GetterPrototype, {
   arguments: {
@@ -45,27 +47,30 @@ function defineNamedPropertyGetter<T>(
   context = toSpecialOperationDecoratorContext(context);
 
   const i = interfaceRegistry.get(context.metadata);
-  const identifier = getIdentifierByName(context.name);
-  const methodSteps = getMethodSteps(target, {
+
+  const operation = (i.members[NamedPropertyGetterSymbol] = Object.create(
+    NamedPropertyGetterPrototype,
+    {
+      identifier: { value: getIdentifierByName(context.name) },
+      methodSteps: { value: getMethodSteps(context.access.get!) },
+      returnType: { value: T },
+    },
+  ));
+  i.members[SupportedPropertyNamesSymbol] = function () {
+    return new NaiveSupportedPropertyNames();
+  };
+
+  if (operation.identifier !== undefined) {
+    i.members[operation.identifier] = operation;
+  } else {
+    i.members[NamedPropertyDeterminatorSymbol] ??= operation.methodSteps;
+  }
+
+  return guard(target, {
     interface: i,
     arguments: NamedPropertyGetterPrototype.arguments,
     returnType: T,
   });
-
-  i.members[NamedPropertyGetterSymbol] = Object.create(
-    NamedPropertyGetterPrototype,
-    {
-      identifier: { value: identifier },
-      returnType: { value: T },
-      methodSteps: { value: methodSteps },
-    },
-  );
-
-  if (identifier === undefined) {
-    i.members[NamedPropertyDeterminatorSymbol] ??= methodSteps;
-  }
-
-  return methodSteps;
 }
 
 /**

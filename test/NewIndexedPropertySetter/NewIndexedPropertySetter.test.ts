@@ -14,8 +14,8 @@ describe("@NewIndexedPropertySetter", () => {
       newIndexedPropertySetter() {}
     }
 
-    expect(
-      getInterface(new Test()).members[NewIndexedPropertySetterSymbol],
-    ).toBe(Test.prototype.newIndexedPropertySetter);
+    expect(getInterface(Test).members[NewIndexedPropertySetterSymbol]).toBe(
+      Test.prototype.newIndexedPropertySetter,
+    );
   });
 });

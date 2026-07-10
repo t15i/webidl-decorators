@@ -15,7 +15,7 @@ describe("@ExistingIndexedPropertySetter", () => {
     }
 
     expect(
-      getInterface(new Test()).members[ExistingIndexedPropertySetterSymbol],
+      getInterface(Test).members[ExistingIndexedPropertySetterSymbol],
     ).toBe(Test.prototype.existingIndexedPropertySetter);
   });
 });

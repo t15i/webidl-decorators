@@ -14,8 +14,8 @@ describe("@ExistingNamedPropertyDeleter", () => {
       existingNamedPropertyDeleter() {}
     }
 
-    expect(
-      getInterface(new Test()).members[ExistingNamedPropertyDeleterSymbol],
-    ).toBe(Test.prototype.existingNamedPropertyDeleter);
+    expect(getInterface(Test).members[ExistingNamedPropertyDeleterSymbol]).toBe(
+      Test.prototype.existingNamedPropertyDeleter,
+    );
   });
 });

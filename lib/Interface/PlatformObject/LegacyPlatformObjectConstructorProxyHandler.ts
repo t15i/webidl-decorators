@@ -2,7 +2,6 @@ import type { AnyConstructor } from "../../types";
 
 import { Internals, internals } from "./internals";
 import { LegacyPlatformObjectProxyHandler } from "./LegacyPlatformObjectProxyHandler";
-import { PlatformObjectProxyHandler } from "./PlatformObjectProxyHandler";
 
 export const LegacyPlatformObjectConstructorProxyHandler: ProxyHandler<AnyConstructor> =
   {
@@ -18,9 +17,6 @@ export const LegacyPlatformObjectConstructorProxyHandler: ProxyHandler<AnyConstr
         delete obj[Internals];
       }
 
-      return new Proxy(
-        new Proxy(obj, PlatformObjectProxyHandler),
-        LegacyPlatformObjectProxyHandler,
-      );
+      return new Proxy(obj, LegacyPlatformObjectProxyHandler);
     },
   };

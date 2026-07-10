@@ -1,9 +1,11 @@
 import {
-  PrimaryInterface,
+  PlatformObject,
   type Interface,
-  type PlatformObject,
+  type PlatformObject as PlatformObjectType,
 } from "@t15i/webspecs/webidl";
 
-export function getInterface(instance: object): Interface {
-  return (instance as PlatformObject)[PrimaryInterface] as Interface;
+export function getInterface(constructor: { prototype: object }): Interface {
+  return PlatformObject.getPrimaryInterfaceOf(
+    constructor.prototype as PlatformObjectType,
+  );
 }

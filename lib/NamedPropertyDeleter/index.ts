@@ -1,13 +1,13 @@
 import {
   type Type,
-  DOMString,
-  Undefined,
   NamedPropertyDeleter as NamedPropertyDeleterSymbol,
+  ExistingNamedPropertyDeleter as ExistingNamedPropertyDeleterSymbol,
 } from "@t15i/webspecs/webidl";
+import { DOMString, Undefined } from "@t15i/webidl-types";
 
 import { interfaceRegistry } from "../InterfaceRegistry";
 import { DeleterPrototype } from "../proto";
-import { getIdentifierByName, getMethodSteps } from "../utils";
+import { getIdentifierByName, getMethodSteps, guard } from "../utils";
 
 import {
   toSpecialOperationDecoratorContext,
@@ -42,22 +42,27 @@ function defineNamedPropertyDeleter<Return>(
   context = toSpecialOperationDecoratorContext(context);
 
   const i = interfaceRegistry.get(context.metadata);
-  const methodSteps = getMethodSteps(target, {
+
+  const operation = (i.members[NamedPropertyDeleterSymbol] = Object.create(
+    NamedPropertyDeleterPrototype,
+    {
+      identifier: { value: getIdentifierByName(context.name) },
+      methodSteps: { value: getMethodSteps(context.access.get!) },
+      returnType: { value: Return },
+    },
+  ));
+
+  if (operation.identifier !== undefined) {
+    i.members[operation.identifier] = operation;
+  } else {
+    i.members[ExistingNamedPropertyDeleterSymbol] ??= operation.methodSteps;
+  }
+
+  return guard(target, {
     interface: i,
     arguments: NamedPropertyDeleterPrototype.arguments,
     returnType: Return,
   });
-
-  i.members[NamedPropertyDeleterSymbol] = Object.create(
-    NamedPropertyDeleterPrototype,
-    {
-      identifier: { value: getIdentifierByName(context.name) },
-      returnType: { value: Return },
-      methodSteps: { value: methodSteps },
-    },
-  );
-
-  return methodSteps;
 }
 
 const NamedPropertyDeleterDefault = defineNamedPropertyDeleter.bind(

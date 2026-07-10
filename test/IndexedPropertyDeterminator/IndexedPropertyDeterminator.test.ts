@@ -14,8 +14,8 @@ describe("@IndexedPropertyDeterminator", () => {
       indexedPropertyDeterminator() {}
     }
 
-    expect(
-      getInterface(new Test()).members[IndexedPropertyDeterminatorSymbol],
-    ).toBe(Test.prototype.indexedPropertyDeterminator);
+    expect(getInterface(Test).members[IndexedPropertyDeterminatorSymbol]).toBe(
+      Test.prototype.indexedPropertyDeterminator,
+    );
   });
 });

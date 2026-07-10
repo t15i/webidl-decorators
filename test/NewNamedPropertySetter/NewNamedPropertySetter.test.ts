@@ -14,7 +14,7 @@ describe("@NewNamedPropertySetter", () => {
       newNamedPropertySetter() {}
     }
 
-    expect(getInterface(new Test()).members[NewNamedPropertySetterSymbol]).toBe(
+    expect(getInterface(Test).members[NewNamedPropertySetterSymbol]).toBe(
       Test.prototype.newNamedPropertySetter,
     );
   });

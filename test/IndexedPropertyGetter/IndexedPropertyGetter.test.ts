@@ -3,8 +3,8 @@ import { IndexedPropertyGetter, Interface } from "lib";
 import {
   IndexedPropertyDeterminator as IndexedPropertyDeterminatorSymbol,
   IndexedPropertyGetter as IndexedPropertyGetterSymbol,
-  UnsignedLong,
 } from "@t15i/webspecs/webidl";
+import { UnsignedLong } from "@t15i/webidl-types";
 
 import { describe, expect, test } from "vitest";
 
@@ -21,8 +21,7 @@ describe("@IndexedPropertyGetter", () => {
     }
 
     const instance = new Test();
-    const operation =
-      getInterface(instance).members[IndexedPropertyGetterSymbol]!;
+    const operation = getInterface(Test).members[IndexedPropertyGetterSymbol]!;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const methodSteps = Test.prototype.item as any;
 
@@ -32,7 +31,7 @@ describe("@IndexedPropertyGetter", () => {
     expect(operation.identifier).toBe("item");
     expect(operation.returnType).toBe(UnsignedLong);
     expect(operation.arguments).toEqual([{ type: UnsignedLong }]);
-    expect(operation.methodSteps).toBe(Test.prototype.item);
+    expect(typeof operation.methodSteps).toBe("function");
     expect(methodSteps.length).toBe(1);
     expect(methodSteps.name).toBe("item");
     expect(() => methodSteps.call({}, 0)).toThrow(
@@ -58,12 +57,10 @@ describe("@IndexedPropertyGetter", () => {
       }
     }
 
-    const operation = getInterface(new Test()).members[
-      IndexedPropertyGetterSymbol
-    ]!;
+    const operation = getInterface(Test).members[IndexedPropertyGetterSymbol]!;
 
     expect(operation.identifier).toBeUndefined();
-    expect(operation.methodSteps).toBe(Test.prototype[anonymous]);
+    expect(typeof operation.methodSteps).toBe("function");
   });
 
   test("should not register the behavior to determine the value of an indexed property for a named getter", () => {
@@ -75,7 +72,7 @@ describe("@IndexedPropertyGetter", () => {
       }
     }
 
-    const i = getInterface(new Test());
+    const i = getInterface(Test);
 
     expect(i.members[IndexedPropertyDeterminatorSymbol]).toBeUndefined();
   });
@@ -91,11 +88,11 @@ describe("@IndexedPropertyGetter", () => {
       }
     }
 
-    const i = getInterface(new Test());
+    const i = getInterface(Test);
 
     expect(i.members[IndexedPropertyGetterSymbol]!.identifier).toBeUndefined();
     expect(i.members[IndexedPropertyDeterminatorSymbol]).toBe(
-      Test.prototype[anonymous],
+      i.members[IndexedPropertyGetterSymbol]!.methodSteps,
     );
   });
 });

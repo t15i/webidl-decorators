@@ -1,13 +1,11 @@
 import { Interface, NamedPropertySetter } from "lib";
 
 import {
-  Boolean,
-  DOMString,
   ExistingNamedPropertySetter as ExistingNamedPropertySetterSymbol,
   NamedPropertySetter as NamedPropertySetterSymbol,
   NewNamedPropertySetter as NewNamedPropertySetterSymbol,
-  Undefined,
 } from "@t15i/webspecs/webidl";
+import { Boolean, DOMString, Undefined } from "@t15i/webidl-types";
 
 import { describe, expect, test } from "vitest";
 
@@ -25,8 +23,7 @@ describe("@NamedPropertySetter", () => {
     }
 
     const instance = new Test();
-    const operation =
-      getInterface(instance).members[NamedPropertySetterSymbol]!;
+    const operation = getInterface(Test).members[NamedPropertySetterSymbol]!;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const methodSteps = Test.prototype.namedPropertySetter as any;
 
@@ -37,7 +34,7 @@ describe("@NamedPropertySetter", () => {
     expect(operation.returnType).toBe(Undefined);
     expect(operation.arguments[0]).toEqual({ type: DOMString });
     expect(operation.arguments[1]).toEqual({ type: DOMString });
-    expect(operation.methodSteps).toBe(Test.prototype.namedPropertySetter);
+    expect(typeof operation.methodSteps).toBe("function");
     expect(methodSteps.length).toBe(2);
     expect(methodSteps.name).toBe("namedPropertySetter");
     expect(() => methodSteps.call({}, "x", "y")).toThrow(
@@ -61,9 +58,7 @@ describe("@NamedPropertySetter", () => {
       }
     }
 
-    const operation = getInterface(new Test()).members[
-      NamedPropertySetterSymbol
-    ]!;
+    const operation = getInterface(Test).members[NamedPropertySetterSymbol]!;
 
     expect(operation.returnType).toBe(Boolean);
   });
@@ -75,7 +70,7 @@ describe("@NamedPropertySetter", () => {
       namedPropertySetter() {}
     }
 
-    const i = getInterface(new Test());
+    const i = getInterface(Test);
 
     expect(i.members[NewNamedPropertySetterSymbol]).toBeUndefined();
     expect(i.members[ExistingNamedPropertySetterSymbol]).toBeUndefined();
@@ -90,14 +85,14 @@ describe("@NamedPropertySetter", () => {
       [anonymous]() {}
     }
 
-    const i = getInterface(new Test());
+    const i = getInterface(Test);
 
     expect(i.members[NamedPropertySetterSymbol]!.identifier).toBeUndefined();
     expect(i.members[NewNamedPropertySetterSymbol]).toBe(
-      Test.prototype[anonymous],
+      i.members[NamedPropertySetterSymbol]!.methodSteps,
     );
     expect(i.members[ExistingNamedPropertySetterSymbol]).toBe(
-      Test.prototype[anonymous],
+      i.members[NamedPropertySetterSymbol]!.methodSteps,
     );
   });
 });

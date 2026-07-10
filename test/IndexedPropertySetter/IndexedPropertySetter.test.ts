@@ -4,9 +4,8 @@ import {
   ExistingIndexedPropertySetter as ExistingIndexedPropertySetterSymbol,
   IndexedPropertySetter as IndexedPropertySetterSymbol,
   NewIndexedPropertySetter as NewIndexedPropertySetterSymbol,
-  Undefined,
-  UnsignedLong,
 } from "@t15i/webspecs/webidl";
+import { Undefined, UnsignedLong } from "@t15i/webidl-types";
 
 import { describe, expect, test } from "vitest";
 
@@ -24,8 +23,7 @@ describe("@IndexedPropertySetter", () => {
     }
 
     const instance = new Test();
-    const operation =
-      getInterface(instance).members[IndexedPropertySetterSymbol]!;
+    const operation = getInterface(Test).members[IndexedPropertySetterSymbol]!;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const methodSteps = Test.prototype.indexedPropertySetter as any;
 
@@ -36,7 +34,7 @@ describe("@IndexedPropertySetter", () => {
     expect(operation.returnType).toBe(Undefined);
     expect(operation.arguments[0]).toEqual({ type: UnsignedLong });
     expect(operation.arguments[1]).toEqual({ type: UnsignedLong });
-    expect(operation.methodSteps).toBe(Test.prototype.indexedPropertySetter);
+    expect(typeof operation.methodSteps).toBe("function");
     expect(methodSteps.length).toBe(2);
     expect(methodSteps.name).toBe("indexedPropertySetter");
     expect(() => methodSteps.call({}, 0, 0)).toThrow(
@@ -60,9 +58,7 @@ describe("@IndexedPropertySetter", () => {
       }
     }
 
-    const operation = getInterface(new Test()).members[
-      IndexedPropertySetterSymbol
-    ]!;
+    const operation = getInterface(Test).members[IndexedPropertySetterSymbol]!;
 
     expect(operation.returnType).toBe(UnsignedLong);
   });
@@ -74,7 +70,7 @@ describe("@IndexedPropertySetter", () => {
       indexedPropertySetter() {}
     }
 
-    const i = getInterface(new Test());
+    const i = getInterface(Test);
 
     expect(i.members[NewIndexedPropertySetterSymbol]).toBeUndefined();
     expect(i.members[ExistingIndexedPropertySetterSymbol]).toBeUndefined();
@@ -89,14 +85,14 @@ describe("@IndexedPropertySetter", () => {
       [anonymous]() {}
     }
 
-    const i = getInterface(new Test());
+    const i = getInterface(Test);
 
     expect(i.members[IndexedPropertySetterSymbol]!.identifier).toBeUndefined();
     expect(i.members[NewIndexedPropertySetterSymbol]).toBe(
-      Test.prototype[anonymous],
+      i.members[IndexedPropertySetterSymbol]!.methodSteps,
     );
     expect(i.members[ExistingIndexedPropertySetterSymbol]).toBe(
-      Test.prototype[anonymous],
+      i.members[IndexedPropertySetterSymbol]!.methodSteps,
     );
   });
 });

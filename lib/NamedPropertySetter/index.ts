@@ -1,16 +1,15 @@
 import {
   type Type,
   NamedPropertySetter as NamedPropertySetterSymbol,
-  DOMString,
-  Undefined,
   NewNamedPropertySetter as NewNamedPropertySetterSymbol,
   ExistingNamedPropertySetter as ExistingNamedPropertySetterSymbol,
   type ArgumentList,
 } from "@t15i/webspecs/webidl";
+import { DOMString, Undefined } from "@t15i/webidl-types";
 
 import { interfaceRegistry } from "../InterfaceRegistry";
 import { SetterPrototype } from "../proto";
-import { getIdentifierByName, getMethodSteps } from "../utils";
+import { getIdentifierByName, getMethodSteps, guard } from "../utils";
 
 import type { SpecialOperationDecoratorContext } from "../types";
 import {
@@ -45,27 +44,33 @@ function defineNamedPropertySetter<T, Return>(
   context = toSpecialOperationDecoratorContext(context);
 
   const i = interfaceRegistry.get(context.metadata);
-  const identifier = getIdentifierByName(context.name);
-  const args: ArgumentList<[string, T]> = [{ type: DOMString }, { type: T }];
-  const methodSteps = getMethodSteps(target, {
+  const args: ArgumentList<[typeof DOMString, Type<T>]> = [
+    { type: DOMString },
+    { type: T },
+  ];
+
+  const operation = (i.members[NamedPropertySetterSymbol] = Object.create(
+    SetterPrototype,
+    {
+      identifier: { value: getIdentifierByName(context.name) },
+      methodSteps: { value: getMethodSteps(context.access.get!) },
+      returnType: { value: Return },
+      arguments: { value: args },
+    },
+  ));
+
+  if (operation.identifier !== undefined) {
+    i.members[operation.identifier] = operation;
+  } else {
+    i.members[NewNamedPropertySetterSymbol] ??= operation.methodSteps;
+    i.members[ExistingNamedPropertySetterSymbol] ??= operation.methodSteps;
+  }
+
+  return guard(target, {
     interface: i,
     arguments: args,
     returnType: Return,
   });
-
-  i.members[NamedPropertySetterSymbol] = Object.create(SetterPrototype, {
-    identifier: { value: identifier },
-    returnType: { value: Return },
-    arguments: { value: args },
-    methodSteps: { value: methodSteps },
-  });
-
-  if (identifier === undefined) {
-    i.members[NewNamedPropertySetterSymbol] ??= methodSteps;
-    i.members[ExistingNamedPropertySetterSymbol] ??= methodSteps;
-  }
-
-  return methodSteps;
 }
 
 /**

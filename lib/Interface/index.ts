@@ -61,10 +61,11 @@ const InterfaceDefault = defineInterface.bind(
  * deleter semantics are applied automatically based on the behavior decorators
  * applied to the class members.
  *
- * Because the wrapper is implemented with a proxy, `#private` fields declared
- * on the class are not reachable through method calls on instances. Use the
- * provided `this[{@link Internals}]` object to store instance-private state
- * instead.
+ * A legacy platform object (a class with indexed or named property behaviors)
+ * is wrapped in a proxy, so its `#private` fields are not reachable through
+ * method calls on instances; use the provided `this[{@link Internals}]` object
+ * to store instance-private state instead. A regular platform object is not
+ * proxied and can use `#private` fields as usual.
  *
  * @example
  * ```ts
@@ -100,10 +101,11 @@ export function Interface<T extends InterfaceDecoratorTarget>(
  * deleter semantics are applied automatically based on the behavior decorators
  * applied to the class members.
  *
- * Because the wrapper is implemented with a proxy, `#private` fields declared
- * on the class are not reachable through method calls on instances. Use the
- * provided `this[{@link Internals}]` object to store instance-private state
- * instead.
+ * A legacy platform object (a class with indexed or named property behaviors)
+ * is wrapped in a proxy, so its `#private` fields are not reachable through
+ * method calls on instances; use the provided `this[{@link Internals}]` object
+ * to store instance-private state instead. A regular platform object is not
+ * proxied and can use `#private` fields as usual.
  *
  * @example
  * ```ts

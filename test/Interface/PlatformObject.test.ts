@@ -1,9 +1,7 @@
 import { IndexedPropertyGetter, Interface } from "lib";
 
-import {
-  LegacyPlatformObjectInternalMethods,
-  UnsignedLong,
-} from "@t15i/webspecs/webidl";
+import { LegacyPlatformObjectInternalMethods } from "@t15i/webspecs/webidl";
+import { UnsignedLong } from "@t15i/webidl-types";
 
 import { afterEach, describe, expect, test } from "vitest";
 
@@ -32,7 +30,7 @@ function override<K extends keyof Methods>(
 
 describe("PlatformObject proxy", () => {
   describe("non-legacy platform object", () => {
-    test("getOwnPropertyDescriptor should fall back to Reflect for non-[PrimaryInterface] keys", () => {
+    test("should expose own properties directly on a non-proxied instance", () => {
       @Interface
       class Test {
         foo: number = 42;

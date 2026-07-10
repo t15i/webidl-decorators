@@ -7,3 +7,5 @@ build
 # Vite
 dist
 coverage
+.vitest-attachments
+__screenshots__

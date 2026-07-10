@@ -1,11 +1,12 @@
-import { isAttribute, type Type } from "@t15i/webspecs/webidl";
+import { isAttribute, type Attribute, type Type } from "@t15i/webspecs/webidl";
 
 import { interfaceRegistry } from "../InterfaceRegistry";
 import { AttributePrototype } from "../proto";
 import {
-  getAttributeGetter,
-  getAttributeSetter,
   getIdentifierByName,
+  getAttributeGetterSteps,
+  getAttributeSetterSteps,
+  guard,
 } from "../utils";
 
 import {
@@ -15,12 +16,12 @@ import {
 import type { AttributeDecoratorContext } from "../types";
 
 import type {
-  AccessorAttributeDecoratorTarget,
   AttributeDecorator,
   AttributeDecoratorTarget,
   GetterAttributeDecoratorTarget,
   SetterAttributeDecoratorTarget,
 } from "./types";
+import { Undefined, typeRegistry } from "@t15i/webidl-types";
 
 /**
  * Defines the decorated member as a WebIDL attribute of the WebIDL interface,
@@ -54,79 +55,78 @@ function defineAttribute<T>(
   }
 
   const members = context.static ? i.staticMembers : i.members;
-  const attribute = Object.hasOwn(members, identifier)
+
+  let attribute = Object.hasOwn(members, identifier)
     ? members[identifier]
     : undefined;
 
-  if (attribute !== undefined && !isAttribute(attribute)) {
+  try {
+    if (attribute && !isAttribute(attribute)) {
+      throw TypeError(
+        `a non-attribute ${context.static ? "static " : ""}interface member '${identifier}' is already defined`,
+      );
+    }
+
+    if (attribute && attribute.type !== T) {
+      throw TypeError(
+        `${context.static ? "static " : ""}attribute member '${identifier}' is already defined with type '${typeRegistry.getId(attribute.type)}'`,
+      );
+    }
+  } catch (cause) {
     throw TypeError(
-      `A non-attribute${context.static ? " static " : " "}interface member is already defined for identifier '${identifier}'`,
+      `Cannot define ${context.static ? "static " : ""}attribute '${identifier}' of type '${typeRegistry.getId(T)}' for interface ${i.identifier}`,
+      { cause },
     );
+  }
+
+  if (!attribute) {
+    const keywords = new Set<string>(["readonly"]);
+    if (context.static) keywords.add("static");
+
+    attribute = members[identifier] = Object.create(AttributePrototype, {
+      keywords: { value: keywords },
+      identifier: { value: identifier },
+      type: { value: T },
+    }) as Attribute<Type<T>>;
   }
 
   switch (context.kind) {
     case "getter": {
-      const getter = getAttributeGetter(
-        target as GetterAttributeDecoratorTarget<T>,
-        T,
-      );
+      attribute.getterSteps = getAttributeGetterSteps(context.access.get!);
 
-      if (attribute) {
-        attribute.getterSteps = getter;
-      } else {
-        const keywords = new Set<string>(["readonly"]);
-        if (context.static) keywords.add("static");
-
-        members[identifier] = Object.create(AttributePrototype, {
-          keywords: { value: keywords },
-          identifier: { value: identifier },
-          type: { value: T },
-          getterSteps: { value: getter },
-        });
-      }
-
-      return getter;
+      return guard(target as GetterAttributeDecoratorTarget<T>, {
+        interface: i,
+        arguments: [],
+        returnType: T,
+      });
     }
     case "setter": {
-      const setter = getAttributeSetter(
-        target as SetterAttributeDecoratorTarget<T>,
-        T,
-      );
+      attribute.setterSteps = getAttributeSetterSteps(context.access.set!);
+      attribute.keywords.delete("readonly");
 
-      if (attribute) {
-        attribute.setterSteps = setter;
-        attribute.keywords.delete("readonly");
-      } else {
-        const keywords = new Set<string>();
-        if (context.static) keywords.add("static");
-
-        members[identifier] = Object.create(AttributePrototype, {
-          keywords: { value: keywords },
-          identifier: { value: identifier },
-          type: { value: T },
-          setterSteps: { value: setter },
-        });
-      }
-
-      return setter;
+      return guard(target as SetterAttributeDecoratorTarget<T>, {
+        interface: i,
+        arguments: [{ type: T }],
+        returnType: Undefined,
+      });
     }
     case "accessor": {
-      const { get, set } = target as AccessorAttributeDecoratorTarget<T>;
-      const getter = getAttributeGetter(get, T);
-      const setter = getAttributeSetter(set, T);
+      attribute.getterSteps = getAttributeGetterSteps(context.access.get!);
+      attribute.setterSteps = getAttributeSetterSteps(context.access.set!);
+      attribute.keywords.delete("readonly");
 
-      const keywords = new Set<string>();
-      if (context.static) keywords.add("static");
-
-      members[identifier] = Object.create(AttributePrototype, {
-        keywords: { value: keywords },
-        identifier: { value: identifier },
-        type: { value: T },
-        getterSteps: { value: getter },
-        setterSteps: { value: setter },
-      });
-
-      return { get: getter, set: setter };
+      return {
+        get: guard(target as GetterAttributeDecoratorTarget<T>, {
+          interface: i,
+          arguments: [],
+          returnType: T,
+        }),
+        set: guard(target as SetterAttributeDecoratorTarget<T>, {
+          interface: i,
+          arguments: [{ type: T }],
+          returnType: Undefined,
+        }),
+      };
     }
   }
 }

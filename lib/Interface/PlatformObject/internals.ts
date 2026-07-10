@@ -9,9 +9,12 @@
  * across all methods of the instance, including methods inherited from parent
  * {@link Interface}-decorated classes.
  *
- * Because `@Interface` replaces the class with a proxy, `#private` fields
- * declared on the class are not reachable through method calls on instances.
- * Use `this[Internals]` to store instance-private state instead.
+ * `@Interface` replaces a legacy platform object (a class with indexed or named
+ * property behaviors) with a proxy, which makes `#private` fields declared on
+ * that class unreachable through method calls on instances. Use
+ * `this[Internals]` to store instance-private state on such classes instead. A
+ * regular platform object is not proxied, so its `#private` fields work as
+ * usual and `this[Internals]` is unnecessary.
  *
  * @example
  * ```ts

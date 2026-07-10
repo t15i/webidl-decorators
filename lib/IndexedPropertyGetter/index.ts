@@ -1,13 +1,14 @@
 import {
   IndexedPropertyDeterminator as IndexedPropertyDeterminatorSymbol,
   IndexedPropertyGetter as IndexedPropertyGetterSymbol,
-  UnsignedLong,
+  SupportedPropertyIndices,
   type Type,
 } from "@t15i/webspecs/webidl";
+import { UnsignedLong } from "@t15i/webidl-types";
 
 import { interfaceRegistry } from "../InterfaceRegistry";
 import { GetterPrototype } from "../proto";
-import { getIdentifierByName, getMethodSteps } from "../utils";
+import { getIdentifierByName, getMethodSteps, guard } from "../utils";
 
 import {
   toSpecialOperationDecoratorContext,
@@ -19,6 +20,8 @@ import type {
   IndexedPropertyGetterDecorator,
   IndexedPropertyGetterDecoratorTarget,
 } from "./types";
+
+import { NaiveSupportedPropertyIndices } from "./NaiveSupportedPropertyIndices";
 
 const IndexedPropertyGetterPrototype = Object.create(GetterPrototype, {
   arguments: {
@@ -45,27 +48,29 @@ function defineIndexedPropertyGetter<T>(
   context = toSpecialOperationDecoratorContext(context);
 
   const i = interfaceRegistry.get(context.metadata);
-  const identifier = getIdentifierByName(context.name);
-  const methodSteps = getMethodSteps(target, {
+  const operation = (i.members[IndexedPropertyGetterSymbol] = Object.create(
+    IndexedPropertyGetterPrototype,
+    {
+      identifier: { value: getIdentifierByName(context.name) },
+      methodSteps: { value: getMethodSteps(context.access.get!) },
+      returnType: { value: T },
+    },
+  ));
+  i.members[SupportedPropertyIndices] = function () {
+    return new NaiveSupportedPropertyIndices(this, operation.methodSteps);
+  };
+
+  if (operation.identifier !== undefined) {
+    i.members[operation.identifier] = operation;
+  } else {
+    i.members[IndexedPropertyDeterminatorSymbol] ??= operation.methodSteps;
+  }
+
+  return guard(target, {
     interface: i,
     arguments: IndexedPropertyGetterPrototype.arguments,
     returnType: T,
   });
-
-  i.members[IndexedPropertyGetterSymbol] = Object.create(
-    IndexedPropertyGetterPrototype,
-    {
-      identifier: { value: identifier },
-      returnType: { value: T },
-      methodSteps: { value: methodSteps },
-    },
-  );
-
-  if (identifier === undefined) {
-    i.members[IndexedPropertyDeterminatorSymbol] ??= methodSteps;
-  }
-
-  return methodSteps;
 }
 
 /**

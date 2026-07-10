@@ -16,7 +16,7 @@ describe("@SupportedPropertyNames", () => {
       }
     }
 
-    expect(getInterface(new Test()).members[SupportedPropertyNamesSymbol]).toBe(
+    expect(getInterface(Test).members[SupportedPropertyNamesSymbol]).toBe(
       Test.prototype.supportedPropertyNames,
     );
   });

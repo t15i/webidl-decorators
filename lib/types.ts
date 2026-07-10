@@ -31,6 +31,9 @@ export interface MemberDecoratorContext extends DecoratorContext {
 
 export interface OperationDecoratorContext extends MemberDecoratorContext {
   kind: "method";
+  access: {
+    get?(object: object): AnyFunction;
+  };
 }
 
 export interface SpecialOperationDecoratorContext extends OperationDecoratorContext {
@@ -39,4 +42,9 @@ export interface SpecialOperationDecoratorContext extends OperationDecoratorCont
 
 export interface AttributeDecoratorContext extends MemberDecoratorContext {
   kind: "getter" | "setter" | "accessor";
+  name: string;
+  access: {
+    get?(object: object): unknown;
+    set?(object: object, value: unknown): void;
+  };
 }

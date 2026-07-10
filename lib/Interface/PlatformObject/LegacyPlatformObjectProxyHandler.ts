@@ -3,8 +3,13 @@ import {
   LegacyPlatformObjectInternalMethods,
 } from "@t15i/webspecs/webidl";
 
+import { Internals, internals } from "./internals";
+
 export const LegacyPlatformObjectProxyHandler: ProxyHandler<PlatformObject> = {
   get(o, p, receiver) {
+    if (p === Internals) {
+      return internals.get(o);
+    }
     if (typeof p === "string") {
       const desc = LegacyPlatformObjectInternalMethods.getOwnProperty(o, p);
       if (desc !== undefined) {
@@ -14,6 +19,9 @@ export const LegacyPlatformObjectProxyHandler: ProxyHandler<PlatformObject> = {
     return Reflect.get(o, p, receiver);
   },
   has(o, p) {
+    if (p === Internals) {
+      return internals.has(o);
+    }
     if (typeof p === "string") {
       return (
         LegacyPlatformObjectInternalMethods.getOwnProperty(o, p)?.value !==

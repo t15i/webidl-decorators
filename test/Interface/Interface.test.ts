@@ -7,11 +7,11 @@ import { describe, expect, test } from "vitest";
 import { getInterface } from "../utils";
 
 describe("@Interface", () => {
-  test("should expose [PrimaryInterface] on instances", () => {
+  test("should associate a primary interface with instances", () => {
     @Interface
     class Test {}
 
-    expect(getInterface(new Test())).toBeDefined();
+    expect(getInterface(Test)).toBeDefined();
   });
 
   test("should preserve constructor behavior", () => {
@@ -35,8 +35,8 @@ describe("@Interface", () => {
     @Interface
     class Test {}
 
-    const a = getInterface(new Test());
-    const b = getInterface(new Test());
+    const a = getInterface(Test);
+    const b = getInterface(Test);
 
     expect(a).toBe(b);
   });
@@ -48,25 +48,21 @@ describe("@Interface", () => {
     @Interface
     class B {}
 
-    expect(getInterface(new A())).not.toBe(getInterface(new B()));
+    expect(getInterface(A)).not.toBe(getInterface(B));
   });
 
   test("should use the class name as the WebIDL identifier", () => {
     @Interface
     class HTMLCollection {}
 
-    expect(getInterface(new HTMLCollection()).identifier).toBe(
-      "HTMLCollection",
-    );
+    expect(getInterface(HTMLCollection).identifier).toBe("HTMLCollection");
   });
 
   test("should use the supplied identifier when applied as a factory", () => {
     @Interface("HTMLCollection")
     class HTMLCollectionImpl {}
 
-    expect(getInterface(new HTMLCollectionImpl()).identifier).toBe(
-      "HTMLCollection",
-    );
+    expect(getInterface(HTMLCollectionImpl).identifier).toBe("HTMLCollection");
   });
 
   test("should let each subsequent @Interface decorator overwrite the previous identifier", () => {
@@ -74,14 +70,14 @@ describe("@Interface", () => {
     @Interface("First")
     class Second {}
 
-    expect(getInterface(new Second()).identifier).toBe("Second");
+    expect(getInterface(Second).identifier).toBe("Second");
   });
 
   test("should always create a staticMembers object on the interface", () => {
     @Interface
     class Test {}
 
-    const i = getInterface(new Test());
+    const i = getInterface(Test);
 
     expect(typeof i.staticMembers).toBe("object");
     expect(i.staticMembers).not.toBeNull();
@@ -91,7 +87,7 @@ describe("@Interface", () => {
     @Interface
     class Test {}
 
-    const i = getInterface(new Test());
+    const i = getInterface(Test);
 
     expect(typeof i.members).toBe("object");
     expect(i.members).not.toBeNull();
@@ -104,8 +100,8 @@ describe("@Interface", () => {
     @Interface
     class Derived extends Base {}
 
-    const baseStatic = getInterface(new Base()).staticMembers;
-    const derivedStatic = getInterface(new Derived()).staticMembers;
+    const baseStatic = getInterface(Base).staticMembers;
+    const derivedStatic = getInterface(Derived).staticMembers;
 
     expect(derivedStatic).not.toBe(baseStatic);
     expect(Object.getPrototypeOf(derivedStatic)).toBe(baseStatic);
@@ -118,8 +114,8 @@ describe("@Interface", () => {
     @Interface
     class Derived extends Base {}
 
-    const baseMembers = getInterface(new Base()).members;
-    const derivedMembers = getInterface(new Derived()).members;
+    const baseMembers = getInterface(Base).members;
+    const derivedMembers = getInterface(Derived).members;
 
     expect(derivedMembers).not.toBe(baseMembers);
     expect(Object.getPrototypeOf(derivedMembers)).toBe(baseMembers);
@@ -138,7 +134,7 @@ describe("@Interface", () => {
       override existingIndexedPropertySetter() {}
     }
 
-    const i = getInterface(new Derived());
+    const i = getInterface(Derived);
 
     expect(i.members[ExistingIndexedPropertySetterSymbol]).toBe(
       Derived.prototype.existingIndexedPropertySetter,

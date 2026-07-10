@@ -1,5 +1,5 @@
 import {
-  PrimaryInterface,
+  PlatformObject as WebIDLPlatformObject,
   isLegacyPlatformObject,
 } from "@t15i/webspecs/webidl";
 
@@ -11,15 +11,8 @@ import {
 import type { DecoratorContext, InterfaceDecoratorTarget } from "../../types";
 
 import { LegacyPlatformObjectConstructorProxyHandler } from "./LegacyPlatformObjectConstructorProxyHandler";
-import { PlatformObjectConstructorProxyHandler } from "./PlatformObjectConstructorProxyHandler";
 
 export { Internals } from "./internals";
-
-function isLegacyPlatformObjectConstructor(metadata: object) {
-  return isLegacyPlatformObject({
-    [PrimaryInterface]: interfaceRegistry.get(metadata),
-  });
-}
 
 export function PlatformObject<T extends InterfaceDecoratorTarget>(
   target: T,
@@ -28,18 +21,26 @@ export function PlatformObject<T extends InterfaceDecoratorTarget>(
   target = toInterfaceDecoratorTarget(target);
   context = toDecoratorContext(context);
 
-  const handler = isLegacyPlatformObjectConstructor(context.metadata)
-    ? LegacyPlatformObjectConstructorProxyHandler
-    : PlatformObjectConstructorProxyHandler;
+  WebIDLPlatformObject.setPrimaryInterfaceOf(
+    target.prototype,
+    interfaceRegistry.get(context.metadata),
+  );
 
-  const proxy = new Proxy<T>(target, handler);
+  if (isLegacyPlatformObject(target.prototype)) {
+    const proxy = new Proxy<T>(
+      target,
+      LegacyPlatformObjectConstructorProxyHandler,
+    );
 
-  Object.defineProperty(target.prototype, "constructor", {
-    value: proxy,
-    writable: true,
-    configurable: true,
-    enumerable: false,
-  });
+    Object.defineProperty(target.prototype, "constructor", {
+      value: proxy,
+      writable: true,
+      configurable: true,
+      enumerable: false,
+    });
 
-  return proxy;
+    target = proxy;
+  }
+
+  return target;
 }

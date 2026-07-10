@@ -17,7 +17,7 @@ import {
   SupportedPropertyNames,
 } from "lib";
 
-import { DOMString, Undefined, UnsignedLong } from "@t15i/webspecs/webidl";
+import { DOMString, Undefined, UnsignedLong } from "@t15i/webidl-types";
 
 import { describe, expect, test } from "vitest";
 
