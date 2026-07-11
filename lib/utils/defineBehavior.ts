@@ -1,7 +1,7 @@
 import type { InterfaceMembers } from "@t15i/webspecs/webidl";
 
-import { interfaceRegistry } from "./InterfaceRegistry";
-import type { AnyFunction, DecoratorContext } from "./types";
+import { interfaceRegistry } from "@/InterfaceRegistry";
+import type { AnyFunction, DecoratorContext } from "@/types";
 
 type BehaviorKeys<T> = {
   [K in keyof T]: T[K] extends AnyFunction ? K : never;

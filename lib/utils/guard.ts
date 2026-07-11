@@ -6,7 +6,7 @@ import {
   type Type,
 } from "@t15i/webspecs/webidl";
 
-import type { AnyFunction } from "../types";
+import type { AnyFunction } from "@/types";
 
 import { cloneFunctionMetadata } from "./cloneFunctionMetadata";
 

@@ -3,8 +3,8 @@ import {
   isLegacyPlatformObject,
 } from "@t15i/webspecs/webidl";
 
-import { interfaceRegistry } from "../../InterfaceRegistry";
-import type { DecoratorContext, InterfaceDecoratorTarget } from "../../types";
+import { interfaceRegistry } from "@/InterfaceRegistry";
+import type { DecoratorContext, InterfaceDecoratorTarget } from "@/types";
 
 import { LegacyPlatformObjectConstructorProxyHandler } from "./LegacyPlatformObjectConstructorProxyHandler";
 

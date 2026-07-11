@@ -1,16 +1,16 @@
 import { isAttribute, type Attribute, type Type } from "@t15i/webspecs/webidl";
 import { Undefined, typeRegistry } from "@t15i/webidl-types";
 
-import { interfaceRegistry } from "../InterfaceRegistry";
-import { AttributePrototype } from "../proto";
+import { interfaceRegistry } from "@/InterfaceRegistry";
+import { AttributePrototype } from "@/protos";
 import {
   getIdentifierByName,
   getAttributeGetterSteps,
   getAttributeSetterSteps,
   guard,
-} from "../utils";
+} from "@/utils";
 
-import type { AttributeDecoratorContext } from "../types";
+import type { AttributeDecoratorContext } from "@/types";
 
 import type {
   AttributeDecorator,

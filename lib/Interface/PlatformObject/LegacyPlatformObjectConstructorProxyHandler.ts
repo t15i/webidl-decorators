@@ -1,4 +1,4 @@
-import type { AnyConstructor } from "../../types";
+import type { AnyConstructor } from "@/types";
 
 import { Internals, internals } from "./internals";
 import { LegacyPlatformObjectProxyHandler } from "./LegacyPlatformObjectProxyHandler";

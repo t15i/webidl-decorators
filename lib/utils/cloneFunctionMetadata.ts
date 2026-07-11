@@ -1,4 +1,4 @@
-import type { AnyFunction } from "../types";
+import type { AnyFunction } from "@/types";
 
 /**
  * Overwrites `target`'s `name` and `length` with those of `base` so a wrapper

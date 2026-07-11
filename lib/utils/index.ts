@@ -1,4 +1,5 @@
 export { cloneFunctionMetadata } from "./cloneFunctionMetadata";
+export * from "./defineBehavior";
 export { getAttributeGetterSteps } from "./getAttributeGetterSteps";
 export { getAttributeSetterSteps } from "./getAttributeSetterSteps";
 export { getIdentifierByName } from "./getIdentifierByName";

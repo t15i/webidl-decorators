@@ -6,11 +6,11 @@ import {
 } from "@t15i/webspecs/webidl";
 import { DOMString } from "@t15i/webidl-types";
 
-import { interfaceRegistry } from "../InterfaceRegistry";
-import { GetterPrototype } from "../proto";
-import { getIdentifierByName, getMethodSteps, guard } from "../utils";
+import { interfaceRegistry } from "@/InterfaceRegistry";
+import { GetterPrototype } from "@/protos";
+import { getIdentifierByName, getMethodSteps, guard } from "@/utils";
 
-import type { SpecialOperationDecoratorContext } from "../types";
+import type { SpecialOperationDecoratorContext } from "@/types";
 
 import type {
   NamedPropertyGetterDecorator,

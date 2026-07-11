@@ -1,7 +1,7 @@
 import type {
   InterfaceDecoratorContext,
   InterfaceDecoratorTarget,
-} from "../types";
+} from "@/types";
 
 export type InterfaceDecorator = <T extends InterfaceDecoratorTarget>(
   target: T,

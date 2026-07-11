@@ -1,4 +1,4 @@
-import type { AttributeDecoratorContext } from "../types";
+import type { AttributeDecoratorContext } from "@/types";
 
 export type GetterAttributeDecoratorTarget<T> = () => T;
 

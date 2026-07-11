@@ -1,10 +1,10 @@
 import { PlatformObject } from "./PlatformObject";
 
-import { interfaceRegistry } from "../InterfaceRegistry";
+import { interfaceRegistry } from "@/InterfaceRegistry";
 import type {
   InterfaceDecoratorContext,
   InterfaceDecoratorTarget,
-} from "../types";
+} from "@/types";
 import type { InterfaceDecorator } from "./types";
 
 export { Internals } from "./PlatformObject/internals";

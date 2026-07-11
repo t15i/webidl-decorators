@@ -1,4 +1,4 @@
-import type { AnyFunction } from "../types";
+import type { AnyFunction } from "@/types";
 import { cloneFunctionMetadata } from "./cloneFunctionMetadata";
 
 export function getMethodSteps(

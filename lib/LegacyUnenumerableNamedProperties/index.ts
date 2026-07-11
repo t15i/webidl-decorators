@@ -1,8 +1,8 @@
 import { LegacyUnenumerableNamedProperties as LegacyUnenumerableNamedPropertiesSymbol } from "@t15i/webspecs/webidl";
 
-import { interfaceRegistry } from "../InterfaceRegistry";
+import { interfaceRegistry } from "@/InterfaceRegistry";
 
-import type { DecoratorContext } from "../types";
+import type { DecoratorContext } from "@/types";
 
 /**
  * Marks the WebIDL interface as having the `[LegacyUnenumerableNamedProperties]`
