@@ -4,12 +4,20 @@ import {
   NewIndexedPropertySetter as NewIndexedPropertySetterSymbol,
   ExistingIndexedPropertySetter as ExistingIndexedPropertySetterSymbol,
   type ArgumentList,
+  validateSpecialOperation,
 } from "@t15i/webspecs/webidl";
 import { Undefined, UnsignedLong } from "@t15i/webidl-types";
 
-import { interfaceRegistry } from "@/InterfaceRegistry";
 import { SetterPrototype } from "@/protos";
-import { getIdentifierByName, getMethodSteps, guard } from "@/utils";
+
+import {
+  getIdentifierFromContext,
+  getInterfaceFromContext,
+  getMethodSteps,
+  guard,
+} from "@/utils";
+import { assertDefinable } from "@/utils/assertions";
+import { SpecialOperationDefinitionError } from "@/utils/errors";
 
 import type { SpecialOperationDecoratorContext } from "@/types";
 
@@ -36,21 +44,30 @@ function defineIndexedPropertySetter<T, Return>(
   target: IndexedPropertySetterDecoratorTarget<T, Return>,
   context: SpecialOperationDecoratorContext,
 ) {
-  const i = interfaceRegistry.get(context.metadata);
+  const i = getInterfaceFromContext(context);
   const args: ArgumentList<[typeof UnsignedLong, Type<T>]> = [
     { type: UnsignedLong },
     { type: T },
   ];
 
-  const operation = (i.members[IndexedPropertySetterSymbol] = Object.create(
-    SetterPrototype,
-    {
-      identifier: { value: getIdentifierByName(context.name) },
-      methodSteps: { value: getMethodSteps(context.access.get) },
-      returnType: { value: Return },
-      arguments: { value: args },
-    },
-  ));
+  const operation = Object.create(SetterPrototype, {
+    identifier: { value: getIdentifierFromContext(context) },
+    methodSteps: { value: getMethodSteps(context.access.get) },
+    returnType: { value: Return },
+    arguments: { value: args },
+  });
+
+  try {
+    validateSpecialOperation(operation);
+    assertDefinable(i, IndexedPropertySetterSymbol);
+    if (operation.identifier !== undefined) {
+      assertDefinable(i, operation.identifier);
+    }
+  } catch (e) {
+    throw new SpecialOperationDefinitionError(context, { cause: e });
+  }
+
+  i.members[IndexedPropertySetterSymbol] = operation;
 
   if (operation.identifier !== undefined) {
     i.members[operation.identifier] = operation;

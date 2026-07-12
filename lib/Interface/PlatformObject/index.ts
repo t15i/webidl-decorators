@@ -3,7 +3,7 @@ import {
   isLegacyPlatformObject,
 } from "@t15i/webspecs/webidl";
 
-import { interfaceRegistry } from "@/InterfaceRegistry";
+import { getInterfaceFromContext } from "@/utils";
 import type { DecoratorContext, InterfaceDecoratorTarget } from "@/types";
 
 import { LegacyPlatformObjectConstructorProxyHandler } from "./LegacyPlatformObjectConstructorProxyHandler";
@@ -16,7 +16,7 @@ export function PlatformObject<T extends InterfaceDecoratorTarget>(
 ): T {
   WebIDLPlatformObject.setPrimaryInterfaceOf(
     target.prototype,
-    interfaceRegistry.get(context.metadata),
+    getInterfaceFromContext(context),
   );
 
   if (isLegacyPlatformObject(target.prototype)) {

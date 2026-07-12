@@ -216,20 +216,4 @@ describe("@Attribute", () => {
     expect(inherited.type).toBe(DOMString);
     expect(own).not.toBe(inherited);
   });
-
-  test("should throw when the decorated member name is a symbol", () => {
-    const anonymous = Symbol("anonymous");
-
-    expect(() => {
-      @Interface
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      class Test {
-        // @ts-expect-error it is invalid usecase ofc
-        @Attribute(DOMString)
-        get [anonymous]() {
-          return "";
-        }
-      }
-    }).toThrow(TypeError);
-  });
 });

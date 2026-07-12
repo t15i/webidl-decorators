@@ -2,13 +2,21 @@ import {
   IndexedPropertyDeterminator as IndexedPropertyDeterminatorSymbol,
   IndexedPropertyGetter as IndexedPropertyGetterSymbol,
   SupportedPropertyIndices,
+  validateSpecialOperation,
   type Type,
 } from "@t15i/webspecs/webidl";
 import { UnsignedLong } from "@t15i/webidl-types";
 
-import { interfaceRegistry } from "@/InterfaceRegistry";
 import { GetterPrototype } from "@/protos";
-import { getIdentifierByName, getMethodSteps, guard } from "@/utils";
+
+import {
+  getIdentifierFromContext,
+  getInterfaceFromContext,
+  getMethodSteps,
+  guard,
+} from "@/utils";
+import { assertDefinable } from "@/utils/assertions";
+import { SpecialOperationDefinitionError } from "@/utils/errors";
 
 import type { SpecialOperationDecoratorContext } from "@/types";
 
@@ -40,24 +48,34 @@ function defineIndexedPropertyGetter<T>(
   target: IndexedPropertyGetterDecoratorTarget<T>,
   context: SpecialOperationDecoratorContext,
 ) {
-  const i = interfaceRegistry.get(context.metadata);
-  const operation = (i.members[IndexedPropertyGetterSymbol] = Object.create(
-    IndexedPropertyGetterPrototype,
-    {
-      identifier: { value: getIdentifierByName(context.name) },
-      methodSteps: { value: getMethodSteps(context.access.get) },
-      returnType: { value: T },
-    },
-  ));
-  i.members[SupportedPropertyIndices] = function () {
-    return new NaiveSupportedPropertyIndices(this, operation.methodSteps);
-  };
+  const i = getInterfaceFromContext(context);
+  const operation = Object.create(IndexedPropertyGetterPrototype, {
+    identifier: { value: getIdentifierFromContext(context) },
+    methodSteps: { value: getMethodSteps(context.access.get) },
+    returnType: { value: T },
+  });
+
+  try {
+    validateSpecialOperation(operation);
+    assertDefinable(i, IndexedPropertyGetterSymbol);
+    if (operation.identifier !== undefined) {
+      assertDefinable(i, operation.identifier);
+    }
+  } catch (e) {
+    throw new SpecialOperationDefinitionError(context, { cause: e });
+  }
+
+  i.members[IndexedPropertyGetterSymbol] = operation;
 
   if (operation.identifier !== undefined) {
     i.members[operation.identifier] = operation;
   } else {
     i.members[IndexedPropertyDeterminatorSymbol] ??= operation.methodSteps;
   }
+
+  i.members[SupportedPropertyIndices] = function () {
+    return new NaiveSupportedPropertyIndices(this, operation.methodSteps);
+  };
 
   return guard(target, {
     interface: i,

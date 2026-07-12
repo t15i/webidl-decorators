@@ -2,12 +2,20 @@ import {
   type Type,
   NamedPropertyDeleter as NamedPropertyDeleterSymbol,
   ExistingNamedPropertyDeleter as ExistingNamedPropertyDeleterSymbol,
+  validateSpecialOperation,
 } from "@t15i/webspecs/webidl";
 import { DOMString, Undefined } from "@t15i/webidl-types";
 
-import { interfaceRegistry } from "@/InterfaceRegistry";
 import { DeleterPrototype } from "@/protos";
-import { getIdentifierByName, getMethodSteps, guard } from "@/utils";
+
+import {
+  getIdentifierFromContext,
+  getInterfaceFromContext,
+  getMethodSteps,
+  guard,
+} from "@/utils";
+import { assertDefinable } from "@/utils/assertions";
+import { SpecialOperationDefinitionError } from "@/utils/errors";
 
 import type { SpecialOperationDecoratorContext } from "@/types";
 
@@ -33,16 +41,25 @@ function defineNamedPropertyDeleter<Return>(
   target: NamedPropertyDeleterDecoratorTarget<Return>,
   context: SpecialOperationDecoratorContext,
 ) {
-  const i = interfaceRegistry.get(context.metadata);
+  const i = getInterfaceFromContext(context);
 
-  const operation = (i.members[NamedPropertyDeleterSymbol] = Object.create(
-    NamedPropertyDeleterPrototype,
-    {
-      identifier: { value: getIdentifierByName(context.name) },
-      methodSteps: { value: getMethodSteps(context.access.get) },
-      returnType: { value: Return },
-    },
-  ));
+  const operation = Object.create(NamedPropertyDeleterPrototype, {
+    identifier: { value: getIdentifierFromContext(context) },
+    methodSteps: { value: getMethodSteps(context.access.get) },
+    returnType: { value: Return },
+  });
+
+  try {
+    validateSpecialOperation(operation);
+    assertDefinable(i, NamedPropertyDeleterSymbol);
+    if (operation.identifier !== undefined) {
+      assertDefinable(i, operation.identifier);
+    }
+  } catch (e) {
+    throw new SpecialOperationDefinitionError(context, { cause: e });
+  }
+
+  i.members[NamedPropertyDeleterSymbol] = operation;
 
   if (operation.identifier !== undefined) {
     i.members[operation.identifier] = operation;

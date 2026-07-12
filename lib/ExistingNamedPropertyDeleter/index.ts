@@ -1,6 +1,6 @@
 import { ExistingNamedPropertyDeleter as ExistingNamedPropertyDeleterSymbol } from "@t15i/webspecs/webidl";
 
-import { defineBehavior } from "@/utils/defineBehavior";
+import { defineBehavior } from "@/defineBehavior";
 import type { ExistingNamedPropertyDeleterDecorator } from "./types";
 
 /**

@@ -1,14 +1,24 @@
-import { isAttribute, type Attribute, type Type } from "@t15i/webspecs/webidl";
-import { Undefined, typeRegistry } from "@t15i/webidl-types";
-
-import { interfaceRegistry } from "@/InterfaceRegistry";
-import { AttributePrototype } from "@/protos";
 import {
-  getIdentifierByName,
+  validateAttribute,
+  type Attribute,
+  type Type,
+} from "@t15i/webspecs/webidl";
+import { Undefined } from "@t15i/webidl-types";
+
+import { AttributePrototype } from "@/protos";
+
+import {
+  getIdentifierFromContext,
+  getInterfaceFromContext,
   getAttributeGetterSteps,
   getAttributeSetterSteps,
   guard,
 } from "@/utils";
+import { assertAttributeWithType } from "@/utils/assertions";
+import {
+  AttributeDefinitionError,
+  AttributeDefinitionExtensionError,
+} from "@/utils/errors";
 
 import type { AttributeDecoratorContext } from "@/types";
 
@@ -32,20 +42,8 @@ function defineAttribute<T>(
   target: AttributeDecoratorTarget<T>,
   context: AttributeDecoratorContext<T>,
 ) {
-  const i = interfaceRegistry.get(context.metadata);
-  const identifier = getIdentifierByName(context.name);
-
-  if (identifier === undefined) {
-    throw TypeError(
-      `Cannot use ${typeof context.name === "symbol" ? "symbol" : `'${context.name}'`} as an attribute identifier`,
-    );
-  }
-
-  if (context.static && identifier === "prototype") {
-    throw TypeError(
-      `Cannot use identifier '${identifier}' for a static attribute`,
-    );
-  }
+  const i = getInterfaceFromContext(context);
+  const identifier = getIdentifierFromContext(context);
 
   const members = context.static ? i.staticMembers : i.members;
 
@@ -53,34 +51,29 @@ function defineAttribute<T>(
     ? members[identifier]
     : undefined;
 
-  try {
-    if (attribute && !isAttribute(attribute)) {
-      throw TypeError(
-        `a non-attribute ${context.static ? "static " : ""}interface member '${identifier}' is already defined`,
-      );
+  if (attribute) {
+    try {
+      assertAttributeWithType(attribute, T);
+    } catch (e) {
+      throw new AttributeDefinitionExtensionError(context, T, { cause: e });
     }
-
-    if (attribute && attribute.type !== T) {
-      throw TypeError(
-        `${context.static ? "static " : ""}attribute member '${identifier}' is already defined with type '${typeRegistry.getId(attribute.type)}'`,
-      );
-    }
-  } catch (cause) {
-    throw TypeError(
-      `Cannot define ${context.static ? "static " : ""}attribute '${identifier}' of type '${typeRegistry.getId(T)}' for interface ${i.identifier}`,
-      { cause },
-    );
-  }
-
-  if (!attribute) {
+  } else {
     const keywords = new Set<string>(["readonly"]);
     if (context.static) keywords.add("static");
 
-    attribute = members[identifier] = Object.create(AttributePrototype, {
+    attribute = Object.create(AttributePrototype, {
       keywords: { value: keywords },
       identifier: { value: identifier },
       type: { value: T },
-    }) as Attribute<Type<T>>;
+    }) as Attribute;
+
+    try {
+      validateAttribute(attribute);
+    } catch (e) {
+      throw new AttributeDefinitionError(context, T, { cause: e });
+    }
+
+    members[identifier] = attribute;
   }
 
   switch (context.kind) {

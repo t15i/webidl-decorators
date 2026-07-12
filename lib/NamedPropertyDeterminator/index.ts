@@ -1,6 +1,6 @@
 import { NamedPropertyDeterminator as NamedPropertyDeterminatorSymbol } from "@t15i/webspecs/webidl";
 
-import { defineBehavior } from "@/utils/defineBehavior";
+import { defineBehavior } from "@/defineBehavior";
 import type { NamedPropertyDeterminatorDecorator } from "./types";
 
 /**

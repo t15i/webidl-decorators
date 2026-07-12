@@ -1,6 +1,6 @@
 import { PlatformObject } from "./PlatformObject";
 
-import { interfaceRegistry } from "@/InterfaceRegistry";
+import { getInterfaceFromContext } from "@/utils";
 import type {
   InterfaceDecoratorContext,
   InterfaceDecoratorTarget,
@@ -26,7 +26,7 @@ function defineInterface<T extends InterfaceDecoratorTarget>(
     );
   }
 
-  const i = interfaceRegistry.get(context.metadata);
+  const i = getInterfaceFromContext(context);
   i.identifier = (identifier ?? context.name)!;
 
   return PlatformObject(target, context);

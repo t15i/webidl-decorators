@@ -1,6 +1,6 @@
 import { ExistingIndexedPropertySetter as ExistingIndexedPropertySetterSymbol } from "@t15i/webspecs/webidl";
 
-import { defineBehavior } from "@/utils/defineBehavior";
+import { defineBehavior } from "@/defineBehavior";
 import type { ExistingIndexedPropertySetterDecorator } from "./types";
 
 /**

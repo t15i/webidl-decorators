@@ -2,13 +2,21 @@ import {
   NamedPropertyDeterminator as NamedPropertyDeterminatorSymbol,
   NamedPropertyGetter as NamedPropertyGetterSymbol,
   SupportedPropertyNames as SupportedPropertyNamesSymbol,
+  validateSpecialOperation,
   type Type,
 } from "@t15i/webspecs/webidl";
 import { DOMString } from "@t15i/webidl-types";
 
-import { interfaceRegistry } from "@/InterfaceRegistry";
 import { GetterPrototype } from "@/protos";
-import { getIdentifierByName, getMethodSteps, guard } from "@/utils";
+
+import {
+  getIdentifierFromContext,
+  getInterfaceFromContext,
+  getMethodSteps,
+  guard,
+} from "@/utils";
+import { assertDefinable } from "@/utils/assertions";
+import { SpecialOperationDefinitionError } from "@/utils/errors";
 
 import type { SpecialOperationDecoratorContext } from "@/types";
 
@@ -39,25 +47,34 @@ function defineNamedPropertyGetter<T>(
   target: NamedPropertyGetterDecoratorTarget<T>,
   context: SpecialOperationDecoratorContext,
 ) {
-  const i = interfaceRegistry.get(context.metadata);
+  const i = getInterfaceFromContext(context);
+  const operation = Object.create(NamedPropertyGetterPrototype, {
+    identifier: { value: getIdentifierFromContext(context) },
+    methodSteps: { value: getMethodSteps(context.access.get) },
+    returnType: { value: T },
+  });
 
-  const operation = (i.members[NamedPropertyGetterSymbol] = Object.create(
-    NamedPropertyGetterPrototype,
-    {
-      identifier: { value: getIdentifierByName(context.name) },
-      methodSteps: { value: getMethodSteps(context.access.get) },
-      returnType: { value: T },
-    },
-  ));
-  i.members[SupportedPropertyNamesSymbol] = function () {
-    return new NaiveSupportedPropertyNames();
-  };
+  try {
+    validateSpecialOperation(operation);
+    assertDefinable(i, NamedPropertyGetterSymbol);
+    if (operation.identifier !== undefined) {
+      assertDefinable(i, operation.identifier);
+    }
+  } catch (e) {
+    throw new SpecialOperationDefinitionError(context, { cause: e });
+  }
+
+  i.members[NamedPropertyGetterSymbol] = operation;
 
   if (operation.identifier !== undefined) {
     i.members[operation.identifier] = operation;
   } else {
     i.members[NamedPropertyDeterminatorSymbol] ??= operation.methodSteps;
   }
+
+  i.members[SupportedPropertyNamesSymbol] ??= function () {
+    return new NaiveSupportedPropertyNames();
+  };
 
   return guard(target, {
     interface: i,

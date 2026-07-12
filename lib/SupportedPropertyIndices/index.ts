@@ -1,6 +1,6 @@
 import { SupportedPropertyIndices as SupportedPropertyIndicesSymbol } from "@t15i/webspecs/webidl";
 
-import { defineBehavior } from "@/utils/defineBehavior";
+import { defineBehavior } from "@/defineBehavior";
 import type { SupportedPropertyIndicesDecorator } from "./types";
 
 /**

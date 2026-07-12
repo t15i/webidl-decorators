@@ -1,22 +1,10 @@
-import type { InterfaceMembers } from "@t15i/webspecs/webidl";
+import { getInterfaceFromContext } from "@/utils";
+import { assertDefinable } from "@/utils/assertions";
+import { BehaviorDefinitionError } from "@/utils/errors";
 
-import { interfaceRegistry } from "@/InterfaceRegistry";
-import type { AnyFunction, DecoratorContext } from "@/types";
+import type { DecoratorContext } from "@/types";
 
-type BehaviorKeys<T> = {
-  [K in keyof T]: T[K] extends AnyFunction ? K : never;
-}[keyof T] &
-  keyof T;
-
-export type BehaviorKey = BehaviorKeys<Required<InterfaceMembers>>;
-
-export type BehaviorDecoratorTarget<K extends BehaviorKey> =
-  InterfaceMembers[K];
-
-export type BehaviorDecorator<K extends BehaviorKey> = (
-  target: BehaviorDecoratorTarget<K>,
-  context: DecoratorContext,
-) => void;
+import type { BehaviorDecoratorTarget, BehaviorKey } from "./types";
 
 /**
  * Registers `target` as the implementation of the behavior identified by
@@ -52,5 +40,13 @@ export function defineBehavior<K extends BehaviorKey>(
   target: BehaviorDecoratorTarget<K>,
   context: DecoratorContext,
 ): void {
-  interfaceRegistry.get(context.metadata).members[key] = target;
+  const i = getInterfaceFromContext(context);
+
+  try {
+    assertDefinable(i, key);
+  } catch (e) {
+    throw new BehaviorDefinitionError(key, { cause: e });
+  }
+
+  i.members[key] = target;
 }

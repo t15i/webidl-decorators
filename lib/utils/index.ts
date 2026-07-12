@@ -1,7 +1,8 @@
 export { cloneFunctionMetadata } from "./cloneFunctionMetadata";
-export * from "./defineBehavior";
 export { getAttributeGetterSteps } from "./getAttributeGetterSteps";
 export { getAttributeSetterSteps } from "./getAttributeSetterSteps";
-export { getIdentifierByName } from "./getIdentifierByName";
+export { getIdentifierFromContext } from "./getIdentifierFromContext";
+export { getInterfaceFromContext } from "./getInterfaceFromContext";
 export { getMethodSteps } from "./getMethodSteps";
+export { getTypeId } from "./getTypeId";
 export { guard } from "./guard";
