@@ -1,7 +1,8 @@
-import type { AnyConstructor } from "../../types";
+import type { AnyConstructor } from "@/types";
 
 import { Internals, internals } from "./internals";
-import { PlatformObjectProxyHandler } from "./PlatformObjectProxyHandler";
+import { LegacyPlatformObjectProxyHandler } from "./LegacyPlatformObjectProxyHandler";
+import { isLegacyPlatformObject } from "@t15i/webspecs/webidl";
 
 export const PlatformObjectConstructorProxyHandler: ProxyHandler<AnyConstructor> =
   {
@@ -12,11 +13,15 @@ export const PlatformObjectConstructorProxyHandler: ProxyHandler<AnyConstructor>
         return obj;
       }
 
+      if (!isLegacyPlatformObject(obj)) {
+        return obj;
+      }
+
       if (Internals in obj) {
         internals.set(obj, obj[Internals]);
         delete obj[Internals];
       }
 
-      return new Proxy(obj, PlatformObjectProxyHandler);
+      return new Proxy(obj, LegacyPlatformObjectProxyHandler);
     },
   };

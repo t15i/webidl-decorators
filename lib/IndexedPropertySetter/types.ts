@@ -1,4 +1,4 @@
-import type { SpecialOperationDecoratorContext } from "../types";
+import type { SpecialOperationDecoratorContext } from "@/types";
 
 export type IndexedPropertySetterDecoratorTarget<T, Return> = (
   index: number,
@@ -9,5 +9,5 @@ export type IndexedPropertySetterDecorator<T, Return> = <
   Target extends IndexedPropertySetterDecoratorTarget<T, Return>,
 >(
   target: Target,
-  context: SpecialOperationDecoratorContext,
+  context: SpecialOperationDecoratorContext<Target>,
 ) => Target;

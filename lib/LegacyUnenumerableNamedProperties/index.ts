@@ -1,9 +1,8 @@
 import { LegacyUnenumerableNamedProperties as LegacyUnenumerableNamedPropertiesSymbol } from "@t15i/webspecs/webidl";
 
-import { interfaceRegistry } from "../InterfaceRegistry";
+import { getInterfaceDraftFromContext } from "@/utils";
 
-import { toDecoratorContext } from "../typeguards";
-import type { DecoratorContext } from "../types";
+import type { DecoratorContext } from "@/types";
 
 /**
  * Marks the WebIDL interface as having the `[LegacyUnenumerableNamedProperties]`
@@ -34,9 +33,7 @@ export function LegacyUnenumerableNamedProperties(
   _: unknown,
   context: DecoratorContext,
 ): void {
-  context = toDecoratorContext(context);
-
-  interfaceRegistry.get(context.metadata)[
+  getInterfaceDraftFromContext(context).extendedAttributes[
     LegacyUnenumerableNamedPropertiesSymbol
-  ] = true;
+  ] = undefined;
 }

@@ -1,23 +1,8 @@
-import { interfaceRegistry } from "./InterfaceRegistry";
+import { getInterfaceDraftFromContext } from "@/utils";
 
-import type { AnyFunction, DecoratorContext } from "./types";
-import { toBehaviorDecoratorTarget, toDecoratorContext } from "./typeguards";
-import type { InterfaceMembers } from "@t15i/webspecs/webidl";
+import type { DecoratorContext } from "@/types";
 
-type BehaviorKeys<T> = {
-  [K in keyof T]: T[K] extends AnyFunction ? K : never;
-}[keyof T] &
-  keyof T;
-
-export type BehaviorKey = BehaviorKeys<Required<InterfaceMembers>>;
-
-export type BehaviorDecoratorTarget<K extends BehaviorKey> =
-  InterfaceMembers[K];
-
-export type BehaviorDecorator<K extends BehaviorKey> = (
-  target: BehaviorDecoratorTarget<K>,
-  context: DecoratorContext,
-) => void;
+import type { BehaviorDecoratorTarget, BehaviorKey } from "./types";
 
 /**
  * Registers `target` as the implementation of the behavior identified by
@@ -32,6 +17,11 @@ export type BehaviorDecorator<K extends BehaviorKey> = (
  * library ({@link ExistingIndexedPropertySetter}, {@link NewNamedPropertySetter},
  * {@link SupportedPropertyNames}, etc.). Each of those is just `defineBehavior`
  * pre-bound to a particular WebIDL symbol.
+ *
+ * Defining a behavior that is already present overwrites it, letting an
+ * explicit behavior decorator take precedence over one installed earlier —
+ * for example the {@link NamedPropertyDeterminator} an anonymous
+ * {@link NamedPropertyGetter} registers by default.
  *
  * For the registered behavior to take effect, the enclosing class must also be
  * decorated with {@link Interface}.
@@ -53,8 +43,5 @@ export function defineBehavior<K extends BehaviorKey>(
   target: BehaviorDecoratorTarget<K>,
   context: DecoratorContext,
 ): void {
-  target = toBehaviorDecoratorTarget(target);
-  context = toDecoratorContext(context);
-
-  interfaceRegistry.get(context.metadata).members[key] = target;
+  getInterfaceDraftFromContext(context).members[key] = target;
 }

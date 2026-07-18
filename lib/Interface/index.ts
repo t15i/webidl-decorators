@@ -1,18 +1,45 @@
-import { PlatformObject } from "./PlatformObject";
-
-import { interfaceRegistry } from "../InterfaceRegistry";
 import {
-  isConstructorDecoratorArgs,
-  toInterfaceDecoratorContext,
-  toInterfaceDecoratorTarget,
-} from "../typeguards";
+  validateInterface,
+  PlatformObject as WebIDLPlatformObject,
+} from "@t15i/webspecs/webidl";
+
+import { getInterfaceDraftFromContext } from "@/utils";
+import { assertInterface } from "@/utils/assertions";
+import { InterfaceDefinitionError } from "@/utils/errors";
+
 import type {
   InterfaceDecoratorContext,
   InterfaceDecoratorTarget,
-} from "../types";
-import type { InterfaceDecorator } from "./types";
+} from "@/types";
+
+import { PlatformObject } from "./PlatformObject";
 
 export { Internals } from "./PlatformObject/internals";
+
+import type { InterfaceDecorator } from "./types";
+
+function interfaceInitializer(
+  target: InterfaceDecoratorTarget,
+  context: InterfaceDecoratorContext,
+) {
+  const iface = getInterfaceDraftFromContext(context);
+
+  try {
+    const existing: unknown = WebIDLPlatformObject.getPrimaryInterfaceOf(
+      target.prototype,
+    );
+    if (existing === iface) {
+      throw new TypeError("The interface is already defined");
+    }
+
+    assertInterface(iface);
+    validateInterface(iface);
+  } catch (e) {
+    throw new InterfaceDefinitionError(iface, { cause: e });
+  }
+
+  WebIDLPlatformObject.setPrimaryInterfaceOf(target.prototype, iface);
+}
 
 /**
  * Decorates a class as a WebIDL interface, registering `identifier` as its
@@ -25,19 +52,18 @@ function defineInterface<T extends InterfaceDecoratorTarget>(
   target: T,
   context: InterfaceDecoratorContext,
 ): T {
-  target = toInterfaceDecoratorTarget(target);
-  context = toInterfaceDecoratorContext(context);
-
   if (identifier === undefined && context.name === undefined) {
     throw TypeError(
       "Expected at least one identifier or context.name to be 'string'",
     );
   }
 
-  const i = interfaceRegistry.get(context.metadata);
+  const i = getInterfaceDraftFromContext(context);
   i.identifier = (identifier ?? context.name)!;
 
-  return PlatformObject(target, context);
+  context.addInitializer(interfaceInitializer.bind(undefined, target, context));
+
+  return PlatformObject(target);
 }
 
 const InterfaceDefault = defineInterface.bind(
@@ -61,10 +87,11 @@ const InterfaceDefault = defineInterface.bind(
  * deleter semantics are applied automatically based on the behavior decorators
  * applied to the class members.
  *
- * Because the wrapper is implemented with a proxy, `#private` fields declared
- * on the class are not reachable through method calls on instances. Use the
- * provided `this[{@link Internals}]` object to store instance-private state
- * instead.
+ * A legacy platform object (a class with indexed or named property behaviors)
+ * is wrapped in a proxy, so its `#private` fields are not reachable through
+ * method calls on instances; use the provided `this[{@link Internals}]` object
+ * to store instance-private state instead. A regular platform object is not
+ * proxied and can use `#private` fields as usual.
  *
  * @example
  * ```ts
@@ -100,10 +127,11 @@ export function Interface<T extends InterfaceDecoratorTarget>(
  * deleter semantics are applied automatically based on the behavior decorators
  * applied to the class members.
  *
- * Because the wrapper is implemented with a proxy, `#private` fields declared
- * on the class are not reachable through method calls on instances. Use the
- * provided `this[{@link Internals}]` object to store instance-private state
- * instead.
+ * A legacy platform object (a class with indexed or named property behaviors)
+ * is wrapped in a proxy, so its `#private` fields are not reachable through
+ * method calls on instances; use the provided `this[{@link Internals}]` object
+ * to store instance-private state instead. A regular platform object is not
+ * proxied and can use `#private` fields as usual.
  *
  * @example
  * ```ts
@@ -122,7 +150,7 @@ export function Interface<T extends InterfaceDecoratorTarget>(
 export function Interface(identifier: string): InterfaceDecorator;
 
 export function Interface(...args: unknown[]) {
-  if (isConstructorDecoratorArgs(args)) {
+  if (args.length === 2 && typeof args[0] === "function") {
     return InterfaceDefault(
       args[0] as InterfaceDecoratorTarget,
       args[1] as InterfaceDecoratorContext,

@@ -1,6 +1,6 @@
 import { IndexedPropertyDeterminator as IndexedPropertyDeterminatorSymbol } from "@t15i/webspecs/webidl";
 
-import { defineBehavior } from "../defineBehavior";
+import { defineBehavior } from "@/defineBehavior";
 import type { IndexedPropertyDeterminatorDecorator } from "./types";
 
 /**

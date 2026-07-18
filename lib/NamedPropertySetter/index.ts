@@ -1,22 +1,21 @@
 import {
+  type ArgumentList,
   type Type,
   NamedPropertySetter as NamedPropertySetterSymbol,
-  DOMString,
-  Undefined,
   NewNamedPropertySetter as NewNamedPropertySetterSymbol,
   ExistingNamedPropertySetter as ExistingNamedPropertySetterSymbol,
-  type ArgumentList,
 } from "@t15i/webspecs/webidl";
+import { DOMString, Undefined } from "@t15i/webidl-types";
 
-import { interfaceRegistry } from "../InterfaceRegistry";
-import { SetterPrototype } from "../proto";
-import { getIdentifierByName, getMethodSteps } from "../utils";
-
-import type { SpecialOperationDecoratorContext } from "../types";
 import {
-  toSpecialOperationDecoratorContext,
-  toOperationDecoratorTarget,
-} from "../typeguards";
+  createOperationFromContext,
+  getInterfaceDraftFromContext,
+  guard,
+} from "@/utils";
+import { assertHasNoOwnMember } from "@/utils/assertions";
+import { SpecialOperationDefinitionError } from "@/utils/errors";
+
+import type { SpecialOperationDecoratorContext } from "@/types";
 
 import type {
   NamedPropertySetterDecorator,
@@ -41,31 +40,35 @@ function defineNamedPropertySetter<T, Return>(
   target: NamedPropertySetterDecoratorTarget<T, Return>,
   context: SpecialOperationDecoratorContext,
 ) {
-  target = toOperationDecoratorTarget(target);
-  context = toSpecialOperationDecoratorContext(context);
+  const iface = getInterfaceDraftFromContext(context);
 
-  const i = interfaceRegistry.get(context.metadata);
-  const identifier = getIdentifierByName(context.name);
-  const args: ArgumentList<[string, T]> = [{ type: DOMString }, { type: T }];
-  const methodSteps = getMethodSteps(target, {
-    interface: i,
-    arguments: args,
-    returnType: Return,
-  });
+  const args: ArgumentList<[typeof DOMString, Type<T>]> = [
+    { type: DOMString },
+    { type: T },
+  ];
+  const returnType = Return;
 
-  i.members[NamedPropertySetterSymbol] = Object.create(SetterPrototype, {
-    identifier: { value: identifier },
-    returnType: { value: Return },
-    arguments: { value: args },
-    methodSteps: { value: methodSteps },
-  });
+  const operation = createOperationFromContext({ args, returnType, context });
+  operation.keywords.add("setter");
 
-  if (identifier === undefined) {
-    i.members[NewNamedPropertySetterSymbol] ??= methodSteps;
-    i.members[ExistingNamedPropertySetterSymbol] ??= methodSteps;
+  try {
+    assertHasNoOwnMember(iface, NamedPropertySetterSymbol);
+    if (operation.identifier !== undefined) {
+      assertHasNoOwnMember(iface, operation.identifier);
+    }
+  } catch (e) {
+    throw new SpecialOperationDefinitionError(context, { cause: e });
   }
 
-  return methodSteps;
+  iface.members[NamedPropertySetterSymbol] = operation;
+  if (operation.identifier !== undefined) {
+    iface.members[operation.identifier] = operation;
+  } else {
+    iface.members[NewNamedPropertySetterSymbol] ??= operation.methodSteps;
+    iface.members[ExistingNamedPropertySetterSymbol] ??= operation.methodSteps;
+  }
+
+  return guard(target, { iface, id: operation.identifier, args, returnType });
 }
 
 /**

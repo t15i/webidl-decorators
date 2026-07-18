@@ -1,4 +1,5 @@
 export * from "./Attribute";
+export * from "./Exposed";
 export * from "./ExistingIndexedPropertySetter";
 export * from "./ExistingNamedPropertyDeleter";
 export * from "./ExistingNamedPropertySetter";

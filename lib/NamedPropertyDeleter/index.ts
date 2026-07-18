@@ -1,31 +1,25 @@
 import {
+  type ArgumentList,
   type Type,
-  DOMString,
-  Undefined,
   NamedPropertyDeleter as NamedPropertyDeleterSymbol,
+  ExistingNamedPropertyDeleter as ExistingNamedPropertyDeleterSymbol,
 } from "@t15i/webspecs/webidl";
-
-import { interfaceRegistry } from "../InterfaceRegistry";
-import { DeleterPrototype } from "../proto";
-import { getIdentifierByName, getMethodSteps } from "../utils";
+import { DOMString, Undefined } from "@t15i/webidl-types";
 
 import {
-  toSpecialOperationDecoratorContext,
-  toOperationDecoratorTarget,
-  isFunctionDecoratorArgs,
-} from "../typeguards";
-import type { SpecialOperationDecoratorContext } from "../types";
+  createOperationFromContext,
+  getInterfaceDraftFromContext,
+  guard,
+} from "@/utils";
+import { assertHasNoOwnMember } from "@/utils/assertions";
+import { SpecialOperationDefinitionError } from "@/utils/errors";
+
+import type { SpecialOperationDecoratorContext } from "@/types";
 
 import type {
   NamedPropertyDeleterDecorator,
   NamedPropertyDeleterDecoratorTarget,
 } from "./types";
-
-const NamedPropertyDeleterPrototype = Object.create(DeleterPrototype, {
-  arguments: {
-    value: [{ type: DOMString }],
-  },
-});
 
 /**
  * Defines the decorated method as the `[NamedPropertyDeleter]` internal method
@@ -38,26 +32,31 @@ function defineNamedPropertyDeleter<Return>(
   target: NamedPropertyDeleterDecoratorTarget<Return>,
   context: SpecialOperationDecoratorContext,
 ) {
-  target = toOperationDecoratorTarget(target);
-  context = toSpecialOperationDecoratorContext(context);
+  const iface = getInterfaceDraftFromContext(context);
 
-  const i = interfaceRegistry.get(context.metadata);
-  const methodSteps = getMethodSteps(target, {
-    interface: i,
-    arguments: NamedPropertyDeleterPrototype.arguments,
-    returnType: Return,
-  });
+  const args: ArgumentList<[typeof DOMString]> = [{ type: DOMString }];
+  const returnType = Return;
 
-  i.members[NamedPropertyDeleterSymbol] = Object.create(
-    NamedPropertyDeleterPrototype,
-    {
-      identifier: { value: getIdentifierByName(context.name) },
-      returnType: { value: Return },
-      methodSteps: { value: methodSteps },
-    },
-  );
+  const operation = createOperationFromContext({ args, returnType, context });
+  operation.keywords.add("deleter");
 
-  return methodSteps;
+  try {
+    assertHasNoOwnMember(iface, NamedPropertyDeleterSymbol);
+    if (operation.identifier !== undefined) {
+      assertHasNoOwnMember(iface, operation.identifier);
+    }
+  } catch (e) {
+    throw new SpecialOperationDefinitionError(context, { cause: e });
+  }
+
+  iface.members[NamedPropertyDeleterSymbol] = operation;
+  if (operation.identifier !== undefined) {
+    iface.members[operation.identifier] = operation;
+  } else {
+    iface.members[ExistingNamedPropertyDeleterSymbol] ??= operation.methodSteps;
+  }
+
+  return guard(target, { iface, id: operation.identifier, args, returnType });
 }
 
 const NamedPropertyDeleterDefault = defineNamedPropertyDeleter.bind(
@@ -111,6 +110,10 @@ export function NamedPropertyDeleter<Return>(
  * method receives the name being deleted and is expected to return a value of
  * the declared return type.
  *
+ * When the deleter is declared with a `Boolean` return type, returning `false`
+ * reports the deletion as failed: the `delete` operator then returns `false`,
+ * which throws a `TypeError` in strict mode.
+ *
  * For the registered behavior to take effect, the enclosing class must also be
  * decorated with {@link Interface}.
  *
@@ -135,7 +138,7 @@ export function NamedPropertyDeleter<Return>(
 ): NamedPropertyDeleterDecorator<Return>;
 
 export function NamedPropertyDeleter(...args: unknown[]) {
-  if (isFunctionDecoratorArgs(args)) {
+  if (args.length === 2 && typeof args[0] === "function") {
     return NamedPropertyDeleterDefault(
       args[0] as NamedPropertyDeleterDecoratorTarget<undefined>,
       args[1] as SpecialOperationDecoratorContext,

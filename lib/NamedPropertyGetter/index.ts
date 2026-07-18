@@ -1,30 +1,25 @@
 import {
-  DOMString,
   NamedPropertyDeterminator as NamedPropertyDeterminatorSymbol,
   NamedPropertyGetter as NamedPropertyGetterSymbol,
+  type ArgumentList,
   type Type,
 } from "@t15i/webspecs/webidl";
-
-import { interfaceRegistry } from "../InterfaceRegistry";
-import { GetterPrototype } from "../proto";
-import { getIdentifierByName, getMethodSteps } from "../utils";
+import { DOMString, Nullable } from "@t15i/webidl-types";
 
 import {
-  toSpecialOperationDecoratorContext,
-  toOperationDecoratorTarget,
-} from "../typeguards";
-import type { SpecialOperationDecoratorContext } from "../types";
+  createOperationFromContext,
+  getInterfaceDraftFromContext,
+  guard,
+} from "@/utils";
+import { assertHasNoOwnMember } from "@/utils/assertions";
+import { SpecialOperationDefinitionError } from "@/utils/errors";
+
+import type { SpecialOperationDecoratorContext } from "@/types";
 
 import type {
   NamedPropertyGetterDecorator,
   NamedPropertyGetterDecoratorTarget,
 } from "./types";
-
-const NamedPropertyGetterPrototype = Object.create(GetterPrototype, {
-  arguments: {
-    value: [{ type: DOMString }],
-  },
-});
 
 /**
  * Defines the decorated method as the `[NamedPropertyGetter]` internal method
@@ -41,31 +36,31 @@ function defineNamedPropertyGetter<T>(
   target: NamedPropertyGetterDecoratorTarget<T>,
   context: SpecialOperationDecoratorContext,
 ) {
-  target = toOperationDecoratorTarget(target);
-  context = toSpecialOperationDecoratorContext(context);
+  const iface = getInterfaceDraftFromContext(context);
 
-  const i = interfaceRegistry.get(context.metadata);
-  const identifier = getIdentifierByName(context.name);
-  const methodSteps = getMethodSteps(target, {
-    interface: i,
-    arguments: NamedPropertyGetterPrototype.arguments,
-    returnType: T,
-  });
+  const args: ArgumentList<[typeof DOMString]> = [{ type: DOMString }];
+  const returnType = Nullable(T);
 
-  i.members[NamedPropertyGetterSymbol] = Object.create(
-    NamedPropertyGetterPrototype,
-    {
-      identifier: { value: identifier },
-      returnType: { value: T },
-      methodSteps: { value: methodSteps },
-    },
-  );
+  const operation = createOperationFromContext({ args, returnType, context });
+  operation.keywords.add("getter");
 
-  if (identifier === undefined) {
-    i.members[NamedPropertyDeterminatorSymbol] ??= methodSteps;
+  try {
+    assertHasNoOwnMember(iface, NamedPropertyGetterSymbol);
+    if (operation.identifier !== undefined) {
+      assertHasNoOwnMember(iface, operation.identifier);
+    }
+  } catch (e) {
+    throw new SpecialOperationDefinitionError(context, { cause: e });
   }
 
-  return methodSteps;
+  iface.members[NamedPropertyGetterSymbol] = operation;
+  if (operation.identifier !== undefined) {
+    iface.members[operation.identifier] = operation;
+  } else {
+    iface.members[NamedPropertyDeterminatorSymbol] ??= operation.methodSteps;
+  }
+
+  return guard(target, { iface, id: operation.identifier, args, returnType });
 }
 
 /**
@@ -89,7 +84,7 @@ function defineNamedPropertyGetter<T>(
  * ```ts
  * \@Interface
  * class HTMLCollection {
- *   \@NamedPropertyGetter(Nullable(Type(Element)))
+ *   \@NamedPropertyGetter(Type(Element))
  *   namedItem(name: string): Element | null {
  *     // ...
  *     return value;

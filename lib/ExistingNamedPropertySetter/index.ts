@@ -1,6 +1,6 @@
 import { ExistingNamedPropertySetter as ExistingNamedPropertySetterSymbol } from "@t15i/webspecs/webidl";
 
-import { defineBehavior } from "../defineBehavior";
+import { defineBehavior } from "@/defineBehavior";
 import type { ExistingNamedPropertySetterDecorator } from "./types";
 
 /**

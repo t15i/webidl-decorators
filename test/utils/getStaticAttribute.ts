@@ -7,9 +7,16 @@ import {
 export function getStaticAttribute(
   i: Interface,
   identifier: string,
-): (Attribute<unknown> & { identifier?: string }) | undefined {
+): Attribute | undefined {
   const member = i.staticMembers[identifier];
-  if (member === undefined) return undefined;
-  if (!isAttribute(member)) return undefined;
-  return member as Attribute<unknown> & { identifier?: string };
+
+  if (member === undefined) {
+    return undefined;
+  }
+
+  if (!isAttribute(member)) {
+    return undefined;
+  }
+
+  return member as Attribute;
 }

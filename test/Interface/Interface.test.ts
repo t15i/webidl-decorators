@@ -1,4 +1,9 @@
-import { ExistingIndexedPropertySetter, Interface, Internals } from "lib";
+import {
+  ExistingIndexedPropertySetter,
+  Exposed,
+  Interface,
+  Internals,
+} from "lib";
 
 import { ExistingIndexedPropertySetter as ExistingIndexedPropertySetterSymbol } from "@t15i/webspecs/webidl";
 
@@ -7,14 +12,24 @@ import { describe, expect, test } from "vitest";
 import { getInterface } from "../utils";
 
 describe("@Interface", () => {
-  test("should expose [PrimaryInterface] on instances", () => {
+  test("should associate a primary interface with instances", () => {
+    @Exposed("Window")
     @Interface
     class Test {}
 
-    expect(getInterface(new Test())).toBeDefined();
+    expect(getInterface(Test)).toBeDefined();
+  });
+
+  test("should reject an interface that is not exposed", () => {
+    expect(() => {
+      @Interface
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      class Test {}
+    }).toThrow();
   });
 
   test("should preserve constructor behavior", () => {
+    @Exposed("Window")
     @Interface
     class Test {
       foo: number;
@@ -32,113 +47,124 @@ describe("@Interface", () => {
   });
 
   test("should share the same interface object across instances of the same class", () => {
+    @Exposed("Window")
     @Interface
     class Test {}
 
-    const a = getInterface(new Test());
-    const b = getInterface(new Test());
+    const a = getInterface(Test);
+    const b = getInterface(Test);
 
     expect(a).toBe(b);
   });
 
   test("should produce distinct interface objects for distinct classes", () => {
+    @Exposed("Window")
     @Interface
     class A {}
 
+    @Exposed("Window")
     @Interface
     class B {}
 
-    expect(getInterface(new A())).not.toBe(getInterface(new B()));
+    expect(getInterface(A)).not.toBe(getInterface(B));
   });
 
   test("should use the class name as the WebIDL identifier", () => {
+    @Exposed("Window")
     @Interface
     class HTMLCollection {}
 
-    expect(getInterface(new HTMLCollection()).identifier).toBe(
-      "HTMLCollection",
-    );
+    expect(getInterface(HTMLCollection).identifier).toBe("HTMLCollection");
   });
 
   test("should use the supplied identifier when applied as a factory", () => {
+    @Exposed("Window")
     @Interface("HTMLCollection")
     class HTMLCollectionImpl {}
 
-    expect(getInterface(new HTMLCollectionImpl()).identifier).toBe(
-      "HTMLCollection",
-    );
+    expect(getInterface(HTMLCollectionImpl).identifier).toBe("HTMLCollection");
   });
 
-  test("should let each subsequent @Interface decorator overwrite the previous identifier", () => {
-    @Interface
-    @Interface("First")
-    class Second {}
-
-    expect(getInterface(new Second()).identifier).toBe("Second");
+  test("should throw when @Interface is applied on top of another @Interface", () => {
+    expect(() => {
+      @Exposed("Window")
+      @Interface
+      @Interface("First")
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      class Second {}
+    }).toThrow();
   });
 
   test("should always create a staticMembers object on the interface", () => {
+    @Exposed("Window")
     @Interface
     class Test {}
 
-    const i = getInterface(new Test());
+    const i = getInterface(Test);
 
     expect(typeof i.staticMembers).toBe("object");
     expect(i.staticMembers).not.toBeNull();
   });
 
   test("should always create a members object on the interface", () => {
+    @Exposed("Window")
     @Interface
     class Test {}
 
-    const i = getInterface(new Test());
+    const i = getInterface(Test);
 
     expect(typeof i.members).toBe("object");
     expect(i.members).not.toBeNull();
   });
 
   test("should inherit staticMembers from a parent metadata via the prototype chain", () => {
+    @Exposed("Window")
     @Interface
     class Base {}
 
+    @Exposed("Window")
     @Interface
     class Derived extends Base {}
 
-    const baseStatic = getInterface(new Base()).staticMembers;
-    const derivedStatic = getInterface(new Derived()).staticMembers;
+    const baseStatic = getInterface(Base).staticMembers;
+    const derivedStatic = getInterface(Derived).staticMembers;
 
     expect(derivedStatic).not.toBe(baseStatic);
     expect(Object.getPrototypeOf(derivedStatic)).toBe(baseStatic);
   });
 
   test("should inherit members from a parent metadata via the prototype chain", () => {
+    @Exposed("Window")
     @Interface
     class Base {}
 
+    @Exposed("Window")
     @Interface
     class Derived extends Base {}
 
-    const baseMembers = getInterface(new Base()).members;
-    const derivedMembers = getInterface(new Derived()).members;
+    const baseMembers = getInterface(Base).members;
+    const derivedMembers = getInterface(Derived).members;
 
     expect(derivedMembers).not.toBe(baseMembers);
     expect(Object.getPrototypeOf(derivedMembers)).toBe(baseMembers);
   });
 
   test("should inherit interface members from a parent metadata via the prototype chain", () => {
+    @Exposed("Window")
     @Interface
     class Base {
       @ExistingIndexedPropertySetter
       existingIndexedPropertySetter() {}
     }
 
+    @Exposed("Window")
     @Interface
     class Derived extends Base {
       @ExistingIndexedPropertySetter
       override existingIndexedPropertySetter() {}
     }
 
-    const i = getInterface(new Derived());
+    const i = getInterface(Derived);
 
     expect(i.members[ExistingIndexedPropertySetterSymbol]).toBe(
       Derived.prototype.existingIndexedPropertySetter,
@@ -148,19 +174,22 @@ describe("@Interface", () => {
     ).toBe(Base.prototype.existingIndexedPropertySetter);
   });
 
-  test("should be a no-op when applied a second time to the same class", () => {
+  test("should throw when @Interface is applied a second time to the same class", () => {
     expect(() => {
+      @Exposed("Window")
       @Interface
       @Interface
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      class _ {}
-    }).not.toThrow();
+      class Test {}
+    }).toThrow();
   });
 
   test("should preserve instanceof for both base and derived classes", () => {
+    @Exposed("Window")
     @Interface
     class Base {}
 
+    @Exposed("Window")
     @Interface
     class Derived extends Base {}
 
@@ -175,6 +204,7 @@ describe("@Interface", () => {
       base: unknown;
     }
 
+    @Exposed("Window")
     @Interface
     class Base {
       declare [Internals]: BaseState;
@@ -188,6 +218,7 @@ describe("@Interface", () => {
       derived: unknown;
     }
 
+    @Exposed("Window")
     @Interface
     class Derived extends Base {
       declare [Internals]: DerivedState;
@@ -209,6 +240,7 @@ describe("@Interface", () => {
       marker?: unknown;
     }
 
+    @Exposed("Window")
     @Interface
     class Base {
       declare [Internals]: BaseState;
@@ -218,6 +250,7 @@ describe("@Interface", () => {
       }
     }
 
+    @Exposed("Window")
     @Interface
     class Derived extends Base {}
 

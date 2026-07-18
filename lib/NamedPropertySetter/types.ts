@@ -1,4 +1,4 @@
-import type { SpecialOperationDecoratorContext } from "../types";
+import type { SpecialOperationDecoratorContext } from "@/types";
 
 export type NamedPropertySetterDecoratorTarget<T, Return> = (
   name: string,
@@ -9,5 +9,5 @@ export type NamedPropertySetterDecorator<T, Return> = <
   Target extends NamedPropertySetterDecoratorTarget<T, Return>,
 >(
   target: Target,
-  context: SpecialOperationDecoratorContext,
+  context: SpecialOperationDecoratorContext<Target>,
 ) => Target;

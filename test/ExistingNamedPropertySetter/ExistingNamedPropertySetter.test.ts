@@ -1,4 +1,4 @@
-import { ExistingNamedPropertySetter, Interface } from "lib";
+import { ExistingNamedPropertySetter, Exposed, Interface } from "lib";
 
 import { ExistingNamedPropertySetter as ExistingNamedPropertySetterSymbol } from "@t15i/webspecs/webidl";
 
@@ -8,14 +8,15 @@ import { getInterface } from "../utils";
 
 describe("@ExistingNamedPropertySetter", () => {
   test("should register the target as the behavior to set the value of an existing named property", () => {
+    @Exposed("Window")
     @Interface
     class Test {
       @ExistingNamedPropertySetter
       existingNamedPropertySetter() {}
     }
 
-    expect(
-      getInterface(new Test()).members[ExistingNamedPropertySetterSymbol],
-    ).toBe(Test.prototype.existingNamedPropertySetter);
+    expect(getInterface(Test).members[ExistingNamedPropertySetterSymbol]).toBe(
+      Test.prototype.existingNamedPropertySetter,
+    );
   });
 });

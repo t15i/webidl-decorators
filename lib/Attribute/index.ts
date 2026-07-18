@@ -1,26 +1,118 @@
-import { isAttribute, type Type } from "@t15i/webspecs/webidl";
-
-import { interfaceRegistry } from "../InterfaceRegistry";
-import { AttributePrototype } from "../proto";
-import {
-  getAttributeGetter,
-  getAttributeSetter,
-  getIdentifierByName,
-} from "../utils";
+import { type ArgumentList, type Type } from "@t15i/webspecs/webidl";
+import { Undefined } from "@t15i/webidl-types";
 
 import {
-  toAttributeDecoratorContext,
-  toAttributeDecoratorTarget,
-} from "../typeguards";
-import type { AttributeDecoratorContext } from "../types";
+  guard,
+  createAttributeFromContext,
+  getAttributeGetterStepsFromContext,
+  getOwnMemberDraftFromContext,
+  getAttributeSetterStepsFromContext,
+} from "@/utils";
+import { assertAttributeDraftWithType } from "@/utils/assertions";
+import { AttributeDefinitionExtensionError } from "@/utils/errors";
 
 import type {
+  AccessorAttributeDecoratorContext,
   AccessorAttributeDecoratorTarget,
-  AttributeDecorator,
+  AttributeDecoratorContext,
   AttributeDecoratorTarget,
+  GetterAttributeDecoratorContext,
   GetterAttributeDecoratorTarget,
+  SetterAttributeDecoratorContext,
   SetterAttributeDecoratorTarget,
-} from "./types";
+} from "@/types";
+
+import type { AttributeDecorator } from "./types";
+
+/**
+ * Registers the WebIDL attribute named by the decorated getter, or extends an
+ * attribute already registered under the same identifier, installing the
+ * getter's steps as the attribute's getter steps.
+ *
+ * @remarks
+ * When no attribute is registered yet, one is created from `context` and — as a
+ * lone getter — starts out `readonly`. When one already exists (its setter was
+ * defined first), it is extended in place after asserting it is an attribute of
+ * type `T`, and stays `readonly` only while it has no setter steps.
+ *
+ * The getter is returned wrapped by {@link guard}, which enforces the
+ * attribute's WebIDL type on the value it returns.
+ *
+ * @internal
+ */
+function defineAttributeGetter<T>(
+  T: Type<T>,
+  target: GetterAttributeDecoratorTarget<T>,
+  context:
+    | GetterAttributeDecoratorContext<T>
+    | AccessorAttributeDecoratorContext<T>,
+) {
+  const { iface, members, id, member } = getOwnMemberDraftFromContext(context);
+
+  if (member) {
+    try {
+      assertAttributeDraftWithType(member, T);
+    } catch (e) {
+      throw new AttributeDefinitionExtensionError(context, T, { cause: e });
+    }
+
+    if (member.setterSteps === undefined) {
+      member.keywords.add("readonly");
+    }
+    member.getterSteps = getAttributeGetterStepsFromContext(context);
+  } else {
+    members[id] = createAttributeFromContext(T, context);
+  }
+
+  const args: ArgumentList<[]> = [];
+  const returnType = T;
+
+  return guard(target, { iface, id, args, returnType });
+}
+
+/**
+ * Registers the WebIDL attribute named by the decorated setter, or extends an
+ * attribute already registered under the same identifier, installing the
+ * setter's steps as the attribute's setter steps.
+ *
+ * @remarks
+ * When no attribute is registered yet, one is created from `context`. When one
+ * already exists (its getter was defined first), it is extended in place after
+ * asserting it is an attribute of type `T`, and its `readonly` keyword is
+ * dropped so the attribute becomes read–write.
+ *
+ * The setter is returned wrapped by {@link guard}, which enforces the
+ * attribute's WebIDL type on the value assigned to it.
+ *
+ * @internal
+ */
+function defineAttributeSetter<T>(
+  T: Type<T>,
+  target: SetterAttributeDecoratorTarget<T>,
+  context:
+    | SetterAttributeDecoratorContext<T>
+    | AccessorAttributeDecoratorContext<T>,
+) {
+  const { iface, members, id, member } = getOwnMemberDraftFromContext(context);
+
+  if (member) {
+    try {
+      assertAttributeDraftWithType(member, T);
+    } catch (e) {
+      throw new AttributeDefinitionExtensionError(context, T, { cause: e });
+    }
+
+    member.keywords.delete("readonly");
+    member.setterSteps = getAttributeSetterStepsFromContext(context);
+  } else {
+    members[id] = createAttributeFromContext(T, context);
+  }
+
+  const args: ArgumentList<[Type<T>]> = [{ type: T }];
+  const returnType = Undefined;
+
+  return guard(target, { iface, id, args, returnType });
+}
 
 /**
  * Defines the decorated member as a WebIDL attribute of the WebIDL interface,
@@ -28,105 +120,51 @@ import type {
  * static when the decorated member is `static`, and as a regular attribute
  * otherwise.
  *
+ * @remarks
+ * An auto-accessor is defined as its getter followed by its setter: the getter
+ * registers the attribute and the setter extends it in place, yielding a
+ * read–write attribute.
+ *
  * @internal
  */
 function defineAttribute<T>(
   T: Type<T>,
+  target: GetterAttributeDecoratorTarget<T>,
+  context: GetterAttributeDecoratorContext<T>,
+): GetterAttributeDecoratorTarget<T>;
+
+function defineAttribute<T>(
+  T: Type<T>,
+  target: SetterAttributeDecoratorTarget<T>,
+  context: SetterAttributeDecoratorContext<T>,
+): SetterAttributeDecoratorTarget<T>;
+
+function defineAttribute<T>(
+  T: Type<T>,
+  target: AccessorAttributeDecoratorTarget<T>,
+  context: AccessorAttributeDecoratorContext<T>,
+): AccessorAttributeDecoratorTarget<T>;
+
+function defineAttribute<T>(
+  T: Type<T>,
   target: AttributeDecoratorTarget<T>,
-  context: AttributeDecoratorContext,
-) {
-  target = toAttributeDecoratorTarget(target);
-  context = toAttributeDecoratorContext(context);
-
-  const i = interfaceRegistry.get(context.metadata);
-  const identifier = getIdentifierByName(context.name);
-
-  if (identifier === undefined) {
-    throw TypeError(
-      `Cannot use ${typeof context.name === "symbol" ? "symbol" : `'${context.name}'`} as an attribute identifier`,
-    );
-  }
-
-  if (context.static && identifier === "prototype") {
-    throw TypeError(
-      `Cannot use identifier '${identifier}' for a static attribute`,
-    );
-  }
-
-  const members = context.static ? i.staticMembers : i.members;
-  const attribute = Object.hasOwn(members, identifier)
-    ? members[identifier]
-    : undefined;
-
-  if (attribute !== undefined && !isAttribute(attribute)) {
-    throw TypeError(
-      `A non-attribute${context.static ? " static " : " "}interface member is already defined for identifier '${identifier}'`,
-    );
-  }
-
+  context: AttributeDecoratorContext<T>,
+): AttributeDecoratorTarget<T> {
   switch (context.kind) {
     case "getter": {
-      const getter = getAttributeGetter(
-        target as GetterAttributeDecoratorTarget<T>,
-        T,
-      );
-
-      if (attribute) {
-        attribute.getterSteps = getter;
-      } else {
-        const keywords = new Set<string>(["readonly"]);
-        if (context.static) keywords.add("static");
-
-        members[identifier] = Object.create(AttributePrototype, {
-          keywords: { value: keywords },
-          identifier: { value: identifier },
-          type: { value: T },
-          getterSteps: { value: getter },
-        });
-      }
-
-      return getter;
+      const getter = target as GetterAttributeDecoratorTarget<T>;
+      return defineAttributeGetter(T, getter, context);
     }
     case "setter": {
-      const setter = getAttributeSetter(
-        target as SetterAttributeDecoratorTarget<T>,
-        T,
-      );
-
-      if (attribute) {
-        attribute.setterSteps = setter;
-        attribute.keywords.delete("readonly");
-      } else {
-        const keywords = new Set<string>();
-        if (context.static) keywords.add("static");
-
-        members[identifier] = Object.create(AttributePrototype, {
-          keywords: { value: keywords },
-          identifier: { value: identifier },
-          type: { value: T },
-          setterSteps: { value: setter },
-        });
-      }
-
-      return setter;
+      const setter = target as SetterAttributeDecoratorTarget<T>;
+      return defineAttributeSetter(T, setter, context);
     }
     case "accessor": {
-      const { get, set } = target as AccessorAttributeDecoratorTarget<T>;
-      const getter = getAttributeGetter(get, T);
-      const setter = getAttributeSetter(set, T);
-
-      const keywords = new Set<string>();
-      if (context.static) keywords.add("static");
-
-      members[identifier] = Object.create(AttributePrototype, {
-        keywords: { value: keywords },
-        identifier: { value: identifier },
-        type: { value: T },
-        getterSteps: { value: getter },
-        setterSteps: { value: setter },
-      });
-
-      return { get: getter, set: setter };
+      const accessor = target as AccessorAttributeDecoratorTarget<T>;
+      return {
+        get: defineAttributeGetter(T, accessor.get, context),
+        set: defineAttributeSetter(T, accessor.set, context),
+      };
     }
   }
 }
@@ -148,8 +186,7 @@ function defineAttribute<T>(
  * `readonly` attribute. Auto-accessors are always read–write.
  *
  * The decorated member's identifier becomes the attribute identifier. Anonymous
- * members (symbols or `#`-prefixed identifiers) are rejected, and `prototype`
- * is rejected as a static identifier.
+ * members (symbols or `#`-prefixed identifiers) are rejected.
  *
  * For the registered attribute to take effect, the enclosing class must also be
  * decorated with {@link Interface}.

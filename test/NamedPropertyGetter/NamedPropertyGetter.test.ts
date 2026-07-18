@@ -1,10 +1,15 @@
-import { Interface, NamedPropertyGetter } from "lib";
+import {
+  Exposed,
+  Interface,
+  NamedPropertyGetter,
+  SupportedPropertyNames,
+} from "lib";
 
 import {
-  DOMString,
   NamedPropertyDeterminator as NamedPropertyDeterminatorSymbol,
   NamedPropertyGetter as NamedPropertyGetterSymbol,
 } from "@t15i/webspecs/webidl";
+import { DOMString, Nullable } from "@t15i/webidl-types";
 
 import { describe, expect, test } from "vitest";
 
@@ -12,27 +17,32 @@ import { getInterface } from "../utils";
 
 describe("@NamedPropertyGetter", () => {
   test("should define [NamedPropertyGetter] operation on the interface", () => {
+    @Exposed("Window")
     @Interface
     class Test {
       @NamedPropertyGetter(DOMString)
       namedItem(name: string) {
         return name;
       }
+
+      @SupportedPropertyNames
+      supportedPropertyNames() {
+        return new Set<string>();
+      }
     }
 
     const instance = new Test();
-    const operation =
-      getInterface(instance).members[NamedPropertyGetterSymbol]!;
+    const operation = getInterface(Test).members[NamedPropertyGetterSymbol]!;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const methodSteps = Test.prototype.namedItem as any;
 
-    expect(operation.memberType).toBe("operation");
+    expect(operation.kind).toBe("operation");
     expect(operation.keywords).toBeInstanceOf(Set);
     expect(operation.keywords.has("getter")).toBe(true);
     expect(operation.identifier).toBe("namedItem");
-    expect(operation.returnType).toBe(DOMString);
+    expect(operation.returnType).toBe(Nullable(DOMString));
     expect(operation.arguments).toEqual([{ type: DOMString }]);
-    expect(operation.methodSteps).toBe(Test.prototype.namedItem);
+    expect(typeof operation.methodSteps).toBe("function");
     expect(methodSteps.length).toBe(1);
     expect(methodSteps.name).toBe("namedItem");
     expect(() => methodSteps.call({}, "x")).toThrow(
@@ -50,31 +60,41 @@ describe("@NamedPropertyGetter", () => {
   test("should leave identifier undefined when name is a symbol", () => {
     const anonymous = Symbol("anonymous");
 
+    @Exposed("Window")
     @Interface
     class Test {
       @NamedPropertyGetter(DOMString)
       [anonymous]() {
         return "";
       }
+
+      @SupportedPropertyNames
+      supportedPropertyNames() {
+        return new Set<string>();
+      }
     }
 
-    const operation = getInterface(new Test()).members[
-      NamedPropertyGetterSymbol
-    ]!;
+    const operation = getInterface(Test).members[NamedPropertyGetterSymbol]!;
 
     expect(operation.identifier).toBeUndefined();
   });
 
   test("should not register the behavior to determine the value of a named property for a named getter", () => {
+    @Exposed("Window")
     @Interface
     class Test {
       @NamedPropertyGetter(DOMString)
       namedItem() {
         return "";
       }
+
+      @SupportedPropertyNames
+      supportedPropertyNames() {
+        return new Set<string>();
+      }
     }
 
-    const i = getInterface(new Test());
+    const i = getInterface(Test);
 
     expect(i.members[NamedPropertyDeterminatorSymbol]).toBeUndefined();
   });
@@ -82,19 +102,39 @@ describe("@NamedPropertyGetter", () => {
   test("should also register the behavior to determine the value of a named property for an anonymous getter", () => {
     const anonymous = Symbol("anonymous");
 
+    @Exposed("Window")
     @Interface
     class Test {
       @NamedPropertyGetter(DOMString)
       [anonymous]() {
         return "";
       }
+
+      @SupportedPropertyNames
+      supportedPropertyNames() {
+        return new Set<string>();
+      }
     }
 
-    const i = getInterface(new Test());
+    const i = getInterface(Test);
 
     expect(i.members[NamedPropertyGetterSymbol]!.identifier).toBeUndefined();
     expect(i.members[NamedPropertyDeterminatorSymbol]).toBe(
-      Test.prototype[anonymous],
+      i.members[NamedPropertyGetterSymbol]!.methodSteps,
     );
+  });
+
+  test("should reject a named property getter without supported property names", () => {
+    expect(() => {
+      @Exposed("Window")
+      @Interface
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      class Test {
+        @NamedPropertyGetter(DOMString)
+        namedItem(name: string) {
+          return name;
+        }
+      }
+    }).toThrow();
   });
 });

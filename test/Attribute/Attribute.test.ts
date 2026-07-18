@@ -1,11 +1,7 @@
-import { Attribute, Interface } from "lib";
+import { Attribute, Exposed, Interface } from "lib";
 
-import {
-  DOMString,
-  UnsignedLong,
-  isReadonlyAttribute,
-  isStaticAttribute,
-} from "@t15i/webspecs/webidl";
+import { isReadonlyAttribute, isStaticAttribute } from "@t15i/webspecs/webidl";
+import { DOMString, USVString } from "@t15i/webidl-types";
 
 import { describe, expect, test } from "vitest";
 
@@ -13,6 +9,7 @@ import { getAttribute, getInterface, getStaticAttribute } from "../utils";
 
 describe("@Attribute", () => {
   test("should define a readonly attribute for a getter", () => {
+    @Exposed("Window")
     @Interface
     class Test {
       @Attribute(DOMString)
@@ -21,9 +18,9 @@ describe("@Attribute", () => {
       }
     }
 
-    const attribute = getAttribute(getInterface(new Test()), "foo")!;
+    const attribute = getAttribute(getInterface(Test), "foo")!;
 
-    expect(attribute.memberType).toBe("attribute");
+    expect(attribute.kind).toBe("attribute");
     expect(attribute.keywords).toBeInstanceOf(Set);
     expect(attribute.keywords.has("readonly")).toBe(true);
     expect(attribute.identifier).toBe("foo");
@@ -33,29 +30,36 @@ describe("@Attribute", () => {
     expect(isStaticAttribute(attribute)).toBe(false);
   });
 
-  test("should define a write-only attribute for a setter", () => {
-    @Interface
-    class Test {
-      @Attribute(DOMString)
-      set foo(_value: string) {}
+  test("should reject a write-only attribute defined by a setter alone", () => {
+    let error: unknown;
+
+    try {
+      @Exposed("Window")
+      @Interface
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      class Test {
+        @Attribute(DOMString)
+        set foo(_value: string) {}
+      }
+    } catch (e) {
+      error = e;
     }
 
-    const attribute = getAttribute(getInterface(new Test()), "foo")!;
-
-    expect(attribute.keywords.has("readonly")).toBe(false);
-    expect(attribute.identifier).toBe("foo");
-    expect(attribute.type).toBe(DOMString);
-    expect(typeof attribute.setterSteps).toBe("function");
+    expect(error).toBeInstanceOf(TypeError);
+    expect(((error as Error).cause as Error).message).toBe(
+      "The attribute 'foo' must define a getter",
+    );
   });
 
   test("should define a read-write attribute for an accessor", () => {
+    @Exposed("Window")
     @Interface
     class Test {
       @Attribute(DOMString)
       accessor foo = "";
     }
 
-    const attribute = getAttribute(getInterface(new Test()), "foo")!;
+    const attribute = getAttribute(getInterface(Test), "foo")!;
 
     expect(attribute.keywords.has("readonly")).toBe(false);
     expect(attribute.identifier).toBe("foo");
@@ -66,6 +70,7 @@ describe("@Attribute", () => {
   });
 
   test("should drop 'readonly' when a setter is added after a getter for the same identifier", () => {
+    @Exposed("Window")
     @Interface
     class Test {
       @Attribute(DOMString)
@@ -77,7 +82,7 @@ describe("@Attribute", () => {
       set foo(_value: string) {}
     }
 
-    const attribute = getAttribute(getInterface(new Test()), "foo")!;
+    const attribute = getAttribute(getInterface(Test), "foo")!;
 
     expect(attribute.keywords.has("readonly")).toBe(false);
     expect(typeof attribute.getterSteps).toBe("function");
@@ -85,6 +90,7 @@ describe("@Attribute", () => {
   });
 
   test("should attach a getter to an attribute previously declared by a setter", () => {
+    @Exposed("Window")
     @Interface
     class Test {
       @Attribute(DOMString)
@@ -96,14 +102,32 @@ describe("@Attribute", () => {
       }
     }
 
-    const attribute = getAttribute(getInterface(new Test()), "foo")!;
+    const attribute = getAttribute(getInterface(Test), "foo")!;
 
     expect(attribute.keywords.has("readonly")).toBe(false);
     expect(typeof attribute.getterSteps).toBe("function");
     expect(typeof attribute.setterSteps).toBe("function");
   });
 
+  test("should reject extending an attribute with a getter and setter of different types", () => {
+    expect(() => {
+      @Exposed("Window")
+      @Interface
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      class Test {
+        @Attribute(DOMString)
+        get foo() {
+          return "";
+        }
+
+        @Attribute(USVString)
+        set foo(_value: string) {}
+      }
+    }).toThrow("Cannot extend the existing definition");
+  });
+
   test("should register a static attribute under the staticMembers slot", () => {
+    @Exposed("Window")
     @Interface
     class Test {
       @Attribute(DOMString)
@@ -112,13 +136,14 @@ describe("@Attribute", () => {
       }
     }
 
-    const i = getInterface(new Test());
+    const i = getInterface(Test);
 
     expect(getAttribute(i, "foo")).toBeUndefined();
     expect(getStaticAttribute(i, "foo")).toBeDefined();
   });
 
   test("should mark a static attribute with the 'static' keyword", () => {
+    @Exposed("Window")
     @Interface
     class Test {
       @Attribute(DOMString)
@@ -127,26 +152,28 @@ describe("@Attribute", () => {
       }
     }
 
-    const attribute = getStaticAttribute(getInterface(new Test()), "foo")!;
+    const attribute = getStaticAttribute(getInterface(Test), "foo")!;
 
     expect(isStaticAttribute(attribute)).toBe(true);
     expect(isReadonlyAttribute(attribute)).toBe(true);
   });
 
   test("should mark a static accessor attribute with the 'static' keyword", () => {
+    @Exposed("Window")
     @Interface
     class Test {
       @Attribute(DOMString)
       static accessor foo = "";
     }
 
-    const attribute = getStaticAttribute(getInterface(new Test()), "foo")!;
+    const attribute = getStaticAttribute(getInterface(Test), "foo")!;
 
     expect(isStaticAttribute(attribute)).toBe(true);
     expect(isReadonlyAttribute(attribute)).toBe(false);
   });
 
   test("should coerce the returned value through the attribute type in the getter steps", () => {
+    @Exposed("Window")
     @Interface
     class Test {
       @Attribute(DOMString)
@@ -155,7 +182,7 @@ describe("@Attribute", () => {
       }
     }
 
-    const attribute = getAttribute(getInterface(new Test()), "foo")!;
+    const attribute = getAttribute(getInterface(Test), "foo")!;
     const instance = new Test();
 
     expect(attribute.getterSteps.call(instance)).toBe("42");
@@ -164,38 +191,63 @@ describe("@Attribute", () => {
   test("should coerce the assigned value through the attribute type in the setter steps", () => {
     let received: unknown;
 
-    @Interface
-    class Test {
-      @Attribute(DOMString)
-      set foo(value: string) {
-        received = value;
-      }
-    }
-
-    const attribute = getAttribute(getInterface(new Test()), "foo")!;
-    const instance = new Test();
-
-    attribute.setterSteps.call(instance, 42 as unknown as string);
-
-    expect(received).toBe("42");
-  });
-
-  test("should replace the decorated getter with the wrapped getter steps on the prototype", () => {
+    @Exposed("Window")
     @Interface
     class Test {
       @Attribute(DOMString)
       get foo() {
         return "";
       }
+
+      @Attribute(DOMString)
+      set foo(value: string) {
+        received = value;
+      }
     }
 
-    const attribute = getAttribute(getInterface(new Test()), "foo")!;
+    const attribute = getAttribute(getInterface(Test), "foo")!;
+    const instance = new Test();
+
+    attribute.setterSteps!.call(instance, 42 as unknown as string);
+
+    expect(received).toBe("42");
+  });
+
+  test("should replace the decorated getter with a wrapped getter that coerces through the attribute type on the prototype", () => {
+    @Exposed("Window")
+    @Interface
+    class Test {
+      @Attribute(DOMString)
+      get foo() {
+        return 42 as unknown as string;
+      }
+    }
+
     const descriptor = Object.getOwnPropertyDescriptor(Test.prototype, "foo")!;
 
-    expect(descriptor.get).toBe(attribute.getterSteps);
+    expect(typeof descriptor.get).toBe("function");
+    expect(descriptor.get!.call(new Test())).toBe("42");
+  });
+
+  test("should keep an auto-accessor attribute readable and writable on instances", () => {
+    @Exposed("Window")
+    @Interface
+    class Test {
+      @Attribute(DOMString)
+      accessor foo = "bar";
+    }
+
+    const instance = new Test();
+
+    expect(instance.foo).toBe("bar");
+
+    instance.foo = 42 as unknown as string;
+
+    expect(instance.foo).toBe("42");
   });
 
   test("should shadow an inherited attribute when redeclared on a derived class", () => {
+    @Exposed("Window")
     @Interface
     class Base {
       @Attribute(DOMString)
@@ -204,35 +256,21 @@ describe("@Attribute", () => {
       }
     }
 
+    @Exposed("Window")
     @Interface
     class Derived extends Base {
-      @Attribute(UnsignedLong)
+      @Attribute(USVString)
       override get foo() {
-        return 0 as unknown as string;
+        return "derived";
       }
     }
 
-    const i = getInterface(new Derived());
+    const i = getInterface(Derived);
     const own = getAttribute(i, "foo")!;
     const inherited = getAttribute(Object.getPrototypeOf(i), "foo")!;
 
-    expect(own.type).toBe(UnsignedLong);
+    expect(own.type).toBe(USVString);
     expect(inherited.type).toBe(DOMString);
     expect(own).not.toBe(inherited);
-  });
-
-  test("should throw when the decorated member name is a symbol", () => {
-    const anonymous = Symbol("anonymous");
-
-    expect(() => {
-      @Interface
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      class Test {
-        @Attribute(DOMString)
-        get [anonymous]() {
-          return "";
-        }
-      }
-    }).toThrow(TypeError);
   });
 });

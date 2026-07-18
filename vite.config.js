@@ -59,7 +59,7 @@ export default {
       entry: "./lib/index.ts",
     },
     rolldownOptions: {
-      external: [/^@t15i\/webspecs(\/.*)?$/],
+      external: [/^@t15i\/(webspecs|webidl-types)(\/.*)?$/],
       output: [
         {
           name: "@t15i/webidl-decorators",

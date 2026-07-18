@@ -7,7 +7,7 @@ import {
 export function getAttribute(
   i: Interface,
   identifier: string,
-): Attribute<unknown> | undefined {
+): Attribute | undefined {
   const member = i.members[identifier];
 
   if (member === undefined) {
