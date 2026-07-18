@@ -37,7 +37,6 @@
  *   }
  * }
  * ```
+ *
  */
 export const Internals: unique symbol = Symbol();
-
-export const internals: WeakMap<object, object> = new WeakMap();
