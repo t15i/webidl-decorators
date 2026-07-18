@@ -1,21 +1,17 @@
+import { UnsignedLong } from "@t15i/webidl-types";
 import {
   IndexedPropertyDeterminator as IndexedPropertyDeterminatorSymbol,
   IndexedPropertyGetter as IndexedPropertyGetterSymbol,
-  SupportedPropertyIndices,
-  validateSpecialOperation,
+  type ArgumentList,
   type Type,
 } from "@t15i/webspecs/webidl";
-import { UnsignedLong } from "@t15i/webidl-types";
-
-import { GetterPrototype } from "@/protos";
 
 import {
-  getIdentifierFromContext,
-  getInterfaceFromContext,
-  getMethodSteps,
+  createOperationFromContext,
+  getInterfaceDraftFromContext,
   guard,
 } from "@/utils";
-import { assertDefinable } from "@/utils/assertions";
+import { assertHasNoOwnMember } from "@/utils/assertions";
 import { SpecialOperationDefinitionError } from "@/utils/errors";
 
 import type { SpecialOperationDecoratorContext } from "@/types";
@@ -24,14 +20,6 @@ import type {
   IndexedPropertyGetterDecorator,
   IndexedPropertyGetterDecoratorTarget,
 } from "./types";
-
-import { NaiveSupportedPropertyIndices } from "./NaiveSupportedPropertyIndices";
-
-const IndexedPropertyGetterPrototype = Object.create(GetterPrototype, {
-  arguments: {
-    value: [{ type: UnsignedLong }],
-  },
-});
 
 /**
  * Defines the decorated method as the `[IndexedPropertyGetter]` internal method
@@ -48,40 +36,31 @@ function defineIndexedPropertyGetter<T>(
   target: IndexedPropertyGetterDecoratorTarget<T>,
   context: SpecialOperationDecoratorContext,
 ) {
-  const i = getInterfaceFromContext(context);
-  const operation = Object.create(IndexedPropertyGetterPrototype, {
-    identifier: { value: getIdentifierFromContext(context) },
-    methodSteps: { value: getMethodSteps(context.access.get) },
-    returnType: { value: T },
-  });
+  const iface = getInterfaceDraftFromContext(context);
+
+  const args: ArgumentList<[typeof UnsignedLong]> = [{ type: UnsignedLong }];
+  const returnType = T;
+
+  const operation = createOperationFromContext({ args, returnType, context });
+  operation.keywords.add("getter");
 
   try {
-    validateSpecialOperation(operation);
-    assertDefinable(i, IndexedPropertyGetterSymbol);
+    assertHasNoOwnMember(iface, IndexedPropertyGetterSymbol);
     if (operation.identifier !== undefined) {
-      assertDefinable(i, operation.identifier);
+      assertHasNoOwnMember(iface, operation.identifier);
     }
   } catch (e) {
     throw new SpecialOperationDefinitionError(context, { cause: e });
   }
 
-  i.members[IndexedPropertyGetterSymbol] = operation;
-
+  iface.members[IndexedPropertyGetterSymbol] = operation;
   if (operation.identifier !== undefined) {
-    i.members[operation.identifier] = operation;
+    iface.members[operation.identifier] = operation;
   } else {
-    i.members[IndexedPropertyDeterminatorSymbol] ??= operation.methodSteps;
+    iface.members[IndexedPropertyDeterminatorSymbol] ??= operation.methodSteps;
   }
 
-  i.members[SupportedPropertyIndices] = function () {
-    return new NaiveSupportedPropertyIndices(this, operation.methodSteps);
-  };
-
-  return guard(target, {
-    interface: i,
-    arguments: IndexedPropertyGetterPrototype.arguments,
-    returnType: T,
-  });
+  return guard(target, { iface, id: operation.identifier, args, returnType });
 }
 
 /**
@@ -105,7 +84,7 @@ function defineIndexedPropertyGetter<T>(
  * ```ts
  * \@Interface
  * class HTMLCollection {
- *   \@IndexedPropertyGetter(Nullable(Type(Element)))
+ *   \@IndexedPropertyGetter(Type(Element))
  *   item(index: number): Element | null {
  *     // ...
  *     return value;

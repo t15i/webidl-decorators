@@ -1,4 +1,3 @@
-export { AttributeDefinitionError } from "./AttributeDefinitionError";
 export { AttributeDefinitionExtensionError } from "./AttributeDefinitionExtensionError";
-export { BehaviorDefinitionError } from "./BehaviorDefinitionError";
+export { InterfaceDefinitionError } from "./InterfaceDefinitionError";
 export { SpecialOperationDefinitionError } from "./SpecialOperationDefinitionError";

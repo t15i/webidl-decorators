@@ -1,22 +1,18 @@
 import {
+  type ArgumentList,
   type Type,
   IndexedPropertySetter as IndexedPropertySetterSymbol,
   NewIndexedPropertySetter as NewIndexedPropertySetterSymbol,
   ExistingIndexedPropertySetter as ExistingIndexedPropertySetterSymbol,
-  type ArgumentList,
-  validateSpecialOperation,
 } from "@t15i/webspecs/webidl";
 import { Undefined, UnsignedLong } from "@t15i/webidl-types";
 
-import { SetterPrototype } from "@/protos";
-
 import {
-  getIdentifierFromContext,
-  getInterfaceFromContext,
-  getMethodSteps,
+  createOperationFromContext,
+  getInterfaceDraftFromContext,
   guard,
 } from "@/utils";
-import { assertDefinable } from "@/utils/assertions";
+import { assertHasNoOwnMember } from "@/utils/assertions";
 import { SpecialOperationDefinitionError } from "@/utils/errors";
 
 import type { SpecialOperationDecoratorContext } from "@/types";
@@ -44,43 +40,36 @@ function defineIndexedPropertySetter<T, Return>(
   target: IndexedPropertySetterDecoratorTarget<T, Return>,
   context: SpecialOperationDecoratorContext,
 ) {
-  const i = getInterfaceFromContext(context);
+  const iface = getInterfaceDraftFromContext(context);
+
   const args: ArgumentList<[typeof UnsignedLong, Type<T>]> = [
     { type: UnsignedLong },
     { type: T },
   ];
+  const returnType = Return;
 
-  const operation = Object.create(SetterPrototype, {
-    identifier: { value: getIdentifierFromContext(context) },
-    methodSteps: { value: getMethodSteps(context.access.get) },
-    returnType: { value: Return },
-    arguments: { value: args },
-  });
+  const operation = createOperationFromContext({ args, returnType, context });
+  operation.keywords.add("setter");
 
   try {
-    validateSpecialOperation(operation);
-    assertDefinable(i, IndexedPropertySetterSymbol);
+    assertHasNoOwnMember(iface, IndexedPropertySetterSymbol);
     if (operation.identifier !== undefined) {
-      assertDefinable(i, operation.identifier);
+      assertHasNoOwnMember(iface, operation.identifier);
     }
   } catch (e) {
     throw new SpecialOperationDefinitionError(context, { cause: e });
   }
 
-  i.members[IndexedPropertySetterSymbol] = operation;
-
+  iface.members[IndexedPropertySetterSymbol] = operation;
   if (operation.identifier !== undefined) {
-    i.members[operation.identifier] = operation;
+    iface.members[operation.identifier] = operation;
   } else {
-    i.members[NewIndexedPropertySetterSymbol] ??= operation.methodSteps;
-    i.members[ExistingIndexedPropertySetterSymbol] ??= operation.methodSteps;
+    iface.members[NewIndexedPropertySetterSymbol] ??= operation.methodSteps;
+    iface.members[ExistingIndexedPropertySetterSymbol] ??=
+      operation.methodSteps;
   }
 
-  return guard(target, {
-    interface: i,
-    arguments: args,
-    returnType: Return,
-  });
+  return guard(target, { iface, id: operation.identifier, args, returnType });
 }
 
 /**

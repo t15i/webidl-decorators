@@ -1,17 +1,15 @@
-import {
-  isAttribute,
-  type Attribute,
-  type Member,
-  type Type,
-} from "@t15i/webspecs/webidl";
+import { type Type } from "@t15i/webspecs/webidl";
+
+import type { AttributeDraft, MemberDraft } from "@/types";
 
 import { getTypeId } from "../getTypeId";
 
 /**
- * Throws `TypeError` unless the already-defined member `member` is an attribute
- * whose WebIDL type is `T`.
+ * Throws `TypeError` unless the already-registered member draft `member` is an
+ * attribute draft whose WebIDL type is `T`.
  *
- * @param member - The interface member already registered under the identifier.
+ * @param member - The interface member draft already registered under the
+ *  identifier.
  * @param T - The WebIDL type the attribute is being (re)defined with.
  *
  * @remarks
@@ -21,24 +19,25 @@ import { getTypeId } from "../getTypeId";
  * not an attribute, or is an attribute of a different type. Each case throws a
  * specific `TypeError`, which {@link Attribute} re-throws with the surrounding
  * definition context as its `cause`. The `asserts` signature narrows `member`
- * to {@link Attribute} for the caller.
+ * to {@link AttributeDraft} for the caller.
  */
-export function assertAttributeWithType(
-  member: Member,
-  T: Type,
-): asserts member is Attribute {
+export function assertAttributeDraftWithType<T extends Type>(
+  member: MemberDraft,
+  T: T,
+): asserts member is AttributeDraft<T> {
   const identifier = member.identifier;
   const isStatic = member.keywords.has("static");
 
-  if (!isAttribute(member)) {
+  if (member.kind !== "attribute") {
     throw new TypeError(
       `A non-attribute ${isStatic ? "static " : ""}interface member '${identifier}' is already defined`,
     );
   }
 
   if (member.type !== T) {
+    const existing = getTypeId(member.type);
     throw new TypeError(
-      `${isStatic ? "Static " : ""}attribute member '${identifier}' is already defined with different type '${getTypeId(member.type)}'`,
+      `${isStatic ? "Static " : ""}attribute member '${identifier}' is already defined with different type '${existing}'`,
     );
   }
 }

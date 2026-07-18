@@ -1,10 +1,15 @@
-import { Interface, NamedPropertyGetter } from "lib";
+import {
+  Exposed,
+  Interface,
+  NamedPropertyGetter,
+  SupportedPropertyNames,
+} from "lib";
 
 import {
   NamedPropertyDeterminator as NamedPropertyDeterminatorSymbol,
   NamedPropertyGetter as NamedPropertyGetterSymbol,
 } from "@t15i/webspecs/webidl";
-import { DOMString } from "@t15i/webidl-types";
+import { DOMString, Nullable } from "@t15i/webidl-types";
 
 import { describe, expect, test } from "vitest";
 
@@ -12,11 +17,17 @@ import { getInterface } from "../utils";
 
 describe("@NamedPropertyGetter", () => {
   test("should define [NamedPropertyGetter] operation on the interface", () => {
+    @Exposed("Window")
     @Interface
     class Test {
       @NamedPropertyGetter(DOMString)
       namedItem(name: string) {
         return name;
+      }
+
+      @SupportedPropertyNames
+      supportedPropertyNames() {
+        return new Set<string>();
       }
     }
 
@@ -25,11 +36,11 @@ describe("@NamedPropertyGetter", () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const methodSteps = Test.prototype.namedItem as any;
 
-    expect(operation.memberType).toBe("operation");
+    expect(operation.kind).toBe("operation");
     expect(operation.keywords).toBeInstanceOf(Set);
     expect(operation.keywords.has("getter")).toBe(true);
     expect(operation.identifier).toBe("namedItem");
-    expect(operation.returnType).toBe(DOMString);
+    expect(operation.returnType).toBe(Nullable(DOMString));
     expect(operation.arguments).toEqual([{ type: DOMString }]);
     expect(typeof operation.methodSteps).toBe("function");
     expect(methodSteps.length).toBe(1);
@@ -49,11 +60,17 @@ describe("@NamedPropertyGetter", () => {
   test("should leave identifier undefined when name is a symbol", () => {
     const anonymous = Symbol("anonymous");
 
+    @Exposed("Window")
     @Interface
     class Test {
       @NamedPropertyGetter(DOMString)
       [anonymous]() {
         return "";
+      }
+
+      @SupportedPropertyNames
+      supportedPropertyNames() {
+        return new Set<string>();
       }
     }
 
@@ -63,11 +80,17 @@ describe("@NamedPropertyGetter", () => {
   });
 
   test("should not register the behavior to determine the value of a named property for a named getter", () => {
+    @Exposed("Window")
     @Interface
     class Test {
       @NamedPropertyGetter(DOMString)
       namedItem() {
         return "";
+      }
+
+      @SupportedPropertyNames
+      supportedPropertyNames() {
+        return new Set<string>();
       }
     }
 
@@ -79,11 +102,17 @@ describe("@NamedPropertyGetter", () => {
   test("should also register the behavior to determine the value of a named property for an anonymous getter", () => {
     const anonymous = Symbol("anonymous");
 
+    @Exposed("Window")
     @Interface
     class Test {
       @NamedPropertyGetter(DOMString)
       [anonymous]() {
         return "";
+      }
+
+      @SupportedPropertyNames
+      supportedPropertyNames() {
+        return new Set<string>();
       }
     }
 
@@ -93,5 +122,19 @@ describe("@NamedPropertyGetter", () => {
     expect(i.members[NamedPropertyDeterminatorSymbol]).toBe(
       i.members[NamedPropertyGetterSymbol]!.methodSteps,
     );
+  });
+
+  test("should reject a named property getter without supported property names", () => {
+    expect(() => {
+      @Exposed("Window")
+      @Interface
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      class Test {
+        @NamedPropertyGetter(DOMString)
+        namedItem(name: string) {
+          return name;
+        }
+      }
+    }).toThrow();
   });
 });

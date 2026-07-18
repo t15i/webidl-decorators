@@ -1,4 +1,11 @@
-import { IndexedPropertySetter, Interface } from "lib";
+import {
+  Attribute,
+  Exposed,
+  IndexedPropertyGetter,
+  IndexedPropertySetter,
+  Interface,
+  SupportedPropertyIndices,
+} from "lib";
 
 import {
   ExistingIndexedPropertySetter as ExistingIndexedPropertySetterSymbol,
@@ -13,12 +20,28 @@ import { getInterface } from "../utils";
 
 describe("@IndexedPropertySetter", () => {
   test("should define [IndexedPropertySetter] operation on the interface", () => {
+    @Exposed("Window")
     @Interface
     class Test {
+      @IndexedPropertyGetter(UnsignedLong)
+      item(i: number) {
+        return i;
+      }
+
       @IndexedPropertySetter(UnsignedLong)
       indexedPropertySetter(i: number, v: number) {
         void i;
         void v;
+      }
+
+      @Attribute(UnsignedLong)
+      get length() {
+        return 0;
+      }
+
+      @SupportedPropertyIndices
+      supportedPropertyIndices() {
+        return new Set<number>();
       }
     }
 
@@ -27,7 +50,7 @@ describe("@IndexedPropertySetter", () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const methodSteps = Test.prototype.indexedPropertySetter as any;
 
-    expect(operation.memberType).toBe("operation");
+    expect(operation.kind).toBe("operation");
     expect(operation.keywords).toBeInstanceOf(Set);
     expect(operation.keywords.has("setter")).toBe(true);
     expect(operation.identifier).toBe("indexedPropertySetter");
@@ -50,11 +73,27 @@ describe("@IndexedPropertySetter", () => {
   });
 
   test("should use the provided Return type when supplied", () => {
+    @Exposed("Window")
     @Interface
     class Test {
+      @IndexedPropertyGetter(UnsignedLong)
+      item(i: number) {
+        return i;
+      }
+
       @IndexedPropertySetter(UnsignedLong, UnsignedLong)
       indexedPropertySetter(): number {
         return 0;
+      }
+
+      @Attribute(UnsignedLong)
+      get length() {
+        return 0;
+      }
+
+      @SupportedPropertyIndices
+      supportedPropertyIndices() {
+        return new Set<number>();
       }
     }
 
@@ -64,10 +103,26 @@ describe("@IndexedPropertySetter", () => {
   });
 
   test("should not register the behaviors to set the value of a new or existing indexed property for a named setter", () => {
+    @Exposed("Window")
     @Interface
     class Test {
+      @IndexedPropertyGetter(UnsignedLong)
+      item(i: number) {
+        return i;
+      }
+
       @IndexedPropertySetter(UnsignedLong)
       indexedPropertySetter() {}
+
+      @Attribute(UnsignedLong)
+      get length() {
+        return 0;
+      }
+
+      @SupportedPropertyIndices
+      supportedPropertyIndices() {
+        return new Set<number>();
+      }
     }
 
     const i = getInterface(Test);
@@ -79,10 +134,26 @@ describe("@IndexedPropertySetter", () => {
   test("should also register the behaviors to set the value of a new and existing indexed property for an anonymous setter", () => {
     const anonymous = Symbol("anonymous");
 
+    @Exposed("Window")
     @Interface
     class Test {
+      @IndexedPropertyGetter(UnsignedLong)
+      item(i: number) {
+        return i;
+      }
+
       @IndexedPropertySetter(UnsignedLong)
       [anonymous]() {}
+
+      @Attribute(UnsignedLong)
+      get length() {
+        return 0;
+      }
+
+      @SupportedPropertyIndices
+      supportedPropertyIndices() {
+        return new Set<number>();
+      }
     }
 
     const i = getInterface(Test);
@@ -94,5 +165,20 @@ describe("@IndexedPropertySetter", () => {
     expect(i.members[ExistingIndexedPropertySetterSymbol]).toBe(
       i.members[IndexedPropertySetterSymbol]!.methodSteps,
     );
+  });
+
+  test("should reject an indexed property setter without an indexed property getter", () => {
+    expect(() => {
+      @Exposed("Window")
+      @Interface
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      class Test {
+        @IndexedPropertySetter(UnsignedLong)
+        indexedPropertySetter(i: number, v: number) {
+          void i;
+          void v;
+        }
+      }
+    }).toThrow();
   });
 });

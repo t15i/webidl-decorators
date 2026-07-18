@@ -1,8 +1,12 @@
-export { cloneFunctionMetadata } from "./cloneFunctionMetadata";
-export { getAttributeGetterSteps } from "./getAttributeGetterSteps";
-export { getAttributeSetterSteps } from "./getAttributeSetterSteps";
+export { createAttributeFromContext } from "./createAttributeFromContext";
+export { createOperationFromContext } from "./createOperationFromContext";
+export { defineFunctionMetadata } from "./defineFunctionMetadata";
+export { describeKey } from "./describeKey";
+export { getAttributeGetterStepsFromContext } from "./getAttributeGetterStepsFromContext";
+export { getAttributeSetterStepsFromContext } from "./getAttributeSetterStepsFromContext";
 export { getIdentifierFromContext } from "./getIdentifierFromContext";
-export { getInterfaceFromContext } from "./getInterfaceFromContext";
-export { getMethodSteps } from "./getMethodSteps";
+export { getInterfaceDraftFromContext } from "./getInterfaceDraftFromContext";
+export { getOperationMethodStepsFromContext } from "./getOperationMethodStepsFromContext";
+export { getOwnMemberDraftFromContext } from "./getOwnMemberDraftFromContext";
 export { getTypeId } from "./getTypeId";
 export { guard } from "./guard";

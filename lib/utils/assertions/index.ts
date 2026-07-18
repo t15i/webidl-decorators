@@ -1,2 +1,3 @@
-export { assertAttributeWithType } from "./assertAttributeWithType";
-export { assertDefinable } from "./assertDefinable";
+export { assertAttributeDraftWithType } from "./assertAttributeDraftWithType";
+export { assertHasNoOwnMember } from "./assertHasNoOwnMember";
+export { assertInterface } from "./assertInterface";

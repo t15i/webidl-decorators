@@ -1,13 +1,45 @@
-import { PlatformObject } from "./PlatformObject";
+import {
+  validateInterface,
+  PlatformObject as WebIDLPlatformObject,
+} from "@t15i/webspecs/webidl";
 
-import { getInterfaceFromContext } from "@/utils";
+import { getInterfaceDraftFromContext } from "@/utils";
+import { assertInterface } from "@/utils/assertions";
+import { InterfaceDefinitionError } from "@/utils/errors";
+
 import type {
   InterfaceDecoratorContext,
   InterfaceDecoratorTarget,
 } from "@/types";
-import type { InterfaceDecorator } from "./types";
+
+import { PlatformObject } from "./PlatformObject";
 
 export { Internals } from "./PlatformObject/internals";
+
+import type { InterfaceDecorator } from "./types";
+
+function interfaceInitializer(
+  target: InterfaceDecoratorTarget,
+  context: InterfaceDecoratorContext,
+) {
+  const iface = getInterfaceDraftFromContext(context);
+
+  try {
+    const existing: unknown = WebIDLPlatformObject.getPrimaryInterfaceOf(
+      target.prototype,
+    );
+    if (existing === iface) {
+      throw new TypeError("The interface is already defined");
+    }
+
+    assertInterface(iface);
+    validateInterface(iface);
+  } catch (e) {
+    throw new InterfaceDefinitionError(iface, { cause: e });
+  }
+
+  WebIDLPlatformObject.setPrimaryInterfaceOf(target.prototype, iface);
+}
 
 /**
  * Decorates a class as a WebIDL interface, registering `identifier` as its
@@ -26,10 +58,12 @@ function defineInterface<T extends InterfaceDecoratorTarget>(
     );
   }
 
-  const i = getInterfaceFromContext(context);
+  const i = getInterfaceDraftFromContext(context);
   i.identifier = (identifier ?? context.name)!;
 
-  return PlatformObject(target, context);
+  context.addInitializer(interfaceInitializer.bind(undefined, target, context));
+
+  return PlatformObject(target);
 }
 
 const InterfaceDefault = defineInterface.bind(

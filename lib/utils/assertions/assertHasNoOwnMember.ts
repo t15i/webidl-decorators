@@ -1,15 +1,12 @@
-import type { Interface, InterfaceMembers } from "@t15i/webspecs/webidl";
+import type { InterfaceDraft, InterfaceDraftMembers } from "@/types";
 
-function describeMemberKey(key: keyof InterfaceMembers): string {
-  return typeof key === "symbol"
-    ? (key.description ?? key.toString())
-    : `${key}`;
-}
+import { describeKey } from "../describeKey";
 
 /**
- * Throws `TypeError` unless `key` is still free to define on interface `i`.
+ * Throws `TypeError` unless `key` is still free to define on the interface
+ * draft `i`.
  *
- * @param i - The interface whose member table is checked.
+ * @param i - The interface draft whose member table is checked.
  * @param key - The member identifier or special-operation/behavior symbol about
  *  to be assigned.
  *
@@ -21,13 +18,13 @@ function describeMemberKey(key: keyof InterfaceMembers): string {
  * explicit error. Members inherited from a parent interface do not count as
  * defined, so a child interface may still redefine them.
  */
-export function assertDefinable(
-  i: Interface,
-  key: keyof InterfaceMembers,
+export function assertHasNoOwnMember(
+  i: InterfaceDraft,
+  key: keyof InterfaceDraftMembers,
 ): void {
   if (Object.hasOwn(i.members, key)) {
     throw new TypeError(
-      `Interface member '${describeMemberKey(key)}' is already defined for interface ${i.identifier}`,
+      `Interface member '${describeKey(key)}' is already defined`,
     );
   }
 }

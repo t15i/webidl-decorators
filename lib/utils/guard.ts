@@ -1,44 +1,36 @@
 import {
   isPlatformObject,
   PlatformObject,
-  type Argument,
-  type Interface,
+  type ArgumentList,
   type Type,
 } from "@t15i/webspecs/webidl";
 
-import type { AnyFunction } from "@/types";
-
-import { cloneFunctionMetadata } from "./cloneFunctionMetadata";
-
-/**
- * Maps a tuple of JavaScript value types to the {@link Argument} list of a
- * WebIDL operation whose method steps accept those values, pairing each
- * position with the {@link Type} that coerces it.
- */
-type MethodArgumentList<Args extends readonly unknown[]> = {
-  [K in keyof Args]: Argument<Type<Args[K]>>;
-};
+import type { AnyFunction, InterfaceDraft } from "@/types";
+import { defineFunctionMetadata } from "./defineFunctionMetadata";
 
 /**
- * Throws `TypeError` unless at least `fn.length` arguments were passed.
+ * Throws `TypeError` unless at least `length` arguments were passed.
  *
  * @remarks
  * WebIDL operations are arity-checked: the spec requires every required
- * argument to be present at the call site. The operation's required-argument
- * count is taken from `fn.length`, which mirrors the declared parameter count
- * of the underlying implementation. The error message follows the format
+ * argument to be present at the call site. The required-argument count and
+ * the reported member name come from the declared WebIDL signature, not from
+ * the underlying implementation. The error message follows the format
  * Chromium uses for built-in Web API operations:
  * `Failed to execute '<method>' on '<interface>': N argument(s) required, but
  * only M present.`
  */
-export function assertArity(
-  fn: AnyFunction,
+function assertArity(
   args: unknown[],
-  i: Interface,
+  length: number,
+  details: {
+    name: string;
+    iface: InterfaceDraft;
+  },
 ): void {
-  if (args.length < fn.length) {
+  if (args.length < length) {
     throw new TypeError(
-      `Failed to execute '${fn.name}' on '${i.identifier}': ${fn.length} argument${fn.length === 1 ? "" : "s"} required, but only ${args.length} present.`,
+      `Failed to execute '${details.name}' on '${details.iface.identifier}': ${length} argument${length === 1 ? "" : "s"} required, but only ${args.length} present.`,
     );
   }
 }
@@ -52,9 +44,11 @@ export function assertArity(
  * implicit `this` to implement the interface the operation was declared on.
  * This check walks the prototype chain of the platform object's primary
  * interface looking for `interface`, mirroring the inheritance graph the
- * {@link interfaceRegistry} builds via `Object.create(parentInterface)`.
+ * {@link interfaceDraftRegistry} builds via `Object.create(parentDraft)`. The
+ * draft is compared by identity: the {@link Interface} decorator finalizes
+ * the very same object into the interface it associates with instances.
  */
-export function assertImplements(o: unknown, i: Interface): void {
+function assertImplements(o: unknown, i: InterfaceDraft): void {
   if (o === null || typeof o !== "object" || !isPlatformObject(o)) {
     throw new TypeError("Illegal invocation");
   }
@@ -69,29 +63,51 @@ export function assertImplements(o: unknown, i: Interface): void {
 }
 
 /**
- * Wraps `fn` as a WebIDL operation/attribute-accessor: brand-checks the
+ * Wraps `target` as a WebIDL operation/attribute-accessor: brand-checks the
  * receiver, arity-checks the call, coerces each argument through the matching
- * {@link Type}, and (when `returnType` is given) coerces the result. The
- * returned function reports `fn`'s `name` and `length`.
+ * {@link Type}, and coerces the result through `returnType`. The returned
+ * function reports the stringified identifier `id` as its `name` and the
+ * declared argument list's length as its `length`; the arity check reports
+ * the same values.
  *
  * @remarks
- * An attribute getter is `{ arguments: [], returnType: T }` and a setter is
- * `{ arguments: [{ type: T }] }` — omitting `returnType` signals that the
- * result must not be coerced (setters return nothing).
+ * An attribute getter is guarded with `{ args: [], returnType: T }` and a
+ * setter with `{ args: [{ type: T }], returnType: Undefined }` (setters
+ * return nothing).
+ *
+ * The coercers are always invoked as bare functions: a {@link Type} may
+ * dispatch on its `this` (`Nullable` does), so calling it as a method of the
+ * argument object would break it.
  */
-export function guard<Fn extends AnyFunction>(
-  fn: Fn,
-  signature: {
-    interface: Interface;
-    arguments: MethodArgumentList<Parameters<Fn>>;
-    returnType: Type<ReturnType<Fn>>;
+export function guard<Args extends Type[], Return extends Type>(
+  target: AnyFunction,
+  {
+    iface,
+    id,
+    args: params,
+    returnType,
+  }: {
+    iface: InterfaceDraft;
+    id: string | undefined;
+    args: ArgumentList<Args>;
+    returnType: Return;
   },
-): Fn {
-  return cloneFunctionMetadata(function (this: unknown, ...args: unknown[]) {
-    assertImplements(this, signature.interface);
-    assertArity(fn, args, signature.interface);
-    const coerced = signature.arguments.map((arg, i) => arg.type(args[i]));
-    const result = fn.apply(this, coerced);
-    return signature.returnType(result);
-  }, fn) as Fn;
+): (
+  this: unknown,
+  ...args: { [K in keyof Args]: ReturnType<Args[K]> }
+) => ReturnType<Return> {
+  const name = String(id);
+  return defineFunctionMetadata(
+    function (this: unknown, ...args: unknown[]) {
+      assertImplements(this, iface);
+      assertArity(args, params.length, { name, iface });
+      const coerced = params.map(({ type }, index) => type(args[index]));
+      const result = target.apply(this, coerced);
+      return returnType(result) as ReturnType<Return>;
+    },
+    {
+      name,
+      length: params.length,
+    },
+  );
 }

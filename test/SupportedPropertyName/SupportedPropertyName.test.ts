@@ -1,4 +1,4 @@
-import { Interface, SupportedPropertyNames } from "lib";
+import { Exposed, Interface, SupportedPropertyNames } from "lib";
 
 import { SupportedPropertyNames as SupportedPropertyNamesSymbol } from "@t15i/webspecs/webidl";
 
@@ -8,6 +8,7 @@ import { getInterface } from "../utils";
 
 describe("@SupportedPropertyNames", () => {
   test("should register the target as the behavior to get the supported property names", () => {
+    @Exposed("Window")
     @Interface
     class Test {
       @SupportedPropertyNames

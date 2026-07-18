@@ -1,6 +1,6 @@
 import { LegacyUnenumerableNamedProperties as LegacyUnenumerableNamedPropertiesSymbol } from "@t15i/webspecs/webidl";
 
-import { getInterfaceFromContext } from "@/utils";
+import { getInterfaceDraftFromContext } from "@/utils";
 
 import type { DecoratorContext } from "@/types";
 
@@ -33,6 +33,7 @@ export function LegacyUnenumerableNamedProperties(
   _: unknown,
   context: DecoratorContext,
 ): void {
-  getInterfaceFromContext(context)[LegacyUnenumerableNamedPropertiesSymbol] =
-    true;
+  getInterfaceDraftFromContext(context).extendedAttributes[
+    LegacyUnenumerableNamedPropertiesSymbol
+  ] = undefined;
 }

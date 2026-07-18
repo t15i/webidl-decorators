@@ -1,5 +1,7 @@
 import type {
+  AttributeDecoratorContext,
   MemberDecoratorContext,
+  OperationDecoratorContext,
   SpecialOperationDecoratorContext,
 } from "@/types";
 
@@ -17,7 +19,19 @@ import type {
 export function getIdentifierFromContext(
   context: SpecialOperationDecoratorContext,
 ): string | undefined;
-export function getIdentifierFromContext(context: MemberDecoratorContext): string;
+
+export function getIdentifierFromContext(
+  context: OperationDecoratorContext,
+): string;
+
+export function getIdentifierFromContext(
+  context: AttributeDecoratorContext,
+): string;
+
+export function getIdentifierFromContext(
+  context: MemberDecoratorContext,
+): string | undefined;
+
 export function getIdentifierFromContext(
   context: MemberDecoratorContext,
 ): string | undefined {

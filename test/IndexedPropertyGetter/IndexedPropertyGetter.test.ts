@@ -1,4 +1,10 @@
-import { IndexedPropertyGetter, Interface } from "lib";
+import {
+  Attribute,
+  Exposed,
+  IndexedPropertyGetter,
+  Interface,
+  SupportedPropertyIndices,
+} from "lib";
 
 import {
   IndexedPropertyDeterminator as IndexedPropertyDeterminatorSymbol,
@@ -12,11 +18,22 @@ import { getInterface } from "../utils";
 
 describe("@IndexedPropertyGetter", () => {
   test("should define [IndexedPropertyGetter] operation on the interface", () => {
+    @Exposed("Window")
     @Interface
     class Test {
       @IndexedPropertyGetter(UnsignedLong)
       item(i: number) {
         return i;
+      }
+
+      @Attribute(UnsignedLong)
+      get length() {
+        return 0;
+      }
+
+      @SupportedPropertyIndices
+      supportedPropertyIndices() {
+        return new Set<number>();
       }
     }
 
@@ -25,7 +42,7 @@ describe("@IndexedPropertyGetter", () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const methodSteps = Test.prototype.item as any;
 
-    expect(operation.memberType).toBe("operation");
+    expect(operation.kind).toBe("operation");
     expect(operation.keywords).toBeInstanceOf(Set);
     expect(operation.keywords.has("getter")).toBe(true);
     expect(operation.identifier).toBe("item");
@@ -49,11 +66,22 @@ describe("@IndexedPropertyGetter", () => {
   test("should leave identifier undefined when name is a symbol", () => {
     const anonymous = Symbol("anonymous");
 
+    @Exposed("Window")
     @Interface
     class Test {
       @IndexedPropertyGetter(UnsignedLong)
       [anonymous]() {
         return 0;
+      }
+
+      @Attribute(UnsignedLong)
+      get length() {
+        return 0;
+      }
+
+      @SupportedPropertyIndices
+      supportedPropertyIndices() {
+        return new Set<number>();
       }
     }
 
@@ -64,11 +92,22 @@ describe("@IndexedPropertyGetter", () => {
   });
 
   test("should not register the behavior to determine the value of an indexed property for a named getter", () => {
+    @Exposed("Window")
     @Interface
     class Test {
       @IndexedPropertyGetter(UnsignedLong)
       item() {
         return 0;
+      }
+
+      @Attribute(UnsignedLong)
+      get length() {
+        return 0;
+      }
+
+      @SupportedPropertyIndices
+      supportedPropertyIndices() {
+        return new Set<number>();
       }
     }
 
@@ -80,11 +119,22 @@ describe("@IndexedPropertyGetter", () => {
   test("should also register the behavior to determine the value of an indexed property for an anonymous getter", () => {
     const anonymous = Symbol("anonymous");
 
+    @Exposed("Window")
     @Interface
     class Test {
       @IndexedPropertyGetter(UnsignedLong)
       [anonymous]() {
         return 0;
+      }
+
+      @Attribute(UnsignedLong)
+      get length() {
+        return 0;
+      }
+
+      @SupportedPropertyIndices
+      supportedPropertyIndices() {
+        return new Set<number>();
       }
     }
 
@@ -94,5 +144,62 @@ describe("@IndexedPropertyGetter", () => {
     expect(i.members[IndexedPropertyDeterminatorSymbol]).toBe(
       i.members[IndexedPropertyGetterSymbol]!.methodSteps,
     );
+  });
+
+  test("should reject an indexed property getter without a length attribute", () => {
+    expect(() => {
+      @Exposed("Window")
+      @Interface
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      class Test {
+        @IndexedPropertyGetter(UnsignedLong)
+        item(i: number) {
+          return i;
+        }
+
+        @SupportedPropertyIndices
+        supportedPropertyIndices() {
+          return new Set<number>();
+        }
+      }
+    }).toThrow();
+  });
+
+  test("should reject an indexed property getter without supported property indices", () => {
+    expect(() => {
+      @Exposed("Window")
+      @Interface
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      class Test {
+        @IndexedPropertyGetter(UnsignedLong)
+        item(i: number) {
+          return i;
+        }
+
+        @Attribute(UnsignedLong)
+        get length() {
+          return 0;
+        }
+      }
+    }).toThrow();
+  });
+
+  test("should reject a second indexed property getter on the same interface", () => {
+    expect(() => {
+      @Exposed("Window")
+      @Interface
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      class Test {
+        @IndexedPropertyGetter(UnsignedLong)
+        first(i: number) {
+          return i;
+        }
+
+        @IndexedPropertyGetter(UnsignedLong)
+        second(i: number) {
+          return i;
+        }
+      }
+    }).toThrow("Cannot define special operation 'second'");
   });
 });

@@ -30,10 +30,8 @@ export class AttributeDefinitionExtensionError extends TypeError {
     T: Type,
     options?: ErrorOptions,
   ) {
-    const identifier = getIdentifierFromContext(context);
-
     super(
-      `Cannot extend the existing definition of ${context.static ? "static " : ""}attribute '${identifier}' with type '${getTypeId(T)}'`,
+      `Cannot extend the existing definition of ${context.static ? "static " : ""}attribute '${getIdentifierFromContext(context)}' with type '${getTypeId(T)}'`,
       options,
     );
 

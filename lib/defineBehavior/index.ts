@@ -1,6 +1,4 @@
-import { getInterfaceFromContext } from "@/utils";
-import { assertDefinable } from "@/utils/assertions";
-import { BehaviorDefinitionError } from "@/utils/errors";
+import { getInterfaceDraftFromContext } from "@/utils";
 
 import type { DecoratorContext } from "@/types";
 
@@ -19,6 +17,11 @@ import type { BehaviorDecoratorTarget, BehaviorKey } from "./types";
  * library ({@link ExistingIndexedPropertySetter}, {@link NewNamedPropertySetter},
  * {@link SupportedPropertyNames}, etc.). Each of those is just `defineBehavior`
  * pre-bound to a particular WebIDL symbol.
+ *
+ * Defining a behavior that is already present overwrites it, letting an
+ * explicit behavior decorator take precedence over one installed earlier —
+ * for example the {@link NamedPropertyDeterminator} an anonymous
+ * {@link NamedPropertyGetter} registers by default.
  *
  * For the registered behavior to take effect, the enclosing class must also be
  * decorated with {@link Interface}.
@@ -40,13 +43,5 @@ export function defineBehavior<K extends BehaviorKey>(
   target: BehaviorDecoratorTarget<K>,
   context: DecoratorContext,
 ): void {
-  const i = getInterfaceFromContext(context);
-
-  try {
-    assertDefinable(i, key);
-  } catch (e) {
-    throw new BehaviorDefinitionError(key, { cause: e });
-  }
-
-  i.members[key] = target;
+  getInterfaceDraftFromContext(context).members[key] = target;
 }
