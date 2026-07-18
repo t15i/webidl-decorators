@@ -14,7 +14,7 @@ export default {
   plugins: [
     dts({
       tsconfigPath: "./lib/tsconfig.json",
-      outDir: "./dist/types",
+      outDirs: "./dist/types",
     }),
     babel({
       apply: "serve",
