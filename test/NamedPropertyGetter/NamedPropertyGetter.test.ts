@@ -9,7 +9,7 @@ import {
   NamedPropertyDeterminator as NamedPropertyDeterminatorSymbol,
   NamedPropertyGetter as NamedPropertyGetterSymbol,
 } from "@t15i/webspecs/webidl";
-import { DOMString, Nullable } from "@t15i/webidl-types";
+import { DOMString } from "@t15i/webidl-types";
 
 import { describe, expect, test } from "vitest";
 
@@ -40,7 +40,7 @@ describe("@NamedPropertyGetter", () => {
     expect(operation.keywords).toBeInstanceOf(Set);
     expect(operation.keywords.has("getter")).toBe(true);
     expect(operation.identifier).toBe("namedItem");
-    expect(operation.returnType).toBe(Nullable(DOMString));
+    expect(operation.returnType).toBe(DOMString);
     expect(operation.arguments).toEqual([{ type: DOMString }]);
     expect(typeof operation.methodSteps).toBe("function");
     expect(methodSteps.length).toBe(1);
