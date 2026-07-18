@@ -4,7 +4,7 @@ import {
   type ArgumentList,
   type Type,
 } from "@t15i/webspecs/webidl";
-import { DOMString, Nullable } from "@t15i/webidl-types";
+import { DOMString } from "@t15i/webidl-types";
 
 import {
   createOperationFromContext,
@@ -39,7 +39,7 @@ function defineNamedPropertyGetter<T>(
   const iface = getInterfaceDraftFromContext(context);
 
   const args: ArgumentList<[typeof DOMString]> = [{ type: DOMString }];
-  const returnType = Nullable(T);
+  const returnType = T;
 
   const operation = createOperationFromContext({ args, returnType, context });
   operation.keywords.add("getter");
@@ -84,7 +84,7 @@ function defineNamedPropertyGetter<T>(
  * ```ts
  * \@Interface
  * class HTMLCollection {
- *   \@NamedPropertyGetter(Type(Element))
+ *   \@NamedPropertyGetter(Nullable(Type(Element)))
  *   namedItem(name: string): Element | null {
  *     // ...
  *     return value;
