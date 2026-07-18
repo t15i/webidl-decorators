@@ -24,7 +24,22 @@ import type {
 
 import type { AttributeDecorator } from "./types";
 
-/** */
+/**
+ * Registers the WebIDL attribute named by the decorated getter, or extends an
+ * attribute already registered under the same identifier, installing the
+ * getter's steps as the attribute's getter steps.
+ *
+ * @remarks
+ * When no attribute is registered yet, one is created from `context` and — as a
+ * lone getter — starts out `readonly`. When one already exists (its setter was
+ * defined first), it is extended in place after asserting it is an attribute of
+ * type `T`, and stays `readonly` only while it has no setter steps.
+ *
+ * The getter is returned wrapped by {@link guard}, which enforces the
+ * attribute's WebIDL type on the value it returns.
+ *
+ * @internal
+ */
 function defineAttributeGetter<T>(
   T: Type<T>,
   target: GetterAttributeDecoratorTarget<T>,
@@ -55,7 +70,22 @@ function defineAttributeGetter<T>(
   return guard(target, { iface, id, args, returnType });
 }
 
-/** */
+/**
+ * Registers the WebIDL attribute named by the decorated setter, or extends an
+ * attribute already registered under the same identifier, installing the
+ * setter's steps as the attribute's setter steps.
+ *
+ * @remarks
+ * When no attribute is registered yet, one is created from `context`. When one
+ * already exists (its getter was defined first), it is extended in place after
+ * asserting it is an attribute of type `T`, and its `readonly` keyword is
+ * dropped so the attribute becomes read–write.
+ *
+ * The setter is returned wrapped by {@link guard}, which enforces the
+ * attribute's WebIDL type on the value assigned to it.
+ *
+ * @internal
+ */
 function defineAttributeSetter<T>(
   T: Type<T>,
   target: SetterAttributeDecoratorTarget<T>,
