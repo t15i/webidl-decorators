@@ -2,8 +2,16 @@
   "name": "@t15i/webidl-decorators",
   "type": "module",
   "version": "1.1.1",
-  "description": "",
-  "keywords": [],
+  "description": "TypeScript decorators for declaring WebIDL interfaces, attributes, and special operations directly on classes.",
+  "keywords": [
+    "webidl",
+    "decorators",
+    "typescript",
+    "typescript-decorators",
+    "whatwg",
+    "web-platform",
+    "platform-object"
+  ],
   "author": "Aleksandr Boiarnikov <dev@gmvr.pw> (https://gmvr.pw)",
   "license": "MIT",
   "homepage": "https://github.com/t15i/webidl-decorators#README",
