@@ -12,13 +12,13 @@ import { assertAttributeDraftWithType } from "@/utils/assertions";
 import { AttributeDefinitionExtensionError } from "@/utils/errors";
 
 import type {
-  AccessorAttributeDecoratorContext,
+  Accessor,
   AccessorAttributeDecoratorTarget,
   AttributeDecoratorContext,
   AttributeDecoratorTarget,
-  GetterAttributeDecoratorContext,
+  Getter,
   GetterAttributeDecoratorTarget,
-  SetterAttributeDecoratorContext,
+  Setter,
   SetterAttributeDecoratorTarget,
 } from "@/types";
 
@@ -44,8 +44,8 @@ function defineAttributeGetter<T>(
   T: Type<T>,
   target: GetterAttributeDecoratorTarget<T>,
   context:
-    | GetterAttributeDecoratorContext<T>
-    | AccessorAttributeDecoratorContext<T>,
+    | Getter<AttributeDecoratorContext<T>>
+    | Accessor<AttributeDecoratorContext<T>>,
 ) {
   const { iface, members, id, member } = getOwnMemberDraftFromContext(context);
 
@@ -90,8 +90,8 @@ function defineAttributeSetter<T>(
   T: Type<T>,
   target: SetterAttributeDecoratorTarget<T>,
   context:
-    | SetterAttributeDecoratorContext<T>
-    | AccessorAttributeDecoratorContext<T>,
+    | Setter<AttributeDecoratorContext<T>>
+    | Accessor<AttributeDecoratorContext<T>>,
 ) {
   const { iface, members, id, member } = getOwnMemberDraftFromContext(context);
 
@@ -130,19 +130,19 @@ function defineAttributeSetter<T>(
 function defineAttribute<T>(
   T: Type<T>,
   target: GetterAttributeDecoratorTarget<T>,
-  context: GetterAttributeDecoratorContext<T>,
+  context: Getter<AttributeDecoratorContext<T>>,
 ): GetterAttributeDecoratorTarget<T>;
 
 function defineAttribute<T>(
   T: Type<T>,
   target: SetterAttributeDecoratorTarget<T>,
-  context: SetterAttributeDecoratorContext<T>,
+  context: Setter<AttributeDecoratorContext<T>>,
 ): SetterAttributeDecoratorTarget<T>;
 
 function defineAttribute<T>(
   T: Type<T>,
   target: AccessorAttributeDecoratorTarget<T>,
-  context: AccessorAttributeDecoratorContext<T>,
+  context: Accessor<AttributeDecoratorContext<T>>,
 ): AccessorAttributeDecoratorTarget<T>;
 
 function defineAttribute<T>(

@@ -70,8 +70,8 @@ describe("@IndexedPropertyGetter", () => {
     @Interface
     class Test {
       @IndexedPropertyGetter(UnsignedLong)
-      [anonymous]() {
-        return 0;
+      [anonymous](v: number) {
+        return v;
       }
 
       @Attribute(UnsignedLong)
@@ -96,8 +96,8 @@ describe("@IndexedPropertyGetter", () => {
     @Interface
     class Test {
       @IndexedPropertyGetter(UnsignedLong)
-      item() {
-        return 0;
+      item(v: number) {
+        return v;
       }
 
       @Attribute(UnsignedLong)
@@ -123,8 +123,8 @@ describe("@IndexedPropertyGetter", () => {
     @Interface
     class Test {
       @IndexedPropertyGetter(UnsignedLong)
-      [anonymous]() {
-        return 0;
+      [anonymous](v: number) {
+        return v;
       }
 
       @Attribute(UnsignedLong)

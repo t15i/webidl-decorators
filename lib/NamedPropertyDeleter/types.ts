@@ -1,12 +1,10 @@
-import type { SpecialOperationDecoratorContext } from "@/types";
+import type { OperationDecoratorContext, Special } from "@/types";
 
 export type NamedPropertyDeleterDecoratorTarget<Return> = (
   name: string,
 ) => Return;
 
-export type NamedPropertyDeleterDecorator<Return> = <
-  Target extends NamedPropertyDeleterDecoratorTarget<Return>,
->(
-  target: Target,
-  context: SpecialOperationDecoratorContext<Target>,
-) => Target;
+export type NamedPropertyDeleterDecorator<Return> = (
+  target: NamedPropertyDeleterDecoratorTarget<Return>,
+  context: Special<OperationDecoratorContext<typeof target>>,
+) => typeof target;

@@ -93,7 +93,7 @@ export function guard<Args extends Type[], Return extends Type>(
     returnType: Return;
   },
 ): (
-  this: unknown,
+  this: ThisParameterType<typeof target>,
   ...args: { [K in keyof Args]: ReturnType<Args[K]> }
 ) => ReturnType<Return> {
   const name = String(id);

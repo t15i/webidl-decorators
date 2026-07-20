@@ -51,7 +51,7 @@ function defineInterface<T extends InterfaceDecoratorTarget>(
   identifier: string | undefined,
   target: T,
   context: InterfaceDecoratorContext,
-): T {
+): typeof target {
   if (identifier === undefined && context.name === undefined) {
     throw TypeError(
       "Expected at least one identifier or context.name to be 'string'",
@@ -66,10 +66,7 @@ function defineInterface<T extends InterfaceDecoratorTarget>(
   return PlatformObject(target);
 }
 
-const InterfaceDefault = defineInterface.bind(
-  undefined,
-  undefined,
-) as InterfaceDecorator;
+const InterfaceDefault = defineInterface.bind(undefined, undefined);
 
 /**
  * Decorates a class as a WebIDL interface, using the class name as the WebIDL
@@ -157,8 +154,5 @@ export function Interface(...args: unknown[]) {
     );
   }
 
-  return defineInterface.bind(
-    undefined,
-    args[0] as string,
-  ) as InterfaceDecorator;
+  return defineInterface.bind(undefined, args[0] as string);
 }

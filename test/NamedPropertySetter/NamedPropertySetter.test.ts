@@ -23,7 +23,7 @@ describe("@NamedPropertySetter", () => {
     @Interface
     class Test {
       @NamedPropertyGetter(DOMString)
-      namedItem(name: string): string | null {
+      namedItem(name: string): string {
         return name;
       }
 
@@ -71,12 +71,13 @@ describe("@NamedPropertySetter", () => {
     @Interface
     class Test {
       @NamedPropertyGetter(DOMString)
-      namedItem(name: string): string | null {
+      namedItem(name: string): string {
         return name;
       }
 
       @NamedPropertySetter(DOMString, Boolean)
-      namedPropertySetter(): boolean {
+      namedPropertySetter(k: string, v: string): boolean {
+        void (k + v);
         return true;
       }
 
@@ -96,12 +97,14 @@ describe("@NamedPropertySetter", () => {
     @Interface
     class Test {
       @NamedPropertyGetter(DOMString)
-      namedItem(name: string): string | null {
+      namedItem(name: string): string {
         return name;
       }
 
       @NamedPropertySetter(DOMString)
-      namedPropertySetter() {}
+      namedPropertySetter(k: string, v: string) {
+        void (k + v);
+      }
 
       @SupportedPropertyNames
       supportedPropertyNames() {
@@ -122,12 +125,14 @@ describe("@NamedPropertySetter", () => {
     @Interface
     class Test {
       @NamedPropertyGetter(DOMString)
-      namedItem(name: string): string | null {
+      namedItem(name: string): string {
         return name;
       }
 
       @NamedPropertySetter(DOMString)
-      [anonymous]() {}
+      [anonymous](k: string, v: string) {
+        void (k + v);
+      }
 
       @SupportedPropertyNames
       supportedPropertyNames() {

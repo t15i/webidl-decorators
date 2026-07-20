@@ -1,6 +1,6 @@
 import { getIdentifierFromContext } from "../getIdentifierFromContext";
 
-import type { SpecialOperationDecoratorContext } from "@/types";
+import type { OperationDecoratorContext, Special } from "@/types";
 
 /**
  * `TypeError` thrown when a WebIDL special operation cannot be defined on an
@@ -19,7 +19,7 @@ import type { SpecialOperationDecoratorContext } from "@/types";
  */
 export class SpecialOperationDefinitionError extends TypeError {
   constructor(
-    context: SpecialOperationDecoratorContext,
+    context: Special<OperationDecoratorContext>,
     options?: ErrorOptions,
   ) {
     const identifier = getIdentifierFromContext(context);

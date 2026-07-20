@@ -1,10 +1,8 @@
-import type { SpecialOperationDecoratorContext } from "@/types";
+import type { OperationDecoratorContext, Special } from "@/types";
 
-export type NamedPropertyGetterDecoratorTarget<T> = (name: string) => T | null;
+export type NamedPropertyGetterDecoratorTarget<T> = (name: string) => T;
 
-export type NamedPropertyGetterDecorator<T> = <
-  Target extends NamedPropertyGetterDecoratorTarget<T>,
->(
-  target: Target,
-  context: SpecialOperationDecoratorContext<Target>,
-) => Target;
+export type NamedPropertyGetterDecorator<T> = (
+  target: NamedPropertyGetterDecoratorTarget<T>,
+  context: Special<OperationDecoratorContext<typeof target>>,
+) => typeof target;

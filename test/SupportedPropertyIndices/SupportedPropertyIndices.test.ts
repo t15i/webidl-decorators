@@ -34,7 +34,7 @@ describe("@SupportedPropertyIndices", () => {
     @Interface
     class Test {
       @IndexedPropertyGetter(UnsignedLong)
-      item(index: number): number | null {
+      item(index: number): number {
         return index;
       }
 

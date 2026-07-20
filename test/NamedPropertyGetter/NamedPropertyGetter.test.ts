@@ -64,8 +64,8 @@ describe("@NamedPropertyGetter", () => {
     @Interface
     class Test {
       @NamedPropertyGetter(DOMString)
-      [anonymous]() {
-        return "";
+      [anonymous](v: string) {
+        return v;
       }
 
       @SupportedPropertyNames
@@ -84,8 +84,8 @@ describe("@NamedPropertyGetter", () => {
     @Interface
     class Test {
       @NamedPropertyGetter(DOMString)
-      namedItem() {
-        return "";
+      namedItem(v: string) {
+        return v;
       }
 
       @SupportedPropertyNames
@@ -106,8 +106,8 @@ describe("@NamedPropertyGetter", () => {
     @Interface
     class Test {
       @NamedPropertyGetter(DOMString)
-      [anonymous]() {
-        return "";
+      [anonymous](v: string) {
+        return v;
       }
 
       @SupportedPropertyNames
