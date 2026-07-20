@@ -19,7 +19,7 @@ describe("@NamedPropertyDeleter", () => {
     @Interface
     class Test {
       @NamedPropertyGetter(DOMString)
-      namedItem(name: string): string | null {
+      namedItem(name: string): string {
         return name;
       }
 
@@ -65,12 +65,13 @@ describe("@NamedPropertyDeleter", () => {
     @Interface
     class Test {
       @NamedPropertyGetter(DOMString)
-      namedItem(name: string): string | null {
+      namedItem(name: string): string {
         return name;
       }
 
       @NamedPropertyDeleter(Boolean)
-      namedPropertyDeleter(): boolean {
+      namedPropertyDeleter(name: string): boolean {
+        void name;
         return true;
       }
 
@@ -92,7 +93,7 @@ describe("@NamedPropertyDeleter", () => {
     @Interface
     class Test {
       @NamedPropertyGetter(DOMString)
-      namedItem(name: string): string | null {
+      namedItem(name: string): string {
         return name;
       }
 
@@ -125,7 +126,7 @@ describe("@NamedPropertyDeleter", () => {
       }
 
       @NamedPropertyGetter(DOMString)
-      [getter](name: string): string | null {
+      [getter](name: string): string {
         return name;
       }
 

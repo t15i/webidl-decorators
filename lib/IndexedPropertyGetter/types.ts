@@ -1,12 +1,8 @@
-import type { SpecialOperationDecoratorContext } from "@/types";
+import type { OperationDecoratorContext, Special } from "@/types";
 
-export type IndexedPropertyGetterDecoratorTarget<T> = (
-  index: number,
-) => T | null;
+export type IndexedPropertyGetterDecoratorTarget<T> = (index: number) => T;
 
-export type IndexedPropertyGetterDecorator<T> = <
-  Target extends IndexedPropertyGetterDecoratorTarget<T>,
->(
-  target: Target,
-  context: SpecialOperationDecoratorContext<Target>,
-) => Target;
+export type IndexedPropertyGetterDecorator<T> = (
+  target: IndexedPropertyGetterDecoratorTarget<T>,
+  context: Special<OperationDecoratorContext<typeof target>>,
+) => typeof target;

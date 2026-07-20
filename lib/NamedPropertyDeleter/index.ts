@@ -14,7 +14,7 @@ import {
 import { assertHasNoOwnMember } from "@/utils/assertions";
 import { SpecialOperationDefinitionError } from "@/utils/errors";
 
-import type { SpecialOperationDecoratorContext } from "@/types";
+import type { OperationDecoratorContext, Special } from "@/types";
 
 import type {
   NamedPropertyDeleterDecorator,
@@ -30,8 +30,8 @@ import type {
 function defineNamedPropertyDeleter<Return>(
   Return: Type<Return>,
   target: NamedPropertyDeleterDecoratorTarget<Return>,
-  context: SpecialOperationDecoratorContext,
-) {
+  context: Special<OperationDecoratorContext>,
+): typeof target {
   const iface = getInterfaceDraftFromContext(context);
 
   const args: ArgumentList<[typeof DOMString]> = [{ type: DOMString }];
@@ -62,7 +62,7 @@ function defineNamedPropertyDeleter<Return>(
 const NamedPropertyDeleterDefault = defineNamedPropertyDeleter.bind(
   undefined,
   Undefined,
-) as NamedPropertyDeleterDecorator<undefined>;
+);
 
 /**
  * Defines the decorated method as the `[NamedPropertyDeleter]` internal method
@@ -94,7 +94,7 @@ const NamedPropertyDeleterDefault = defineNamedPropertyDeleter.bind(
  */
 export function NamedPropertyDeleter<Return>(
   target: NamedPropertyDeleterDecoratorTarget<Return>,
-  context: SpecialOperationDecoratorContext,
+  context: Special<OperationDecoratorContext>,
 ): void;
 
 /**
@@ -134,19 +134,19 @@ export function NamedPropertyDeleter<Return>(
 export function NamedPropertyDeleter(): NamedPropertyDeleterDecorator<void>;
 
 export function NamedPropertyDeleter<Return>(
-  Return: Type<Return>,
+  Return?: Type<Return>,
 ): NamedPropertyDeleterDecorator<Return>;
 
-export function NamedPropertyDeleter(...args: unknown[]) {
+export function NamedPropertyDeleter<Return>(...args: unknown[]) {
   if (args.length === 2 && typeof args[0] === "function") {
     return NamedPropertyDeleterDefault(
       args[0] as NamedPropertyDeleterDecoratorTarget<undefined>,
-      args[1] as SpecialOperationDecoratorContext,
+      args[1] as Special<OperationDecoratorContext>,
     );
   }
 
-  return defineNamedPropertyDeleter.bind(
-    undefined,
-    (args[0] ?? Undefined) as Type<unknown>,
-  ) as NamedPropertyDeleterDecorator<unknown>;
+  const T = (args[0] ?? Undefined) as Type<Return>;
+
+  const defineNamedPropertyDeleterT = defineNamedPropertyDeleter<Return>;
+  return defineNamedPropertyDeleterT.bind(undefined, T);
 }

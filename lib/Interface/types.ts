@@ -3,7 +3,7 @@ import type {
   InterfaceDecoratorTarget,
 } from "@/types";
 
-export type InterfaceDecorator = <T extends InterfaceDecoratorTarget>(
-  target: T,
+export type InterfaceDecorator = <Target extends InterfaceDecoratorTarget>(
+  target: Target,
   context: InterfaceDecoratorContext,
-) => T;
+) => typeof target;

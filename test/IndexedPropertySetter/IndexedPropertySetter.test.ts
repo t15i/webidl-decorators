@@ -82,8 +82,8 @@ describe("@IndexedPropertySetter", () => {
       }
 
       @IndexedPropertySetter(UnsignedLong, UnsignedLong)
-      indexedPropertySetter(): number {
-        return 0;
+      indexedPropertySetter(k: number, v: number): number {
+        return k + v;
       }
 
       @Attribute(UnsignedLong)
@@ -112,7 +112,9 @@ describe("@IndexedPropertySetter", () => {
       }
 
       @IndexedPropertySetter(UnsignedLong)
-      indexedPropertySetter() {}
+      indexedPropertySetter(k: number, v: number) {
+        void (k + v);
+      }
 
       @Attribute(UnsignedLong)
       get length() {
@@ -143,7 +145,9 @@ describe("@IndexedPropertySetter", () => {
       }
 
       @IndexedPropertySetter(UnsignedLong)
-      [anonymous]() {}
+      [anonymous](k: number, v: number) {
+        void (k + v);
+      }
 
       @Attribute(UnsignedLong)
       get length() {

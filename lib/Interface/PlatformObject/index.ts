@@ -6,7 +6,7 @@ export { Internals } from "./internals";
 
 export function PlatformObject<T extends InterfaceDecoratorTarget>(
   target: T,
-): T {
+): typeof target {
   const proxy = new Proxy<T>(target, PlatformObjectConstructorProxyHandler);
 
   Object.defineProperty(target.prototype, "constructor", {

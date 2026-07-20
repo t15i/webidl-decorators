@@ -1,8 +1,10 @@
 import { getInterfaceDraftFromContext } from "@/utils";
 
-import type { DecoratorContext } from "@/types";
-
-import type { BehaviorDecoratorTarget, BehaviorKey } from "./types";
+import type {
+  BehaviorDecoratorContext,
+  BehaviorDecoratorTarget,
+  BehaviorKey,
+} from "./types";
 
 /**
  * Registers `target` as the implementation of the behavior identified by
@@ -41,7 +43,7 @@ import type { BehaviorDecoratorTarget, BehaviorKey } from "./types";
 export function defineBehavior<K extends BehaviorKey>(
   key: K,
   target: BehaviorDecoratorTarget<K>,
-  context: DecoratorContext,
+  context: BehaviorDecoratorContext,
 ): void {
   getInterfaceDraftFromContext(context).members[key] = target;
 }

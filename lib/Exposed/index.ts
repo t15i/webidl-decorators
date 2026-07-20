@@ -36,15 +36,15 @@ import type { ExposedDecorator } from "./types";
  *
  * @internal
  */
-function defineExposed<T extends InterfaceDecoratorTarget>(
+function defineExposed<Target extends InterfaceDecoratorTarget>(
   exposureSet: "Window",
-  target: T,
+  target: Target,
   context: InterfaceDecoratorContext,
-): T {
+): typeof target {
   getInterfaceDraftFromContext(context).extendedAttributes[ExposedSymbol] =
     exposureSet;
 
-  context.addInitializer(function (this: T) {
+  context.addInitializer(function () {
     const iface = PlatformObject.getPrimaryInterfaceOf(this.prototype);
 
     if (iface === undefined) {
@@ -89,6 +89,6 @@ function defineExposed<T extends InterfaceDecoratorTarget>(
  *
  * @see https://webidl.spec.whatwg.org/#Exposed
  */
-export function Exposed(exposureSet: "Window"): ExposedDecorator {
+export function Exposed(exposureSet: "Window") {
   return defineExposed.bind(undefined, exposureSet) as ExposedDecorator;
 }

@@ -1,32 +1,12 @@
 import type {
-  AccessorAttributeDecoratorContext,
+  Accessor,
   AccessorAttributeDecoratorTarget,
-  GetterAttributeDecoratorContext,
+  AttributeDecoratorContext,
+  Getter,
   GetterAttributeDecoratorTarget,
-  SetterAttributeDecoratorContext,
+  Setter,
   SetterAttributeDecoratorTarget,
 } from "@/types";
-
-export type GetterAttributeDecorator<T> = <
-  Target extends GetterAttributeDecoratorTarget<T>,
->(
-  target: Target,
-  context: GetterAttributeDecoratorContext<T>,
-) => Target;
-
-export type SetterAttributeDecorator<T> = <
-  Target extends SetterAttributeDecoratorTarget<T>,
->(
-  target: Target,
-  context: SetterAttributeDecoratorContext<T>,
-) => Target;
-
-export type AccessorAttributeDecorator<T> = <
-  Target extends AccessorAttributeDecoratorTarget<T>,
->(
-  target: Target,
-  context: AccessorAttributeDecoratorContext<T>,
-) => Target;
 
 /**
  * The decorator produced by {@link Attribute}: applicable to a getter, a
@@ -35,16 +15,16 @@ export type AccessorAttributeDecorator<T> = <
  * signatures is not callable, so it could not be applied as a decorator.
  */
 export type AttributeDecorator<T> = {
-  <Target extends GetterAttributeDecoratorTarget<T>>(
-    target: Target,
-    context: GetterAttributeDecoratorContext<T>,
-  ): Target;
-  <Target extends SetterAttributeDecoratorTarget<T>>(
-    target: Target,
-    context: SetterAttributeDecoratorContext<T>,
-  ): Target;
-  <Target extends AccessorAttributeDecoratorTarget<T>>(
-    target: Target,
-    context: AccessorAttributeDecoratorContext<T>,
-  ): Target;
+  (
+    target: GetterAttributeDecoratorTarget<T>,
+    context: Getter<AttributeDecoratorContext<T>>,
+  ): typeof target;
+  (
+    target: SetterAttributeDecoratorTarget<T>,
+    context: Setter<AttributeDecoratorContext<T>>,
+  ): typeof target;
+  (
+    target: AccessorAttributeDecoratorTarget<T>,
+    context: Accessor<AttributeDecoratorContext<T>>,
+  ): typeof target;
 };

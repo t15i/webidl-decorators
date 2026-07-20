@@ -14,7 +14,7 @@ import {
 import { assertHasNoOwnMember } from "@/utils/assertions";
 import { SpecialOperationDefinitionError } from "@/utils/errors";
 
-import type { SpecialOperationDecoratorContext } from "@/types";
+import type { OperationDecoratorContext, Special } from "@/types";
 
 import type {
   NamedPropertyGetterDecorator,
@@ -34,8 +34,8 @@ import type {
 function defineNamedPropertyGetter<T>(
   T: Type<T>,
   target: NamedPropertyGetterDecoratorTarget<T>,
-  context: SpecialOperationDecoratorContext,
-) {
+  context: Special<OperationDecoratorContext<typeof target>>,
+): typeof target {
   const iface = getInterfaceDraftFromContext(context);
 
   const args: ArgumentList<[typeof DOMString]> = [{ type: DOMString }];
@@ -97,8 +97,6 @@ function defineNamedPropertyGetter<T>(
 export function NamedPropertyGetter<T>(
   T: Type<T>,
 ): NamedPropertyGetterDecorator<T> {
-  return defineNamedPropertyGetter.bind(
-    undefined,
-    T,
-  ) as NamedPropertyGetterDecorator<T>;
+  const defineNamedPropertyGetterT = defineNamedPropertyGetter<T>;
+  return defineNamedPropertyGetterT.bind(undefined, T);
 }

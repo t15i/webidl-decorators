@@ -34,7 +34,7 @@ describe("@NamedPropertyDeterminator", () => {
     @Interface
     class Test {
       @NamedPropertyGetter(DOMString)
-      [anonymous](name: string): string | null {
+      [anonymous](name: string): string {
         return name;
       }
 

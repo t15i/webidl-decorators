@@ -15,7 +15,7 @@ import {
 import { assertHasNoOwnMember } from "@/utils/assertions";
 import { SpecialOperationDefinitionError } from "@/utils/errors";
 
-import type { SpecialOperationDecoratorContext } from "@/types";
+import type { OperationDecoratorContext, Special } from "@/types";
 
 import type {
   NamedPropertySetterDecorator,
@@ -38,8 +38,8 @@ function defineNamedPropertySetter<T, Return>(
   T: Type<T>,
   Return: Type<Return>,
   target: NamedPropertySetterDecoratorTarget<T, Return>,
-  context: SpecialOperationDecoratorContext,
-) {
+  context: Special<OperationDecoratorContext>,
+): typeof target {
   const iface = getInterfaceDraftFromContext(context);
 
   const args: ArgumentList<[typeof DOMString, Type<T>]> = [
@@ -119,7 +119,6 @@ export function NamedPropertySetter<T, Return>(
   T: Type<T>,
   Return: Type<Return> = Undefined as Type<Return>,
 ): NamedPropertySetterDecorator<T, Return> {
-  return (
-    defineNamedPropertySetter as typeof defineNamedPropertySetter<T, Return>
-  ).bind(undefined, T, Return) as NamedPropertySetterDecorator<T, Return>;
+  const defineNamedPropertySetterT = defineNamedPropertySetter<T, Return>;
+  return defineNamedPropertySetterT.bind(undefined, T, Return);
 }

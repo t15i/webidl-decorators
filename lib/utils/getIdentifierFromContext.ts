@@ -2,7 +2,9 @@ import type {
   AttributeDecoratorContext,
   MemberDecoratorContext,
   OperationDecoratorContext,
-  SpecialOperationDecoratorContext,
+  Regular,
+  Special,
+  Static,
 } from "@/types";
 
 /**
@@ -17,12 +19,16 @@ import type {
  * callers a non-null assertion.
  */
 export function getIdentifierFromContext(
-  context: SpecialOperationDecoratorContext,
-): string | undefined;
+  context: Regular<OperationDecoratorContext>,
+): string;
 
 export function getIdentifierFromContext(
-  context: OperationDecoratorContext,
+  context: Static<OperationDecoratorContext>,
 ): string;
+
+export function getIdentifierFromContext(
+  context: Special<OperationDecoratorContext>,
+): string | undefined;
 
 export function getIdentifierFromContext(
   context: AttributeDecoratorContext,

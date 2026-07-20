@@ -8,7 +8,7 @@ import type {
  * exposure set on the WebIDL interface and exposes the interface object on the
  * matching globals.
  */
-export type ExposedDecorator = <T extends InterfaceDecoratorTarget>(
-  target: T,
+export type ExposedDecorator = <Target extends InterfaceDecoratorTarget>(
+  target: Target,
   context: InterfaceDecoratorContext,
-) => T;
+) => typeof target;

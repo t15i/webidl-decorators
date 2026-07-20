@@ -15,7 +15,7 @@ import {
 import { assertHasNoOwnMember } from "@/utils/assertions";
 import { SpecialOperationDefinitionError } from "@/utils/errors";
 
-import type { SpecialOperationDecoratorContext } from "@/types";
+import type { OperationDecoratorContext, Special } from "@/types";
 
 import type {
   IndexedPropertySetterDecorator,
@@ -38,7 +38,7 @@ function defineIndexedPropertySetter<T, Return>(
   T: Type<T>,
   Return: Type<Return>,
   target: IndexedPropertySetterDecoratorTarget<T, Return>,
-  context: SpecialOperationDecoratorContext,
+  context: Special<OperationDecoratorContext>,
 ) {
   const iface = getInterfaceDraftFromContext(context);
 
@@ -120,7 +120,6 @@ export function IndexedPropertySetter<T, Return>(
   T: Type<T>,
   Return: Type<Return> = Undefined as Type<Return>,
 ) {
-  return (
-    defineIndexedPropertySetter as typeof defineIndexedPropertySetter<T, Return>
-  ).bind(undefined, T, Return) as IndexedPropertySetterDecorator<T, Return>;
+  const defineIndexedPropertySetterT = defineIndexedPropertySetter<T, Return>;
+  return defineIndexedPropertySetterT.bind(undefined, T, Return);
 }

@@ -1,14 +1,11 @@
 import { defineFunctionMetadata } from "@/utils";
 
-import type {
-  AccessorAttributeDecoratorContext,
-  GetterAttributeDecoratorContext,
-} from "@/types";
+import type { Accessor, AttributeDecoratorContext, Getter } from "@/types";
 
 export function getAttributeGetterStepsFromContext<T>(
   context:
-    | GetterAttributeDecoratorContext<T>
-    | AccessorAttributeDecoratorContext<T>,
+    | Getter<AttributeDecoratorContext<T>>
+    | Accessor<AttributeDecoratorContext<T>>,
 ): (this: object) => T {
   return defineFunctionMetadata(
     function () {

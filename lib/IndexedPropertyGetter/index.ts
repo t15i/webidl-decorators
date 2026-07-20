@@ -1,10 +1,11 @@
-import { UnsignedLong } from "@t15i/webidl-types";
 import {
   IndexedPropertyDeterminator as IndexedPropertyDeterminatorSymbol,
   IndexedPropertyGetter as IndexedPropertyGetterSymbol,
   type ArgumentList,
   type Type,
+  type UnsignedLongType,
 } from "@t15i/webspecs/webidl";
+import { UnsignedLong } from "@t15i/webidl-types";
 
 import {
   createOperationFromContext,
@@ -14,7 +15,7 @@ import {
 import { assertHasNoOwnMember } from "@/utils/assertions";
 import { SpecialOperationDefinitionError } from "@/utils/errors";
 
-import type { SpecialOperationDecoratorContext } from "@/types";
+import type { OperationDecoratorContext, Special } from "@/types";
 
 import type {
   IndexedPropertyGetterDecorator,
@@ -34,11 +35,11 @@ import type {
 function defineIndexedPropertyGetter<T>(
   T: Type<T>,
   target: IndexedPropertyGetterDecoratorTarget<T>,
-  context: SpecialOperationDecoratorContext,
-) {
+  context: Special<OperationDecoratorContext<typeof target>>,
+): typeof target {
   const iface = getInterfaceDraftFromContext(context);
 
-  const args: ArgumentList<[typeof UnsignedLong]> = [{ type: UnsignedLong }];
+  const args: ArgumentList<[UnsignedLongType]> = [{ type: UnsignedLong }];
   const returnType = T;
 
   const operation = createOperationFromContext({ args, returnType, context });
@@ -94,9 +95,9 @@ function defineIndexedPropertyGetter<T>(
  *
  * @see https://webidl.spec.whatwg.org/#idl-indexed-properties
  */
-export function IndexedPropertyGetter<T>(T: Type<T>) {
-  return defineIndexedPropertyGetter.bind(
-    undefined,
-    T,
-  ) as IndexedPropertyGetterDecorator<T>;
+export function IndexedPropertyGetter<T>(
+  T: Type<T>,
+): IndexedPropertyGetterDecorator<T> {
+  const defineIndexedPropertyGetterT = defineIndexedPropertyGetter<T>;
+  return defineIndexedPropertyGetterT.bind(undefined, T);
 }
