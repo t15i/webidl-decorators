@@ -8,5 +8,8 @@ export { getIdentifierFromContext } from "./getIdentifierFromContext";
 export { getInterfaceDraftFromContext } from "./getInterfaceDraftFromContext";
 export { getOperationMethodStepsFromContext } from "./getOperationMethodStepsFromContext";
 export { getOwnMemberDraftFromContext } from "./getOwnMemberDraftFromContext";
+export { getPropertyDescriptor } from "./getPropertyDescriptor";
+export { getSetterContextFromAccessorContext } from "./getSetterContextFromAccessorContext";
 export { getTypeId } from "./getTypeId";
 export { guard } from "./guard";
+export { unwrapIfAnnotated } from "./unwrapIfAnnotated";

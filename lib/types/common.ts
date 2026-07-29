@@ -1,5 +1,18 @@
+import type { Attribute, Type } from "@t15i/webspecs/webidl";
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type AnyConstructor = new (...args: any[]) => any;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type AnyFunction = (...args: any[]) => any;
+
+/**
+ * The minimal decorator context shape shared by class and member decorators:
+ * the decoration `metadata` object the shared draft registries key off.
+ */
+export interface DecoratorContext {
+  metadata: object;
+}
+
+export type NativeType<Attr extends Attribute> =
+  Attr["type"] extends Type<infer N> ? N : never;
