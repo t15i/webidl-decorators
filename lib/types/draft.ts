@@ -4,6 +4,7 @@ import type {
   InterfaceMembers,
   InterfaceStaticMembers,
   Operation,
+  RegularAttribute,
   Type,
 } from "@t15i/webspecs/webidl";
 
@@ -34,6 +35,11 @@ export type Draft<T, K extends keyof T = never> = Omit<T, K> &
  */
 export type AttributeDraft<T extends Type = Type> = Draft<
   Attribute<T>,
+  "getterSteps" | "setterSteps"
+>;
+
+export type RegularAttributeDraft<T extends Type = Type> = Draft<
+  RegularAttribute<T>,
   "getterSteps" | "setterSteps"
 >;
 

@@ -17,6 +17,7 @@ import { PlatformObject } from "./PlatformObject";
 export { Internals } from "./PlatformObject/internals";
 
 import type { InterfaceDecorator } from "./types";
+import { CustomElement } from "./CustomElement";
 
 function interfaceInitializer(
   target: InterfaceDecoratorTarget,
@@ -63,6 +64,9 @@ function defineInterface<T extends InterfaceDecoratorTarget>(
 
   context.addInitializer(interfaceInitializer.bind(undefined, target, context));
 
+  if (target.prototype instanceof HTMLElement) {
+    CustomElement(target, context);
+  }
   return PlatformObject(target);
 }
 

@@ -14,5 +14,8 @@ export * from "./NamedPropertyGetter";
 export * from "./NamedPropertySetter";
 export * from "./NewIndexedPropertySetter";
 export * from "./NewNamedPropertySetter";
+export * from "./ReflectDefault";
+export * from "./ReflectRange";
+export * from "./ReflectTrigger";
 export * from "./SupportedPropertyIndices";
 export * from "./SupportedPropertyName";
