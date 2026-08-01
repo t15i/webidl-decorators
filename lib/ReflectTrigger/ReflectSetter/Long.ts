@@ -17,8 +17,8 @@ import { createReflectedSetter } from "./createReflectedSetter";
 export function createReflectedLongSetter(
   idlAttribute: Attribute<LongType>,
   contentAttributeName: string,
-  context: ReflectedAttributeSetterContext<number>,
-): ReflectedAttributeSetter<number> {
+  context: ReflectedAttributeSetterContext<LongType>,
+): ReflectedAttributeSetter<LongType> {
   return createReflectedSetter(
     ReflectedLong.setter,
     {

@@ -1,12 +1,4 @@
 import {
-  Boolean,
-  DOMString,
-  Double,
-  Long,
-  UnsignedLong,
-  USVString,
-} from "@t15i/webidl-types";
-import {
   isDOMStringType,
   isFrozenArrayType,
   isInterfaceType,
@@ -15,13 +7,19 @@ import {
   type BooleanType,
   type DOMStringType,
   type DoubleType,
-  type FrozenArrayType,
-  type InterfaceType,
   type LongType,
-  type NullableType,
+  type Type,
   type UnsignedLongType,
   type USVStringType,
 } from "@t15i/webspecs/webidl";
+import {
+  Boolean,
+  DOMString,
+  Double,
+  Long,
+  UnsignedLong,
+  USVString,
+} from "@t15i/webidl-types";
 
 import type {
   ReflectedAttributeSetter,
@@ -31,14 +29,23 @@ import type {
 import { unwrapIfAnnotated } from "@/utils";
 
 import { createReflectedBooleanSetter } from "./Boolean";
-import { createReflectedDOMStringSetter } from "./DOMString";
-import { createReflectedDoubleSetter } from "./Double";
 import { createReflectedLongSetter } from "./Long";
-import { createReflectedNullableDOMStringSetter } from "./NullableDOMString";
-import { createReflectedNullableElementSetter } from "./NullableElement";
-import { createReflectedNullableFrozenArrayOfElementsSetter } from "./NullableFrozenArrayOfElements";
 import { createReflectedUnsignedLongSetter } from "./UnsignedLong";
+import { createReflectedDoubleSetter } from "./Double";
+import { createReflectedDOMStringSetter } from "./DOMString";
 import { createReflectedUSVStringSetter } from "./USVString";
+import {
+  createReflectedNullableDOMStringSetter,
+  type NullableDOMStringType,
+} from "./NullableDOMString";
+import {
+  createReflectedNullableElementSetter,
+  type NullableElementType,
+} from "./NullableElement";
+import {
+  createReflectedNullableFrozenArrayOfElementsSetter,
+  type NullableFrozenArrayOfElementsType,
+} from "./NullableFrozenArrayOfElements";
 
 /**
  * Builds the reflected setter function for `attribute`, dispatching on its
@@ -57,49 +64,50 @@ import { createReflectedUSVStringSetter } from "./USVString";
  *
  * @internal
  */
-export function createTypedReflectedSetter<T>(
+export function createTypedReflectedSetter<T extends Type>(
   attribute: Attribute,
-  name: string,
+  contentName: string | null,
   context: ReflectedAttributeSetterContext<T>,
 ): ReflectedAttributeSetter<T> {
   const UT = unwrapIfAnnotated(attribute.type);
+  const name = contentName ?? attribute.identifier.toLowerCase();
 
   switch (UT) {
     case Long:
       return createReflectedLongSetter(
         attribute as Attribute<LongType>,
         name,
-        context as ReflectedAttributeSetterContext<number>,
+        context as ReflectedAttributeSetterContext<LongType>,
       ) as ReflectedAttributeSetter<T>;
     case UnsignedLong:
       return createReflectedUnsignedLongSetter(
         attribute as Attribute<UnsignedLongType>,
         name,
-        context as ReflectedAttributeSetterContext<number>,
+        context as ReflectedAttributeSetterContext<UnsignedLongType>,
       ) as ReflectedAttributeSetter<T>;
     case Double:
       return createReflectedDoubleSetter(
         attribute as Attribute<DoubleType>,
         name,
-        context as ReflectedAttributeSetterContext<number>,
+        context as ReflectedAttributeSetterContext<DoubleType>,
       ) as ReflectedAttributeSetter<T>;
     case Boolean:
       return createReflectedBooleanSetter(
         attribute as Attribute<BooleanType>,
         name,
-        context as ReflectedAttributeSetterContext<boolean>,
+        context as ReflectedAttributeSetterContext<BooleanType>,
       ) as ReflectedAttributeSetter<T>;
     case DOMString:
       return createReflectedDOMStringSetter(
         attribute as Attribute<DOMStringType>,
         name,
-        context as ReflectedAttributeSetterContext<string>,
+        context as ReflectedAttributeSetterContext<DOMStringType>,
       ) as ReflectedAttributeSetter<T>;
     case USVString:
       return createReflectedUSVStringSetter(
         attribute as Attribute<USVStringType>,
         name,
-        context as ReflectedAttributeSetterContext<string>,
+        context as ReflectedAttributeSetterContext<USVStringType>,
       ) as ReflectedAttributeSetter<T>;
   }
 
@@ -108,9 +116,9 @@ export function createTypedReflectedSetter<T>(
 
     if (isDOMStringType(inner)) {
       return createReflectedNullableDOMStringSetter(
-        attribute as Attribute<NullableType<DOMStringType>>,
+        attribute as Attribute<NullableDOMStringType>,
         name,
-        context as ReflectedAttributeSetterContext<string | null>,
+        context as ReflectedAttributeSetterContext<NullableDOMStringType>,
       ) as ReflectedAttributeSetter<T>;
     }
 
@@ -119,9 +127,11 @@ export function createTypedReflectedSetter<T>(
       (inner.T === Element || inner.T.prototype instanceof Element)
     ) {
       return createReflectedNullableElementSetter(
-        attribute as Attribute<NullableType<InterfaceType<Element>>>,
+        attribute as Attribute<NullableElementType<Element>>,
         name,
-        context as ReflectedAttributeSetterContext<Element | null>,
+        context as ReflectedAttributeSetterContext<
+          NullableElementType<Element>
+        >,
       ) as ReflectedAttributeSetter<T>;
     }
 
@@ -131,11 +141,11 @@ export function createTypedReflectedSetter<T>(
       (inner.T.T === Element || inner.T.T.prototype instanceof Element)
     ) {
       return createReflectedNullableFrozenArrayOfElementsSetter(
-        attribute as Attribute<
-          NullableType<FrozenArrayType<InterfaceType<Element>>>
-        >,
+        attribute as Attribute<NullableFrozenArrayOfElementsType<Element>>,
         name,
-        context as ReflectedAttributeSetterContext<readonly Element[] | null>,
+        context as ReflectedAttributeSetterContext<
+          NullableFrozenArrayOfElementsType<Element>
+        >,
       ) as ReflectedAttributeSetter<T>;
     }
   }

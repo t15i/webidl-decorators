@@ -1,3 +1,4 @@
+import type { PropertyKey } from "@t15i/webspecs/ecma";
 import type {
   Attribute,
   Interface,
@@ -69,9 +70,11 @@ export type MemberDraft = AttributeDraft | OperationDraft;
 type MemberSlotDraft<V> =
   V extends Attribute<infer T extends Type>
     ? AttributeDraft<T>
-    : V extends Operation<infer Args extends Type[], infer Return extends Type>
+    : V extends Operation<infer Args, infer Return>
       ? OperationDraft<Args, Return>
       : V;
+
+export type InterfaceDraftSpecialMembers = Record<PropertyKey, OperationDraft>;
 
 /**
  * The member table of an {@link InterfaceDraft}: the same slots as

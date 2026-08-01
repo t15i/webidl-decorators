@@ -23,7 +23,7 @@ export function createOperationFromContext<
 }: {
   args: ArgumentList<Args>;
   returnType: Return;
-  context: OperationDecoratorContext;
+  context: OperationDecoratorContext<Args, Return>;
 }): OperationDraft<Args, Return> {
   return {
     kind: "operation",

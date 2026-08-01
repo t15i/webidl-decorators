@@ -17,8 +17,8 @@ import { createReflectedSetter } from "./createReflectedSetter";
 export function createReflectedBooleanSetter(
   idlAttribute: Attribute<BooleanType>,
   contentAttributeName: string,
-  context: ReflectedAttributeSetterContext<boolean>,
-): ReflectedAttributeSetter<boolean> {
+  context: ReflectedAttributeSetterContext<BooleanType>,
+): ReflectedAttributeSetter<BooleanType> {
   return createReflectedSetter(
     ReflectedBoolean.setter,
     {

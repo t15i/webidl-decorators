@@ -14,7 +14,7 @@ import type {
 import { createReflectedAccessor } from "./createReflectedAccessor";
 import { NullableFrozenArrayOfElementsReflectedTargetAssociations } from "../ReflectedTargetAssociation";
 
-type NullableFrozenArrayOfElementsType<E extends Element> = NullableType<
+export type NullableFrozenArrayOfElementsType<E extends Element> = NullableType<
   FrozenArrayType<InterfaceType<E>>
 >;
 
@@ -29,8 +29,10 @@ export function createReflectedNullableFrozenArrayOfElementsAccessor<
 >(
   idlAttribute: Attribute<NullableFrozenArrayOfElementsType<E>>,
   contentAttributeName: string,
-  context: ReflectedAttributeAccessorContext<readonly E[] | null>,
-): ReflectedAttributeAccessor<readonly E[] | null> {
+  context: ReflectedAttributeAccessorContext<
+    NullableFrozenArrayOfElementsType<E>
+  >,
+): ReflectedAttributeAccessor<NullableFrozenArrayOfElementsType<E>> {
   return createReflectedAccessor(
     {
       getter: ReflectedNullableFrozenArrayOfElements.getter<E>,

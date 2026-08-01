@@ -13,7 +13,9 @@ import type {
 import { NullableElementReflectedTargetAssociations } from "../ReflectedTargetAssociation";
 import { createReflectedAccessor } from "./createReflectedAccessor";
 
-type NullableElementType<E extends Element> = NullableType<InterfaceType<E>>;
+export type NullableElementType<E extends Element> = NullableType<
+  InterfaceType<E>
+>;
 
 /**
  * Builds the reflected auto-accessor for an `Element?` reflected IDL attribute.
@@ -23,8 +25,8 @@ type NullableElementType<E extends Element> = NullableType<InterfaceType<E>>;
 export function createReflectedNullableElementAccessor<E extends Element>(
   idlAttribute: Attribute<NullableElementType<E>>,
   contentAttributeName: string,
-  context: ReflectedAttributeAccessorContext<E | null>,
-): ReflectedAttributeAccessor<E | null> {
+  context: ReflectedAttributeAccessorContext<NullableElementType<E>>,
+): ReflectedAttributeAccessor<NullableElementType<E>> {
   return createReflectedAccessor(
     {
       getter: ReflectedNullableElement.getter<E>,

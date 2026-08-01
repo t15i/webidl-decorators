@@ -17,8 +17,8 @@ import { createReflectedSetter } from "./createReflectedSetter";
 export function createReflectedUSVStringSetter(
   idlAttribute: Attribute<USVStringType>,
   contentAttributeName: string,
-  context: ReflectedAttributeSetterContext<string>,
-): ReflectedAttributeSetter<string> {
+  context: ReflectedAttributeSetterContext<USVStringType>,
+): ReflectedAttributeSetter<USVStringType> {
   return createReflectedSetter(
     ReflectedUSVString.setter,
     {

@@ -14,7 +14,7 @@ import type {
 import { NullableFrozenArrayOfElementsReflectedTargetAssociations } from "../ReflectedTargetAssociation";
 import { createReflectedSetter } from "./createReflectedSetter";
 
-type NullableFrozenArrayOfElementsType<E extends Element> = NullableType<
+export type NullableFrozenArrayOfElementsType<E extends Element> = NullableType<
   FrozenArrayType<InterfaceType<E>>
 >;
 
@@ -29,8 +29,10 @@ export function createReflectedNullableFrozenArrayOfElementsSetter<
 >(
   idlAttribute: Attribute<NullableFrozenArrayOfElementsType<E>>,
   contentAttributeName: string,
-  context: ReflectedAttributeSetterContext<readonly E[] | null>,
-): ReflectedAttributeSetter<readonly E[] | null> {
+  context: ReflectedAttributeSetterContext<
+    NullableFrozenArrayOfElementsType<E>
+  >,
+): ReflectedAttributeSetter<NullableFrozenArrayOfElementsType<E>> {
   return createReflectedSetter(
     ReflectedNullableFrozenArrayOfElements.setter<E>,
     {

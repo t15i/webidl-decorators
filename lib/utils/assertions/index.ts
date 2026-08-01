@@ -1,7 +1,5 @@
-export { assertAttributeDraft } from "./assertAttributeDraft";
-export { assertAttributeDraftWithType } from "./assertAttributeDraftWithType";
-export { assertHasNoOwnMember } from "./assertHasNoOwnMember";
+export { assertDefined } from "./assertDefined";
 export { assertInterface } from "./assertInterface";
-export { assertOneOfType } from "./assertOneOfType";
-export { assertOwnMemberDraft } from "./assertOwnMemberDraft";
-export { assertRegularAttributeDraft } from "./assertRegularAttributeDraft";
+export { assertNoDefinedInterface } from "./assertNoDefinedInterface";
+export { assertOneOfType, assertStrictOneOfType } from "./assertOneOfType";
+export { assertUndefined } from "./assertUndefined";

@@ -1,12 +1,8 @@
 import type { ReflectionTrigger } from "@t15i/webspecs/html";
-import type { Attribute } from "@t15i/webspecs/webidl";
+import type { Attribute, Type } from "@t15i/webspecs/webidl";
 
-import { getOwnMemberDraftFromContext } from "@/utils";
-import {
-  assertAttributeDraft,
-  assertOwnMemberDraft,
-  assertRegularAttributeDraft,
-} from "@/utils/assertions";
+import { getOwnAttributeDraftFromContext } from "@/utils";
+import { assertDefined } from "@/utils/assertions";
 import { ExtendedAttributeDefinitionError } from "@/utils/errors";
 
 import type {
@@ -21,10 +17,10 @@ import { createTypedReflectedAccessor } from "./createTypedReflectedAccessor";
  * Builds an accessor reflect trigger decorator for `symbol`.
  *
  * The returned decorator (usable bare or as a factory with a content name)
- * runs the shared steps — resolve the own attribute draft, assert it is a
- * regular attribute, set `flag` on it, record `symbol` (mapped to the explicit
- * content name or `null`), then dispatch on the WebIDL type to build the
- * reflected accessor — wrapping any failure in an
+ * runs the shared steps — resolve the own attribute draft, assert an attribute
+ * is registered under the decorated identifier, set `flag` on it, record
+ * `symbol` (mapped to the explicit content name or `null`), then dispatch on
+ * the WebIDL type to build the reflected accessor — wrapping any failure in an
  * {@link ExtendedAttributeDefinitionError} named after `symbol`.
  *
  * @param symbol - The reflect trigger's extended-attribute symbol, recorded on
@@ -43,17 +39,15 @@ export function createReflectTrigger(
     | "limitedToOnlyPositiveNumbers"
     | "limitedToOnlyPositiveNumbersWithFallback",
 ): ReflectTriggerDecorator {
-  function defineReflect<T>(
+  function defineReflect<T extends Type>(
     contentName: string | null,
     _: ReflectedAttributeAccessor<T>,
     context: ReflectedAttributeAccessorContext<T>,
   ): ReflectedAttributeAccessor<T> {
-    const { iface, member: attribute } = getOwnMemberDraftFromContext(context);
-
     try {
-      assertOwnMemberDraft(iface, attribute);
-      assertAttributeDraft(attribute);
-      assertRegularAttributeDraft(attribute);
+      const { attribute } = getOwnAttributeDraftFromContext(context);
+
+      assertDefined(attribute, context);
 
       attribute.extendedAttributes[symbol] = contentName;
       if (flag) attribute[flag] = true;
@@ -68,7 +62,7 @@ export function createReflectTrigger(
     }
   }
 
-  function reflectTrigger<T>(...args: unknown[]) {
+  function reflectTrigger<T extends Type>(...args: unknown[]) {
     if (args.length === 2) {
       return defineReflect(
         null,

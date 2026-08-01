@@ -1,8 +1,9 @@
 import {
   Exposed,
+  Getter,
   Interface,
   NamedPropertyDeterminator,
-  NamedPropertyGetter,
+  Operation,
   SupportedPropertyNames,
 } from "lib";
 
@@ -27,13 +28,14 @@ describe("@NamedPropertyDeterminator", () => {
     );
   });
 
-  test("should take precedence over the behavior installed by an anonymous @NamedPropertyGetter regardless of order", () => {
+  test("should take precedence over the behavior installed by an anonymous @Getter regardless of order", () => {
     const anonymous = Symbol("anonymous");
 
     @Exposed("Window")
     @Interface
     class Test {
-      @NamedPropertyGetter(DOMString)
+      @Getter
+      @Operation([DOMString], DOMString)
       [anonymous](name: string): string {
         return name;
       }

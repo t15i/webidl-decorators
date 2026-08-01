@@ -29,9 +29,9 @@ import type { ReflectionContext, ReflectedAttributeSpec } from "../types";
  * @internal
  */
 export function createReflectedAccessor<
-  T,
+  T extends Type,
   Target extends ReflectedTargetAssociations,
-  IDL extends Attribute<Type<T>>,
+  IDL extends Attribute<T>,
 >(
   {
     getter,
@@ -42,7 +42,7 @@ export function createReflectedAccessor<
     Target,
     idlAttribute,
     contentAttributeName,
-  }: ReflectionContext<Target, IDL>,
+  }: ReflectionContext<T, Target, IDL>,
   context: ReflectedAttributeAccessorContext<T>,
 ): ReflectedAttributeAccessor<T> {
   const targets: WeakMap<object, Target> = new WeakMap();

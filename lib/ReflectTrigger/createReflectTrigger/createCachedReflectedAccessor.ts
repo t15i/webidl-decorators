@@ -1,5 +1,5 @@
 import type { ReflectedTargetAssociations } from "@t15i/webspecs/html";
-import type { Attribute, Type } from "@t15i/webspecs/webidl";
+import type { Attribute, NativeType, Type } from "@t15i/webspecs/webidl";
 
 import { attributeChangeStepsRegistry } from "@/AttributeChangeStepsRegistry";
 
@@ -29,15 +29,15 @@ import type { ReflectionContext, ReflectedAttributeSpec } from "../types";
  * @internal
  */
 export function createCachedReflectedAccessor<
-  T,
+  T extends Type,
   Target extends ReflectedTargetAssociations,
-  IDL extends Attribute<Type<T>>,
+  IDL extends Attribute<T>,
 >(
   spec: ReflectedAttributeSpec<T, Target, IDL>,
-  params: ReflectionContext<Target, IDL>,
+  params: ReflectionContext<T, Target, IDL>,
   context: ReflectedAttributeAccessorContext<T>,
 ): ReflectedAttributeAccessor<T> {
-  const cache: WeakMap<object, T> = new WeakMap();
+  const cache: WeakMap<object, NativeType<T>> = new WeakMap();
 
   const { get, set } = createReflectedAccessor(spec, params, context);
 

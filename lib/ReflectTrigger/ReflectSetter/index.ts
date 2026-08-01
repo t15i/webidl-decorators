@@ -1,15 +1,11 @@
 import { ReflectSetter as ReflectSetterSymbol } from "@t15i/webspecs/html";
-import type { Attribute } from "@t15i/webspecs/webidl";
+import type { Attribute, Type } from "@t15i/webspecs/webidl";
 
 import {
-  getOwnMemberDraftFromContext,
+  getOwnAttributeDraftFromContext,
   getSetterContextFromAccessorContext,
 } from "@/utils";
-import {
-  assertAttributeDraft,
-  assertOwnMemberDraft,
-  assertRegularAttributeDraft,
-} from "@/utils/assertions";
+import { assertDefined } from "@/utils/assertions";
 import { ExtendedAttributeDefinitionError } from "@/utils/errors";
 
 import type {
@@ -40,28 +36,23 @@ import { createTypedReflectedSetter } from "./createTypedReflectedSetter";
  *  target whose getter is reused.
  * @param context - The setter or accessor decorator context.
  *
- * @throws TypeError if the member is neither a setter nor an auto-accessor, or
- *  if the attribute's WebIDL type is not reflectable as a setter.
+ * @throws TypeError if no WebIDL attribute is registered under the decorated
+ *  identifier, or if the attribute's WebIDL type is not reflectable as a setter.
  *
  * @internal
  */
-function defineReflectSetter<T>(
+function defineReflectSetter<T extends Type = Type>(
   contentName: string | null,
   target: ReflectedAttributeSetter<T> | ReflectedAttributeAccessor<T>,
   context:
     ReflectedAttributeSetterContext<T> | ReflectedAttributeAccessorContext<T>,
 ): ReflectedAttributeSetter<T> | ReflectedAttributeAccessor<T> {
-  const { iface, member: attribute } = getOwnMemberDraftFromContext(context);
-
   try {
-    assertOwnMemberDraft(iface, attribute);
-    assertAttributeDraft(attribute);
-    assertRegularAttributeDraft(attribute);
+    const { attribute } = getOwnAttributeDraftFromContext(context);
+
+    assertDefined(attribute, context);
 
     attribute.extendedAttributes[ReflectSetterSymbol] = contentName;
-
-    const contentAttributeName =
-      contentName ?? attribute.identifier.toLowerCase();
 
     if (context.kind === "accessor") {
       const accessor = target as ReflectedAttributeAccessor<T>;
@@ -69,21 +60,15 @@ function defineReflectSetter<T>(
         get: accessor.get,
         set: createTypedReflectedSetter(
           attribute as Attribute,
-          contentAttributeName,
+          contentName,
           getSetterContextFromAccessorContext(context),
         ),
       };
     }
 
-    if (context.kind !== "setter") {
-      throw new TypeError(
-        "The [ReflectSetter] extended attribute must be applied to a setter or an auto-accessor member",
-      );
-    }
-
     return createTypedReflectedSetter(
       attribute as Attribute,
-      contentAttributeName,
+      contentName,
       context,
     );
   } catch (e) {
@@ -133,7 +118,7 @@ function defineReflectSetter<T>(
  *
  * @see https://html.spec.whatwg.org/multipage/common-dom-interfaces.html#xattr-reflectsetter
  */
-export function ReflectSetter<T>(
+export function ReflectSetter<T extends Type>(
   target: ReflectedAttributeSetter<T>,
   context: ReflectedAttributeSetterContext<T>,
 ): ReflectedAttributeSetter<T>;
@@ -161,7 +146,7 @@ export function ReflectSetter<T>(
  * }
  * ```
  */
-export function ReflectSetter<T>(
+export function ReflectSetter<T extends Type>(
   target: ReflectedAttributeAccessor<T>,
   context: ReflectedAttributeAccessorContext<T>,
 ): ReflectedAttributeAccessor<T>;
@@ -177,7 +162,7 @@ export function ReflectSetter(
   contentName?: string,
 ): ReflectedAttributeSetterDecorator & ReflectedAttributeAccessorDecorator;
 
-export function ReflectSetter<T>(...args: unknown[]): unknown {
+export function ReflectSetter<T extends Type>(...args: unknown[]): unknown {
   if (args.length === 2) {
     return defineReflectSetter(
       null,

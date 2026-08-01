@@ -1,17 +1,23 @@
-import type { AnyConstructor, AnyFunction } from "./common";
+import type { NativeType, Type } from "@t15i/webspecs/webidl";
+
+import type { AnyConstructor } from "./common";
+import type { OperationDecoratorTarget } from "./target";
 
 export type InterfaceDecoratorContext<
   Class extends AnyConstructor = AnyConstructor,
 > = ClassDecoratorContext<Class>;
 
 export type MemberDecoratorContext<This extends object = object> =
-  | AttributeDecoratorContext<unknown, This>
-  | OperationDecoratorContext<AnyFunction, This>;
+  | AttributeDecoratorContext<Type, This>
+  | OperationDecoratorContext<Type[], Type, This>;
 
-export type AttributeDecoratorContext<Value = unknown, This = object> = (
-  | ClassAccessorDecoratorContext<This, Value>
-  | ClassGetterDecoratorContext<This, Value>
-  | ClassSetterDecoratorContext<This, Value>
+export type AttributeDecoratorContext<
+  Value extends Type = Type,
+  This = object,
+> = (
+  | ClassAccessorDecoratorContext<This, NativeType<Value>>
+  | ClassGetterDecoratorContext<This, NativeType<Value>>
+  | ClassSetterDecoratorContext<This, NativeType<Value>>
 ) & { name: string; private: false };
 
 export type Accessor<T extends AttributeDecoratorContext> = T & {
@@ -27,9 +33,13 @@ export type Setter<T extends AttributeDecoratorContext> = T & {
 };
 
 export type OperationDecoratorContext<
-  Value extends AnyFunction = AnyFunction,
+  Params extends Type[] = Type[],
+  Return extends Type = Type,
   This extends object = object,
-> = ClassMethodDecoratorContext<This, Value>;
+> = ClassMethodDecoratorContext<
+  This,
+  OperationDecoratorTarget<Params, Return, This>
+>;
 
 export type Regular<T extends MemberDecoratorContext> = T & {
   static: false;

@@ -1,5 +1,3 @@
-import type { Attribute, Type } from "@t15i/webspecs/webidl";
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type AnyConstructor = new (...args: any[]) => any;
 
@@ -14,5 +12,6 @@ export interface DecoratorContext {
   metadata: object;
 }
 
-export type NativeType<Attr extends Attribute> =
-  Attr["type"] extends Type<infer N> ? N : never;
+export type ReturnTypes<Ts extends AnyFunction[]> = {
+  [K in keyof Ts]: ReturnType<Ts[K]>;
+};

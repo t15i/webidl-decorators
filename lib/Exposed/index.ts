@@ -41,8 +41,9 @@ function defineExposed<Target extends InterfaceDecoratorTarget>(
   target: Target,
   context: InterfaceDecoratorContext,
 ): typeof target {
-  getInterfaceDraftFromContext(context).extendedAttributes[ExposedSymbol] =
-    exposureSet;
+  const iface = getInterfaceDraftFromContext(context);
+
+  iface.extendedAttributes[ExposedSymbol] = exposureSet;
 
   context.addInitializer(function () {
     const iface = PlatformObject.getPrimaryInterfaceOf(this.prototype);

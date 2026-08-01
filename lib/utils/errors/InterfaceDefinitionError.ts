@@ -1,25 +1,21 @@
-import type { InterfaceDraft } from "@/types";
-
 /**
- * `TypeError` thrown when a decorated class cannot be defined as a WebIDL
- * interface.
+ * `TypeError` thrown when a decorated class cannot be set up as a WebIDL
+ * interface while the {@link Interface} decorator runs.
  *
- * @param draft - The interface draft whose finalization failed.
  * @param options - Standard error options; use `cause` to wrap the underlying
- *  validation error that triggered the failure.
+ *  error that triggered the failure.
  *
  * @remarks
- * Thrown when the draft the member decorators accumulated does not validate
- * as a complete WebIDL interface. The message names the interface when its
- * identifier is already assigned; the specific reason the definition was
- * rejected is preserved on `cause`.
+ * Thrown from the decorator body itself — for example when neither an
+ * identifier argument nor a class name is available to name the interface. The
+ * interface is not named in the message: its identifier may not be resolved
+ * yet at this point. The specific reason the setup failed is preserved on
+ * `cause`. Validation of the accumulated draft happens later, during class
+ * initialization, and surfaces as {@link InterfaceInitializationError} instead.
  */
 export class InterfaceDefinitionError extends TypeError {
-  constructor(draft: InterfaceDraft, options?: ErrorOptions) {
-    const named =
-      draft.identifier !== undefined ? ` '${draft.identifier}'` : "";
-
-    super(`Cannot define interface${named}`, options);
+  constructor(options?: ErrorOptions) {
+    super(`Cannot define interface`, options);
 
     this.name = "InterfaceDefinitionError";
   }

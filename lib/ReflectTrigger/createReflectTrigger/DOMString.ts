@@ -17,8 +17,8 @@ import { createCachedReflectedAccessor } from "./createCachedReflectedAccessor";
 export function createReflectedDOMStringAccessor(
   idlAttribute: Attribute<DOMStringType>,
   contentAttributeName: string,
-  context: ReflectedAttributeAccessorContext<string>,
-): ReflectedAttributeAccessor<string> {
+  context: ReflectedAttributeAccessorContext<DOMStringType>,
+): ReflectedAttributeAccessor<DOMStringType> {
   return createCachedReflectedAccessor(
     {
       getter: ReflectedDOMString.getter,

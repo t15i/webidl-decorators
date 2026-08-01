@@ -25,16 +25,16 @@ import type { ReflectedAttributeSetterSpec, ReflectionContext } from "../types";
  * @internal
  */
 export function createReflectedSetter<
-  T,
+  T extends Type,
   Target extends ReflectedTargetAssociations,
-  IDL extends Attribute<Type<T>>,
+  IDL extends Attribute<T>,
 >(
   setter: ReflectedAttributeSetterSpec<T, Target, IDL>,
   {
     Target,
     idlAttribute,
     contentAttributeName,
-  }: ReflectionContext<Target, IDL>,
+  }: ReflectionContext<T, Target, IDL>,
   context: ReflectedAttributeSetterContext<T>,
 ): ReflectedAttributeSetter<T> {
   const targets: WeakMap<object, Target> = new WeakMap();

@@ -7,6 +7,7 @@ import type {
   Setter,
   SetterAttributeDecoratorTarget,
 } from "@/types";
+import type { Type } from "@t15i/webspecs/webidl";
 
 /**
  * The decorator produced by {@link Attribute}: applicable to a getter, a
@@ -14,7 +15,7 @@ import type {
  * rather than a union of the three decorator types — a union of incompatible
  * signatures is not callable, so it could not be applied as a decorator.
  */
-export type AttributeDecorator<T> = {
+export type AttributeDecorator<T extends Type> = {
   (
     target: GetterAttributeDecoratorTarget<T>,
     context: Getter<AttributeDecoratorContext<T>>,

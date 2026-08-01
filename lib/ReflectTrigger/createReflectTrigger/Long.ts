@@ -17,8 +17,8 @@ import { createCachedReflectedAccessor } from "./createCachedReflectedAccessor";
 export function createReflectedLongAccessor(
   idlAttribute: Attribute<LongType>,
   contentAttributeName: string,
-  context: ReflectedAttributeAccessorContext<number>,
-): ReflectedAttributeAccessor<number> {
+  context: ReflectedAttributeAccessorContext<LongType>,
+): ReflectedAttributeAccessor<LongType> {
   return createCachedReflectedAccessor(
     {
       getter: ReflectedLong.getter,

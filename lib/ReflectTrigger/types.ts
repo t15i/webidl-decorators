@@ -1,26 +1,31 @@
 import type { ReflectedTargetAssociations } from "@t15i/webspecs/html";
-import type { Attribute } from "@t15i/webspecs/webidl";
+import type { Attribute, NativeType, Type } from "@t15i/webspecs/webidl";
 
 export type ReflectedAttributeGetterSpec<
-  T,
+  T extends Type,
   Target extends ReflectedTargetAssociations,
-  IDL extends Attribute,
-> = (this: Target, idlAttribute: IDL, contentAttributeName: string) => T;
-
-export type ReflectedAttributeSetterSpec<
-  T,
-  Target extends ReflectedTargetAssociations,
-  IDL extends Attribute,
+  IDL extends Attribute<T>,
 > = (
   this: Target,
   idlAttribute: IDL,
   contentAttributeName: string,
-  value: T,
+) => NativeType<T>;
+
+export type ReflectedAttributeSetterSpec<
+  T extends Type,
+  Target extends ReflectedTargetAssociations,
+  IDL extends Attribute<T>,
+> = (
+  this: Target,
+  idlAttribute: IDL,
+  contentAttributeName: string,
+  value: NativeType<T>,
 ) => void;
 
 export type ReflectedAttributeChangeStepsSpec<
+  T extends Type,
   Target extends ReflectedTargetAssociations,
-  IDL extends Attribute,
+  IDL extends Attribute<T>,
 > = (
   this: Target,
   idlAttribute: IDL,
@@ -33,18 +38,19 @@ export type ReflectedAttributeChangeStepsSpec<
 ) => void;
 
 export interface ReflectedAttributeSpec<
-  T,
+  T extends Type,
   Target extends ReflectedTargetAssociations,
-  IDL extends Attribute,
+  IDL extends Attribute<T>,
 > {
   getter: ReflectedAttributeGetterSpec<T, Target, IDL>;
   setter: ReflectedAttributeSetterSpec<T, Target, IDL>;
-  attributeChangeSteps?: ReflectedAttributeChangeStepsSpec<Target, IDL>;
+  attributeChangeSteps?: ReflectedAttributeChangeStepsSpec<T, Target, IDL>;
 }
 
 export interface ReflectionContext<
+  T extends Type,
   Target extends ReflectedTargetAssociations,
-  IDL extends Attribute,
+  IDL extends Attribute<T>,
 > {
   Target: new (element: Element) => Target;
   idlAttribute: IDL;

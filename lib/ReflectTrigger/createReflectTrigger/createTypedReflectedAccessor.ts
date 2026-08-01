@@ -1,12 +1,4 @@
 import {
-  Boolean,
-  DOMString,
-  Double,
-  Long,
-  UnsignedLong,
-  USVString,
-} from "@t15i/webidl-types";
-import {
   isDOMStringType,
   isFrozenArrayType,
   isInterfaceType,
@@ -15,13 +7,20 @@ import {
   type BooleanType,
   type DOMStringType,
   type DoubleType,
-  type FrozenArrayType,
-  type InterfaceType,
   type LongType,
   type NullableType,
+  type Type,
   type UnsignedLongType,
   type USVStringType,
 } from "@t15i/webspecs/webidl";
+import {
+  Boolean,
+  DOMString,
+  Double,
+  Long,
+  UnsignedLong,
+  USVString,
+} from "@t15i/webidl-types";
 
 import { unwrapIfAnnotated } from "@/utils";
 
@@ -34,9 +33,18 @@ import { createReflectedBooleanAccessor } from "./Boolean";
 import { createReflectedDOMStringAccessor } from "./DOMString";
 import { createReflectedDoubleAccessor } from "./Double";
 import { createReflectedLongAccessor } from "./Long";
-import { createReflectedNullableDOMStringAccessor } from "./NullableDOMString";
-import { createReflectedNullableElementAccessor } from "./NullableElement";
-import { createReflectedNullableFrozenArrayOfElementsAccessor } from "./NullableFrozenArrayOfElements";
+import {
+  createReflectedNullableDOMStringAccessor,
+  type NullableDOMStringType,
+} from "./NullableDOMString";
+import {
+  createReflectedNullableElementAccessor,
+  type NullableElementType,
+} from "./NullableElement";
+import {
+  createReflectedNullableFrozenArrayOfElementsAccessor,
+  type NullableFrozenArrayOfElementsType,
+} from "./NullableFrozenArrayOfElements";
 import { createReflectedUnsignedLongAccessor } from "./UnsignedLong";
 import { createReflectedUSVStringAccessor } from "./USVString";
 
@@ -55,52 +63,50 @@ import { createReflectedUSVStringAccessor } from "./USVString";
  *
  * @internal
  */
-export function createTypedReflectedAccessor<T>(
+export function createTypedReflectedAccessor<T extends Type>(
   attribute: Attribute,
   contentName: string | null,
   context: ReflectedAttributeAccessorContext<T>,
 ): ReflectedAttributeAccessor<T> {
   const UT = unwrapIfAnnotated(attribute.type);
-
-  const attr = attribute as Attribute;
   const name = contentName ?? attribute.identifier.toLowerCase();
 
   switch (UT) {
     case Long:
       return createReflectedLongAccessor(
-        attr as Attribute<LongType>,
+        attribute as Attribute<LongType>,
         name,
-        context as ReflectedAttributeAccessorContext<number>,
+        context as ReflectedAttributeAccessorContext<LongType>,
       ) as ReflectedAttributeAccessor<T>;
     case UnsignedLong:
       return createReflectedUnsignedLongAccessor(
-        attr as Attribute<UnsignedLongType>,
+        attribute as Attribute<UnsignedLongType>,
         name,
-        context as ReflectedAttributeAccessorContext<number>,
+        context as ReflectedAttributeAccessorContext<UnsignedLongType>,
       ) as ReflectedAttributeAccessor<T>;
     case Double:
       return createReflectedDoubleAccessor(
-        attr as Attribute<DoubleType>,
+        attribute as Attribute<DoubleType>,
         name,
-        context as ReflectedAttributeAccessorContext<number>,
+        context as ReflectedAttributeAccessorContext<DoubleType>,
       ) as ReflectedAttributeAccessor<T>;
     case Boolean:
       return createReflectedBooleanAccessor(
-        attr as Attribute<BooleanType>,
+        attribute as Attribute<BooleanType>,
         name,
-        context as ReflectedAttributeAccessorContext<boolean>,
+        context as ReflectedAttributeAccessorContext<BooleanType>,
       ) as ReflectedAttributeAccessor<T>;
     case DOMString:
       return createReflectedDOMStringAccessor(
-        attr as Attribute<DOMStringType>,
+        attribute as Attribute<DOMStringType>,
         name,
-        context as ReflectedAttributeAccessorContext<string>,
+        context as ReflectedAttributeAccessorContext<DOMStringType>,
       ) as ReflectedAttributeAccessor<T>;
     case USVString:
       return createReflectedUSVStringAccessor(
-        attr as Attribute<USVStringType>,
+        attribute as Attribute<USVStringType>,
         name,
-        context as ReflectedAttributeAccessorContext<string>,
+        context as ReflectedAttributeAccessorContext<USVStringType>,
       ) as ReflectedAttributeAccessor<T>;
   }
 
@@ -109,9 +115,9 @@ export function createTypedReflectedAccessor<T>(
 
     if (isDOMStringType(inner)) {
       return createReflectedNullableDOMStringAccessor(
-        attr as Attribute<NullableType<DOMStringType>>,
+        attribute as Attribute<NullableType<DOMStringType>>,
         name,
-        context as ReflectedAttributeAccessorContext<string | null>,
+        context as ReflectedAttributeAccessorContext<NullableDOMStringType>,
       ) as ReflectedAttributeAccessor<T>;
     }
     if (
@@ -119,9 +125,11 @@ export function createTypedReflectedAccessor<T>(
       (inner.T === Element || inner.T.prototype instanceof Element)
     ) {
       return createReflectedNullableElementAccessor(
-        attr as Attribute<NullableType<InterfaceType<Element>>>,
+        attribute as Attribute<NullableElementType<Element>>,
         name,
-        context as ReflectedAttributeAccessorContext<Element | null>,
+        context as ReflectedAttributeAccessorContext<
+          NullableElementType<Element>
+        >,
       ) as ReflectedAttributeAccessor<T>;
     }
     if (
@@ -130,11 +138,11 @@ export function createTypedReflectedAccessor<T>(
       (inner.T.T === Element || inner.T.T.prototype instanceof Element)
     ) {
       return createReflectedNullableFrozenArrayOfElementsAccessor(
-        attr as Attribute<
-          NullableType<FrozenArrayType<InterfaceType<Element>>>
-        >,
+        attribute as Attribute<NullableFrozenArrayOfElementsType<Element>>,
         name,
-        context as ReflectedAttributeAccessorContext<readonly Element[] | null>,
+        context as ReflectedAttributeAccessorContext<
+          NullableFrozenArrayOfElementsType<Element>
+        >,
       ) as ReflectedAttributeAccessor<T>;
     }
   }

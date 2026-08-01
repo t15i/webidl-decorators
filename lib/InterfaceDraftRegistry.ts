@@ -28,6 +28,7 @@ export class InterfaceDraftRegistry {
         parentDraft = this.drafts_.get(proto)!;
         break;
       }
+
       proto = Object.getPrototypeOf(proto);
     }
 

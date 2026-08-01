@@ -14,9 +14,9 @@ import type { Accessor, AttributeDecoratorContext, Setter } from "@/types";
  *
  * @returns A setter member decorator context backed by `context`.
  */
-export function getSetterContextFromAccessorContext<Value, This extends object>(
-  context: Accessor<AttributeDecoratorContext<Value, This>>,
-): Setter<AttributeDecoratorContext<Value, This>> {
+export function getSetterContextFromAccessorContext<
+  Ctx extends AttributeDecoratorContext,
+>(context: Accessor<Ctx>): Setter<Ctx> {
   return {
     ...context,
     kind: "setter",
@@ -25,5 +25,5 @@ export function getSetterContextFromAccessorContext<Value, This extends object>(
       set: context.access.set,
     },
     addInitializer: context.addInitializer.bind(context),
-  } as Setter<AttributeDecoratorContext<Value, This>>;
+  } as Setter<Ctx>;
 }

@@ -17,8 +17,8 @@ import { createCachedReflectedAccessor } from "./createCachedReflectedAccessor";
 export function createReflectedUSVStringAccessor(
   idlAttribute: Attribute<USVStringType>,
   contentAttributeName: string,
-  context: ReflectedAttributeAccessorContext<string>,
-): ReflectedAttributeAccessor<string> {
+  context: ReflectedAttributeAccessorContext<USVStringType>,
+): ReflectedAttributeAccessor<USVStringType> {
   return createCachedReflectedAccessor(
     {
       getter: ReflectedUSVString.getter,

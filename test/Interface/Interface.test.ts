@@ -184,6 +184,33 @@ describe("@Interface", () => {
     }).toThrow();
   });
 
+  test("should not treat a derived class's inherited interface as its own definition", () => {
+    @Exposed("Window")
+    @Interface
+    class Base {}
+
+    expect(() => {
+      @Exposed("Window")
+      @Interface
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      class Derived extends Base {}
+    }).not.toThrow();
+  });
+
+  test("should throw when @Interface is applied a second time to a derived class", () => {
+    @Exposed("Window")
+    @Interface
+    class Base {}
+
+    expect(() => {
+      @Exposed("Window")
+      @Interface
+      @Interface
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      class Derived extends Base {}
+    }).toThrow();
+  });
+
   test("should preserve instanceof for both base and derived classes", () => {
     @Exposed("Window")
     @Interface
