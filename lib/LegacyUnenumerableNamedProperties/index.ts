@@ -33,7 +33,6 @@ export function LegacyUnenumerableNamedProperties(
   _: unknown,
   context: DecoratorContext,
 ): void {
-  getInterfaceDraftFromContext(context).extendedAttributes[
-    LegacyUnenumerableNamedPropertiesSymbol
-  ] = undefined;
+  const iface = getInterfaceDraftFromContext(context);
+  iface.extendedAttributes[LegacyUnenumerableNamedPropertiesSymbol] = undefined;
 }

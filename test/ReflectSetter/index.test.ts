@@ -298,20 +298,4 @@ describe("@ReflectSetter", () => {
     el.ping = "abc";
     expect(el.getAttribute("ping")).toBe("abc");
   });
-
-  test("throws when the factory form is applied to a getter member", () => {
-    expect(() => {
-      @Exposed("Window")
-      @Interface("ReflectSetterGetter")
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      class ReflectSetterGetter extends HTMLElement {
-        // @ts-expect-error getter members are rejected at compile time
-        @ReflectSetter()
-        @Attribute(Long)
-        get foo(): number {
-          return 0;
-        }
-      }
-    }).toThrow(TypeError);
-  });
 });

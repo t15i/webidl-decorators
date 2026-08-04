@@ -1,46 +1,27 @@
 import {
   validateInterface,
   PlatformObject as WebIDLPlatformObject,
+  type Interface,
 } from "@t15i/webspecs/webidl";
 
-import { getInterfaceDraftFromContext } from "@/utils";
-import { assertInterface } from "@/utils/assertions";
-import { InterfaceDefinitionError } from "@/utils/errors";
+import { unnamedOperationRegistry } from "@/UnnamedOperationRegistry";
 
-import type {
-  InterfaceDecoratorContext,
-  InterfaceDecoratorTarget,
+import { getInterfaceDraftFromContext } from "@/utils";
+import { assertInterface, assertNoDefinedInterface } from "@/utils/assertions";
+import {
+  InterfaceDefinitionError,
+  InterfaceInitializationError,
+} from "@/utils/errors";
+
+import {
+  type InterfaceDecoratorContext,
+  type InterfaceDecoratorTarget,
 } from "@/types";
 
 import { PlatformObject } from "./PlatformObject";
-
-export { Internals } from "./PlatformObject/internals";
-
-import type { InterfaceDecorator } from "./types";
 import { CustomElement } from "./CustomElement";
 
-function interfaceInitializer(
-  target: InterfaceDecoratorTarget,
-  context: InterfaceDecoratorContext,
-) {
-  const iface = getInterfaceDraftFromContext(context);
-
-  try {
-    const existing: unknown = WebIDLPlatformObject.getPrimaryInterfaceOf(
-      target.prototype,
-    );
-    if (existing === iface) {
-      throw new TypeError("The interface is already defined");
-    }
-
-    assertInterface(iface);
-    validateInterface(iface);
-  } catch (e) {
-    throw new InterfaceDefinitionError(iface, { cause: e });
-  }
-
-  WebIDLPlatformObject.setPrimaryInterfaceOf(target.prototype, iface);
-}
+import type { InterfaceDecorator } from "./types";
 
 /**
  * Decorates a class as a WebIDL interface, registering `identifier` as its
@@ -53,21 +34,38 @@ function defineInterface<T extends InterfaceDecoratorTarget>(
   target: T,
   context: InterfaceDecoratorContext,
 ): typeof target {
-  if (identifier === undefined && context.name === undefined) {
-    throw TypeError(
-      "Expected at least one identifier or context.name to be 'string'",
-    );
+  try {
+    if (identifier === undefined && context.name === undefined) {
+      throw TypeError(
+        "Expected at least one identifier or context.name to be 'string'",
+      );
+    }
+
+    const iface = getInterfaceDraftFromContext(context);
+    iface.identifier = (identifier ?? context.name)!;
+
+    context.addInitializer(function () {
+      try {
+        assertNoDefinedInterface(this);
+        assertInterface(iface);
+
+        validateInterface(iface);
+
+        WebIDLPlatformObject.setPrimaryInterfaceOf(this.prototype, iface);
+
+        unnamedOperationRegistry.drop(context.metadata);
+      } catch (e) {
+        throw new InterfaceInitializationError(iface, { cause: e });
+      }
+    });
+
+    if (target.prototype instanceof HTMLElement) {
+      CustomElement(target, context);
+    }
+    return PlatformObject(target);
+  } catch (e) {
+    throw new InterfaceDefinitionError({ cause: e });
   }
-
-  const i = getInterfaceDraftFromContext(context);
-  i.identifier = (identifier ?? context.name)!;
-
-  context.addInitializer(interfaceInitializer.bind(undefined, target, context));
-
-  if (target.prototype instanceof HTMLElement) {
-    CustomElement(target, context);
-  }
-  return PlatformObject(target);
 }
 
 const InterfaceDefault = defineInterface.bind(undefined, undefined);
@@ -98,7 +96,8 @@ const InterfaceDefault = defineInterface.bind(undefined, undefined);
  * ```ts
  * \@Interface
  * class HTMLCollection {
- *   \@IndexedPropertyGetter(Nullable(Type(Element)))
+ *   \@Getter
+ *   \@Operation([UnsignedLong], Nullable(Type(Element)))
  *   item(index: number): Element | null {
  *     // ...
  *     return value;
@@ -138,7 +137,8 @@ export function Interface<T extends InterfaceDecoratorTarget>(
  * ```ts
  * \@Interface("HTMLCollection")
  * class HTMLCollectionImpl {
- *   \@IndexedPropertyGetter(Nullable(Type(Element)))
+ *   \@Getter
+ *   \@Operation([UnsignedLong], Nullable(Type(Element)))
  *   item(index: number): Element | null {
  *     // ...
  *     return value;
@@ -160,3 +160,5 @@ export function Interface(...args: unknown[]) {
 
   return defineInterface.bind(undefined, args[0] as string);
 }
+
+export { Internals } from "./PlatformObject";

@@ -1,30 +1,35 @@
-import type { AnyConstructor, AnyFunction } from "./common";
+import type { NativeType, Type } from "@t15i/webspecs/webidl";
+import type { AnyConstructor, ReturnTypes } from "./common";
 
 export type InterfaceDecoratorTarget<
   Class extends AnyConstructor = AnyConstructor,
 > = Class;
 
 export type GetterAttributeDecoratorTarget<
-  Value,
+  Value extends Type,
   This extends object = object,
-> = (this: This) => Value;
+> = (this: This) => NativeType<Value>;
 
 export type SetterAttributeDecoratorTarget<
-  Value,
+  Value extends Type,
   This extends object = object,
-> = (this: This, value: Value) => void;
+> = (this: This, value: NativeType<Value>) => void;
 
 export type AccessorAttributeDecoratorTarget<
-  Value,
+  Value extends Type,
   This extends object = object,
-> = ClassAccessorDecoratorTarget<This, Value>;
+> = ClassAccessorDecoratorTarget<This, NativeType<Value>>;
 
-export type AttributeDecoratorTarget<Value, This extends object = object> =
+export type AttributeDecoratorTarget<
+  Value extends Type,
+  This extends object = object,
+> =
   | GetterAttributeDecoratorTarget<Value, This>
   | SetterAttributeDecoratorTarget<Value, This>
   | AccessorAttributeDecoratorTarget<Value, This>;
 
 export type OperationDecoratorTarget<
-  Value extends AnyFunction = AnyFunction,
+  Params extends Type[],
+  Return extends Type,
   This extends object = object,
-> = ClassMethodDecoratorContext<This, Value>;
+> = (this: This, ...params: ReturnTypes<Params>) => ReturnType<Return>;

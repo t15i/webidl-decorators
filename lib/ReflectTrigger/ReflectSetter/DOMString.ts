@@ -17,8 +17,8 @@ import { createReflectedSetter } from "./createReflectedSetter";
 export function createReflectedDOMStringSetter(
   idlAttribute: Attribute<DOMStringType>,
   contentAttributeName: string,
-  context: ReflectedAttributeSetterContext<string>,
-): ReflectedAttributeSetter<string> {
+  context: ReflectedAttributeSetterContext<DOMStringType>,
+): ReflectedAttributeSetter<DOMStringType> {
   return createReflectedSetter(
     ReflectedDOMString.setter,
     {

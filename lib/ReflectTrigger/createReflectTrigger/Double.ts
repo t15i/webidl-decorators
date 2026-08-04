@@ -17,8 +17,8 @@ import { createCachedReflectedAccessor } from "./createCachedReflectedAccessor";
 export function createReflectedDoubleAccessor(
   idlAttribute: Attribute<DoubleType>,
   contentAttributeName: string,
-  context: ReflectedAttributeAccessorContext<number>,
-): ReflectedAttributeAccessor<number> {
+  context: ReflectedAttributeAccessorContext<DoubleType>,
+): ReflectedAttributeAccessor<DoubleType> {
   return createCachedReflectedAccessor(
     {
       getter: ReflectedDouble.getter,

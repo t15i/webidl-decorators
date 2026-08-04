@@ -13,7 +13,7 @@ import type {
 import { ElementReflectedTargetAssociations } from "../ReflectedTargetAssociation";
 import { createCachedReflectedAccessor } from "./createCachedReflectedAccessor";
 
-type NullableDOMStringType = NullableType<DOMStringType>;
+export type NullableDOMStringType = NullableType<DOMStringType>;
 
 /**
  * Builds the reflected auto-accessor for a `DOMString?` reflected IDL attribute.
@@ -23,8 +23,8 @@ type NullableDOMStringType = NullableType<DOMStringType>;
 export function createReflectedNullableDOMStringAccessor(
   idlAttribute: Attribute<NullableDOMStringType>,
   contentAttributeName: string,
-  context: ReflectedAttributeAccessorContext<string | null>,
-): ReflectedAttributeAccessor<string | null> {
+  context: ReflectedAttributeAccessorContext<NullableDOMStringType>,
+): ReflectedAttributeAccessor<NullableDOMStringType> {
   return createCachedReflectedAccessor(
     {
       getter: ReflectedNullableDOMString.getter,

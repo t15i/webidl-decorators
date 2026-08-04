@@ -17,8 +17,8 @@ import { createCachedReflectedAccessor } from "./createCachedReflectedAccessor";
 export function createReflectedBooleanAccessor(
   idlAttribute: Attribute<BooleanType>,
   contentAttributeName: string,
-  context: ReflectedAttributeAccessorContext<boolean>,
-): ReflectedAttributeAccessor<boolean> {
+  context: ReflectedAttributeAccessorContext<BooleanType>,
+): ReflectedAttributeAccessor<BooleanType> {
   return createCachedReflectedAccessor(
     {
       getter: ReflectedBoolean.getter,

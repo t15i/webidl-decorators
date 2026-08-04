@@ -31,7 +31,8 @@
  *     this[Internals] = { items: [] };
  *   }
  *
- *   \@IndexedPropertyGetter(Element)
+ *   \@Getter
+ *   \@Operation([UnsignedLong], Nullable(Type(Element)))
  *   item(index: number): Element | null {
  *     return this[Internals].items[index] ?? null;
  *   }

@@ -1,13 +1,8 @@
 import { Double, Long, UnsignedLong } from "@t15i/webidl-types";
 import { ReflectDefault as ReflectDefaultSymbol } from "@t15i/webspecs/html";
 
-import { getOwnMemberDraftFromContext } from "@/utils";
-import {
-  assertAttributeDraft,
-  assertOneOfType,
-  assertOwnMemberDraft,
-  assertRegularAttributeDraft,
-} from "@/utils/assertions";
+import { getOwnAttributeDraftFromContext } from "@/utils";
+import { assertDefined, assertOneOfType } from "@/utils/assertions";
 import { ExtendedAttributeDefinitionError } from "@/utils/errors";
 
 import type {
@@ -34,15 +29,13 @@ import type {
  */
 function defineReflectDefault(
   value: number,
-  _: ReflectedAttributeAccessor<unknown>,
-  context: ReflectedAttributeAccessorContext<unknown>,
+  _: ReflectedAttributeAccessor,
+  context: ReflectedAttributeAccessorContext,
 ): void {
-  const { iface, member: attribute } = getOwnMemberDraftFromContext(context);
-
   try {
-    assertOwnMemberDraft(iface, attribute);
-    assertAttributeDraft(attribute);
-    assertRegularAttributeDraft(attribute);
+    const { attribute } = getOwnAttributeDraftFromContext(context);
+
+    assertDefined(attribute, context);
     assertOneOfType(attribute.type, Double, UnsignedLong, Long);
 
     const valueT = attribute.type(value);

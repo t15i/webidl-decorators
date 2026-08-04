@@ -5,10 +5,10 @@ import {
   guard,
   createAttributeFromContext,
   getAttributeGetterStepsFromContext,
-  getOwnMemberDraftFromContext,
   getAttributeSetterStepsFromContext,
+  getOwnAttributeDraftFromContext,
 } from "@/utils";
-import { assertAttributeDraftWithType } from "@/utils/assertions";
+import { assertStrictOneOfType } from "@/utils/assertions";
 import { AttributeDefinitionExtensionError } from "@/utils/errors";
 
 import type {
@@ -40,34 +40,35 @@ import type { AttributeDecorator } from "./types";
  *
  * @internal
  */
-function defineAttributeGetter<T>(
-  T: Type<T>,
+function defineAttributeGetter<T extends Type>(
+  T: T,
   target: GetterAttributeDecoratorTarget<T>,
   context:
     | Getter<AttributeDecoratorContext<T>>
     | Accessor<AttributeDecoratorContext<T>>,
 ) {
-  const { iface, members, id, member } = getOwnMemberDraftFromContext(context);
+  try {
+    const { iface, members, id, attribute } =
+      getOwnAttributeDraftFromContext(context);
 
-  if (member) {
-    try {
-      assertAttributeDraftWithType(member, T);
-    } catch (e) {
-      throw new AttributeDefinitionExtensionError(context, T, { cause: e });
+    if (attribute) {
+      assertStrictOneOfType(attribute.type, T);
+
+      if (attribute.setterSteps === undefined) {
+        attribute.keywords.add("readonly");
+      }
+      attribute.getterSteps = getAttributeGetterStepsFromContext(context);
+    } else {
+      members[id] = createAttributeFromContext(T, context);
     }
 
-    if (member.setterSteps === undefined) {
-      member.keywords.add("readonly");
-    }
-    member.getterSteps = getAttributeGetterStepsFromContext(context);
-  } else {
-    members[id] = createAttributeFromContext(T, context);
+    const args: ArgumentList<[]> = [];
+    const returnType = T;
+
+    return guard(target, { iface, id, args, returnType });
+  } catch (e) {
+    throw new AttributeDefinitionExtensionError(context, T, { cause: e });
   }
-
-  const args: ArgumentList<[]> = [];
-  const returnType = T;
-
-  return guard(target, { iface, id, args, returnType });
 }
 
 /**
@@ -86,32 +87,33 @@ function defineAttributeGetter<T>(
  *
  * @internal
  */
-function defineAttributeSetter<T>(
-  T: Type<T>,
+function defineAttributeSetter<T extends Type>(
+  T: T,
   target: SetterAttributeDecoratorTarget<T>,
   context:
     | Setter<AttributeDecoratorContext<T>>
     | Accessor<AttributeDecoratorContext<T>>,
 ) {
-  const { iface, members, id, member } = getOwnMemberDraftFromContext(context);
+  try {
+    const { iface, members, id, attribute } =
+      getOwnAttributeDraftFromContext(context);
 
-  if (member) {
-    try {
-      assertAttributeDraftWithType(member, T);
-    } catch (e) {
-      throw new AttributeDefinitionExtensionError(context, T, { cause: e });
+    if (attribute) {
+      assertStrictOneOfType(attribute.type, T);
+
+      attribute.keywords.delete("readonly");
+      attribute.setterSteps = getAttributeSetterStepsFromContext(context);
+    } else {
+      members[id] = createAttributeFromContext(T, context);
     }
 
-    member.keywords.delete("readonly");
-    member.setterSteps = getAttributeSetterStepsFromContext(context);
-  } else {
-    members[id] = createAttributeFromContext(T, context);
+    const args: ArgumentList<[T]> = [{ type: T }];
+    const returnType = Undefined;
+
+    return guard(target, { iface, id, args, returnType });
+  } catch (e) {
+    throw new AttributeDefinitionExtensionError(context, T, { cause: e });
   }
-
-  const args: ArgumentList<[Type<T>]> = [{ type: T }];
-  const returnType = Undefined;
-
-  return guard(target, { iface, id, args, returnType });
 }
 
 /**
@@ -127,26 +129,26 @@ function defineAttributeSetter<T>(
  *
  * @internal
  */
-function defineAttribute<T>(
-  T: Type<T>,
+function defineAttribute<T extends Type>(
+  T: T,
   target: GetterAttributeDecoratorTarget<T>,
   context: Getter<AttributeDecoratorContext<T>>,
 ): GetterAttributeDecoratorTarget<T>;
 
-function defineAttribute<T>(
-  T: Type<T>,
+function defineAttribute<T extends Type>(
+  T: T,
   target: SetterAttributeDecoratorTarget<T>,
   context: Setter<AttributeDecoratorContext<T>>,
 ): SetterAttributeDecoratorTarget<T>;
 
-function defineAttribute<T>(
-  T: Type<T>,
+function defineAttribute<T extends Type>(
+  T: T,
   target: AccessorAttributeDecoratorTarget<T>,
   context: Accessor<AttributeDecoratorContext<T>>,
 ): AccessorAttributeDecoratorTarget<T>;
 
-function defineAttribute<T>(
-  T: Type<T>,
+function defineAttribute<T extends Type>(
+  T: T,
   target: AttributeDecoratorTarget<T>,
   context: AttributeDecoratorContext<T>,
 ): AttributeDecoratorTarget<T> {
@@ -205,6 +207,6 @@ function defineAttribute<T>(
  *
  * @see https://webidl.spec.whatwg.org/#idl-attributes
  */
-export function Attribute<T>(T: Type<T>): AttributeDecorator<T> {
+export function Attribute<T extends Type>(T: T): AttributeDecorator<T> {
   return defineAttribute.bind(undefined, T) as AttributeDecorator<T>;
 }

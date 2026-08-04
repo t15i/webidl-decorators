@@ -33,3 +33,33 @@ export function assertOneOfType<Ts extends Type[]>(
     `The WebIDL type '${getTypeId(T) ?? "unknown"}' is not one of: ${names}`,
   );
 }
+
+/**
+ * Throws `TypeError` unless `T` is, by strict identity, one of the WebIDL types
+ * `Ts`. The `asserts` signature narrows `T` to `Ts[number]` for the caller.
+ *
+ * @param T - The WebIDL type to check.
+ * @param Ts - The WebIDL types `T` is allowed to be.
+ *
+ * @remarks
+ * Unlike {@link assertOneOfType}, this does not unwrap annotations before
+ * comparing: an annotated type (e.g. `[Clamp] long`) is treated as distinct
+ * from its underlying type. Used by {@link Attribute} to confirm that a getter
+ * and setter sharing an identifier declare the exact same type before merging
+ * them into one read–write attribute.
+ */
+export function assertStrictOneOfType<Ts extends Type[]>(
+  T: Type,
+  ...Ts: Ts
+): asserts T is Ts[number] {
+  for (const TT of Ts) {
+    if (T === TT) {
+      return;
+    }
+  }
+
+  const names = Ts.map((TT) => getTypeId(TT) ?? "unknown").join(", ");
+  throw new TypeError(
+    `The WebIDL type '${getTypeId(T) ?? "unknown"}' is not one of: ${names}`,
+  );
+}

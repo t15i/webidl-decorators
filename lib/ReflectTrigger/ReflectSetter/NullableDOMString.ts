@@ -13,7 +13,7 @@ import type {
 import { ElementReflectedTargetAssociations } from "../ReflectedTargetAssociation";
 import { createReflectedSetter } from "./createReflectedSetter";
 
-type NullableDOMStringType = NullableType<DOMStringType>;
+export type NullableDOMStringType = NullableType<DOMStringType>;
 
 /**
  * Builds the reflected setter for a `DOMString?` reflected IDL attribute.
@@ -23,8 +23,8 @@ type NullableDOMStringType = NullableType<DOMStringType>;
 export function createReflectedNullableDOMStringSetter(
   idlAttribute: Attribute<NullableDOMStringType>,
   contentAttributeName: string,
-  context: ReflectedAttributeSetterContext<string | null>,
-): ReflectedAttributeSetter<string | null> {
+  context: ReflectedAttributeSetterContext<NullableDOMStringType>,
+): ReflectedAttributeSetter<NullableDOMStringType> {
   return createReflectedSetter(
     ReflectedNullableDOMString.setter,
     {

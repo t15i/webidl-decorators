@@ -17,8 +17,8 @@ import { createReflectedSetter } from "./createReflectedSetter";
 export function createReflectedDoubleSetter(
   idlAttribute: Attribute<DoubleType>,
   contentAttributeName: string,
-  context: ReflectedAttributeSetterContext<number>,
-): ReflectedAttributeSetter<number> {
+  context: ReflectedAttributeSetterContext<DoubleType>,
+): ReflectedAttributeSetter<DoubleType> {
   return createReflectedSetter(
     ReflectedDouble.setter,
     {

@@ -1,8 +1,9 @@
 import {
   Attribute,
   Exposed,
-  IndexedPropertyGetter,
+  Getter,
   Interface,
+  Operation,
   SupportedPropertyIndices,
 } from "lib";
 
@@ -57,7 +58,8 @@ describe("PlatformObject proxy", () => {
       @Exposed("Window")
       @Interface
       class Test {
-        @IndexedPropertyGetter(UnsignedLong)
+        @Getter
+        @Operation([UnsignedLong], UnsignedLong)
         item(i: number): number {
           return i;
         }

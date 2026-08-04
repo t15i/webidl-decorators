@@ -13,7 +13,9 @@ import type {
 import { NullableElementReflectedTargetAssociations } from "../ReflectedTargetAssociation";
 import { createReflectedSetter } from "./createReflectedSetter";
 
-type NullableElementType<E extends Element> = NullableType<InterfaceType<E>>;
+export type NullableElementType<E extends Element> = NullableType<
+  InterfaceType<E>
+>;
 
 /**
  * Builds the reflected setter for an `Element?` reflected IDL attribute.
@@ -23,8 +25,8 @@ type NullableElementType<E extends Element> = NullableType<InterfaceType<E>>;
 export function createReflectedNullableElementSetter<E extends Element>(
   idlAttribute: Attribute<NullableElementType<E>>,
   contentAttributeName: string,
-  context: ReflectedAttributeSetterContext<E | null>,
-): ReflectedAttributeSetter<E | null> {
+  context: ReflectedAttributeSetterContext<NullableElementType<E>>,
+): ReflectedAttributeSetter<NullableElementType<E>> {
   return createReflectedSetter(
     ReflectedNullableElement.setter<E>,
     {
