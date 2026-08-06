@@ -20,13 +20,13 @@ export type ReflectedAttributeAccessorContext<T extends Type = Type> = Regular<
 export type ReflectedAttributeAccessorDecorator = <T extends Type = Type>(
   target: ReflectedAttributeAccessor<T>,
   context: ReflectedAttributeAccessorContext<T>,
-) => ReflectedAttributeAccessor<T>;
+) => void;
 
 export interface ReflectTriggerDecorator {
   <T extends Type = Type>(
     target: ReflectedAttributeAccessor<T>,
     context: ReflectedAttributeAccessorContext<T>,
-  ): ReflectedAttributeAccessor<T>;
+  ): void;
   (contentName?: string): ReflectedAttributeAccessorDecorator;
 }
 
@@ -45,4 +45,4 @@ export type ReflectedAttributeSetterContext<T extends Type = Type> = Regular<
 export type ReflectedAttributeSetterDecorator = <T extends Type = Type>(
   target: ReflectedAttributeSetter<T>,
   context: ReflectedAttributeSetterContext<T>,
-) => ReflectedAttributeSetter<T>;
+) => void;

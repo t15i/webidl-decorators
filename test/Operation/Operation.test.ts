@@ -1,4 +1,4 @@
-import { Attribute, Exposed, Interface, Operation } from "lib";
+import { Attribute, Constructor, Exposed, Interface, Operation } from "lib";
 
 import { DOMString, Undefined, UnsignedLong } from "@t15i/webidl-types";
 
@@ -10,6 +10,7 @@ describe("@Operation", () => {
   test("should register a named operation under its identifier on the interface", () => {
     @Exposed("Window")
     @Interface
+    @Constructor
     class Test {
       @Operation([UnsignedLong], UnsignedLong)
       item(i: number) {
@@ -34,7 +35,7 @@ describe("@Operation", () => {
     );
     expect(() => methodSteps.call(instance)).toThrow(
       new TypeError(
-        "Failed to execute 'item' on 'Test': 1 argument required, but only 0 present.",
+        "Failed to execute 'item' on 'Test': At least 1 argument required, but only 0 passed",
       ),
     );
     expect(() => methodSteps.call(instance, 0)).not.toThrow();

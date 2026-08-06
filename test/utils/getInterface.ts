@@ -1,11 +1,16 @@
 import {
-  PlatformObject,
+  InterfacePrototypeObject,
   type Interface,
-  type PlatformObject as PlatformObjectType,
 } from "@t15i/webspecs/webidl";
 
 export function getInterface(constructor: { prototype: object }): Interface {
-  return PlatformObject.getPrimaryInterfaceOf(
-    constructor.prototype as PlatformObjectType,
+  const iface = InterfacePrototypeObject.getInterfaceOf(
+    constructor.prototype as InterfacePrototypeObject,
   );
+
+  if (iface === null) {
+    throw new TypeError("No WebIDL interface is associated with the prototype");
+  }
+
+  return iface;
 }

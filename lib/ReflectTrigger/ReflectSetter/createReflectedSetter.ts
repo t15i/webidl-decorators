@@ -14,8 +14,9 @@ import type { ReflectedAttributeSetterSpec, ReflectionContext } from "../types";
  *
  * A `Target` association object is created per instance (registered through an
  * initializer and kept in a `WeakMap`) and passed as the `this` of the spec's
- * setter. The returned function coerces the assigned value through the
- * attribute's WebIDL type before delegating.
+ * setter. The returned function is installed as the attribute's setter step, so
+ * webspecs coerces the assigned value through the attribute's WebIDL type before
+ * it runs.
  *
  * @param setter - The setter step for the attribute's WebIDL type.
  * @param params - The reflection context: the `Target` association constructor,
@@ -48,7 +49,7 @@ export function createReflectedSetter<
       targets.get(this)!,
       idlAttribute,
       contentAttributeName,
-      idlAttribute.type(value),
+      value,
     );
   };
 }

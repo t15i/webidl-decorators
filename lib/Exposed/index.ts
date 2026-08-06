@@ -1,25 +1,18 @@
 import {
   Exposed as ExposedSymbol,
-  PlatformObject,
+  InterfacePrototypeObject,
 } from "@t15i/webspecs/webidl";
 
-import { getInterfaceDraftFromContext } from "@/utils";
-
-import type {
-  InterfaceDecoratorContext,
-  InterfaceDecoratorTarget,
-} from "@/types";
+import type { InterfaceDecoratorTarget } from "@/types";
 
 import type { ExposedDecorator } from "./types";
 
 /**
  * Records `exposureSet` as the WebIDL interface's `[Exposed]` extended
- * attribute and exposes the interface object on the global once the class is
- * finalized.
+ * attribute and installs the interface object on the global.
  *
  * @param exposureSet - The exposure set. Only `"Window"` is supported.
- * @param target - The constructor function of the class.
- * @param context - The decorator context object.
+ * @param target - The interface object returned by `@Interface`.
  *
  * @remarks
  * Per WebIDL, exposing an interface installs its interface object as a property
@@ -30,34 +23,33 @@ import type { ExposedDecorator } from "./types";
  * already present — a built-in such as `HTMLCollection`, or an interface
  * exposed earlier — is left untouched rather than overwritten.
  *
- * The identifier is read from the finalized interface, so `@Exposed` must be
- * applied outside `@Interface` (`@Exposed @Interface`) for its initializer to
- * run after the primary interface is associated.
+ * `@Exposed` must be applied outside `@Interface` (`@Exposed @Interface`): the
+ * inner `@Interface` runs first and associates the interface with the
+ * prototype, so this decorator can read it and install the global synchronously
+ * — no deferral through an initializer is needed.
  *
  * @internal
  */
 function defineExposed<Target extends InterfaceDecoratorTarget>(
   exposureSet: "Window",
   target: Target,
-  context: InterfaceDecoratorContext,
 ): typeof target {
-  const iface = getInterfaceDraftFromContext(context);
+  const iface = InterfacePrototypeObject.getInterfaceOf(
+    target.prototype as InterfacePrototypeObject,
+  );
+
+  if (iface === null) {
+    throw new TypeError(
+      "@Exposed requires @Interface applied inside it (`@Exposed @Interface`)",
+    );
+  }
 
   iface.extendedAttributes[ExposedSymbol] = exposureSet;
 
-  context.addInitializer(function () {
-    const iface = PlatformObject.getPrimaryInterfaceOf(this.prototype);
-
-    if (iface === undefined) {
-      throw new TypeError(
-        "@Exposed requires @Interface applied inside it (`@Exposed @Interface`)",
-      );
-    }
-
-    const global = globalThis as unknown as Record<PropertyKey, unknown>;
-    if (iface.identifier in global) return;
-    global[iface.identifier] = this;
-  });
+  const global = globalThis as unknown as Record<PropertyKey, unknown>;
+  if (!(iface.identifier in global)) {
+    global[iface.identifier] = target;
+  }
 
   return target;
 }

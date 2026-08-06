@@ -14,9 +14,9 @@ import type {
  * @remarks
  * A member is anonymous when it is keyed by a symbol or is a private (`#`)
  * member. Only special operations are allowed to be anonymous, so the overloads
- * return a bare `string` for every other member context and `string |
- * undefined` only for a {@link SpecialOperationDecoratorContext} — sparing
- * callers a non-null assertion.
+ * return a bare `string` for every other member context and
+ * `string | undefined` only for a special-operation context — sparing callers a
+ * non-null assertion.
  */
 export function getIdentifierFromContext(
   context: Regular<OperationDecoratorContext>,

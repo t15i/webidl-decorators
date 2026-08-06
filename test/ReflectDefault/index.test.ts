@@ -1,5 +1,6 @@
 import {
   Attribute,
+  Constructor,
   Exposed,
   Interface,
   Reflect,
@@ -15,6 +16,7 @@ describe("@ReflectDefault", () => {
   test("applies the default value alongside [Reflect] on a long", () => {
     @Exposed("Window")
     @Interface("ReflectDefaultLong")
+    @Constructor
     class ReflectDefaultLong extends HTMLElement {
       @Reflect
       @ReflectDefault(7)
@@ -33,6 +35,7 @@ describe("@ReflectDefault", () => {
   test("applies the default value alongside [ReflectNonNegative]", () => {
     @Exposed("Window")
     @Interface("ReflectDefaultNonNegative")
+    @Constructor
     class ReflectDefaultNonNegative extends HTMLElement {
       @ReflectNonNegative
       @ReflectDefault(3)
@@ -54,6 +57,7 @@ describe("@ReflectDefault", () => {
   test("applies the default value on an unsigned long", () => {
     @Exposed("Window")
     @Interface("ReflectDefaultUnsignedLong")
+    @Constructor
     class ReflectDefaultUnsignedLong extends HTMLElement {
       @Reflect
       @ReflectDefault(7)
@@ -75,6 +79,7 @@ describe("@ReflectDefault", () => {
   test("applies the default value on a double", () => {
     @Exposed("Window")
     @Interface("ReflectDefaultDouble")
+    @Constructor
     class ReflectDefaultDouble extends HTMLElement {
       @Reflect
       @ReflectDefault(1.5)
@@ -94,6 +99,7 @@ describe("@ReflectDefault", () => {
     expect(() => {
       @Exposed("Window")
       @Interface("ReflectDefaultNoAttribute")
+      @Constructor
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       class ReflectDefaultNoAttribute extends HTMLElement {
         @ReflectDefault(0)
@@ -106,6 +112,7 @@ describe("@ReflectDefault", () => {
     expect(() => {
       @Exposed("Window")
       @Interface("ReflectDefaultBadOrder")
+      @Constructor
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       class ReflectDefaultBadOrder extends HTMLElement {
         @Attribute(Long)
@@ -119,6 +126,7 @@ describe("@ReflectDefault", () => {
     expect(() => {
       @Exposed("Window")
       @Interface("ReflectDefaultMethod")
+      @Constructor
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       class ReflectDefaultMethod extends HTMLElement {
         // @ts-expect-error method members are rejected at compile time
@@ -132,6 +140,7 @@ describe("@ReflectDefault", () => {
     expect(() => {
       @Exposed("Window")
       @Interface("ReflectDefaultString")
+      @Constructor
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       class ReflectDefaultString extends HTMLElement {
         @ReflectDefault(0)
@@ -145,6 +154,7 @@ describe("@ReflectDefault", () => {
     expect(() => {
       @Exposed("Window")
       @Interface("ReflectDefaultOrphan")
+      @Constructor
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       class ReflectDefaultOrphan extends HTMLElement {
         @ReflectDefault(0)

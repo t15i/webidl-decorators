@@ -1,5 +1,6 @@
 import {
   Attribute,
+  Constructor,
   Exposed,
   Getter,
   Interface,
@@ -25,6 +26,7 @@ describe("@Getter", () => {
     test("should mark the @Operation as the [IndexedPropertyGetter] of the interface", () => {
       @Exposed("Window")
       @Interface
+      @Constructor
       class Test {
         @Getter
         @Operation([UnsignedLong], UnsignedLong)
@@ -44,7 +46,8 @@ describe("@Getter", () => {
       }
 
       const instance = new Test();
-      const operation = getInterface(Test).members[IndexedPropertyGetterSymbol]!;
+      const operation =
+        getInterface(Test).members[IndexedPropertyGetterSymbol]!;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const methodSteps = Test.prototype.item as any;
 
@@ -62,7 +65,7 @@ describe("@Getter", () => {
       );
       expect(() => methodSteps.call(instance)).toThrow(
         new TypeError(
-          "Failed to execute 'item' on 'Test': 1 argument required, but only 0 present.",
+          "Failed to execute 'item' on 'Test': At least 1 argument required, but only 0 passed",
         ),
       );
       expect(() => methodSteps.call(instance, 0)).not.toThrow();
@@ -147,7 +150,9 @@ describe("@Getter", () => {
 
       const i = getInterface(Test);
 
-      expect(i.members[IndexedPropertyGetterSymbol]!.identifier).toBeUndefined();
+      expect(
+        i.members[IndexedPropertyGetterSymbol]!.identifier,
+      ).toBeUndefined();
       expect(i.members[IndexedPropertyDeterminatorSymbol]).toBe(
         i.members[IndexedPropertyGetterSymbol]!.methodSteps,
       );
@@ -158,6 +163,7 @@ describe("@Getter", () => {
     test("should mark the @Operation as the [NamedPropertyGetter] of the interface", () => {
       @Exposed("Window")
       @Interface
+      @Constructor
       class Test {
         @Getter
         @Operation([DOMString], DOMString)
@@ -190,7 +196,7 @@ describe("@Getter", () => {
       );
       expect(() => methodSteps.call(instance)).toThrow(
         new TypeError(
-          "Failed to execute 'namedItem' on 'Test': 1 argument required, but only 0 present.",
+          "Failed to execute 'namedItem' on 'Test': At least 1 argument required, but only 0 passed",
         ),
       );
       expect(() => methodSteps.call(instance, "x")).not.toThrow();
@@ -215,7 +221,9 @@ describe("@Getter", () => {
 
       const i = getInterface(Test);
 
-      expect(i.members[NamedPropertyGetterSymbol]!.identifier).toBe("namedItem");
+      expect(i.members[NamedPropertyGetterSymbol]!.identifier).toBe(
+        "namedItem",
+      );
       expect(i.members[NamedPropertyDeterminatorSymbol]).toBeUndefined();
     });
 

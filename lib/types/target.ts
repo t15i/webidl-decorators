@@ -33,3 +33,8 @@ export type OperationDecoratorTarget<
   Return extends Type,
   This extends object = object,
 > = (this: This, ...params: ReturnTypes<Params>) => ReturnType<Return>;
+
+export type ConstructorDecoratorTarget<
+  Params extends Type[],
+  This extends object = object,
+> = new (...params: ReturnTypes<Params>) => This;

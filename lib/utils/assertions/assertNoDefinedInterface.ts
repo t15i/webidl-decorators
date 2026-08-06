@@ -1,5 +1,5 @@
 import type { InterfaceDecoratorTarget } from "@/types";
-import { PlatformObject } from "@t15i/webspecs/webidl";
+import { InterfacePrototypeObject } from "@t15i/webspecs/webidl";
 
 /**
  * Throws `TypeError` if `constr` already has a primary WebIDL interface
@@ -16,16 +16,16 @@ import { PlatformObject } from "@t15i/webspecs/webidl";
 export function assertNoDefinedInterface(
   constr: InterfaceDecoratorTarget,
 ): void {
-  const own = PlatformObject.getPrimaryInterfaceOf(constr.prototype);
+  const own = InterfacePrototypeObject.getInterfaceOf(constr.prototype);
 
-  if (own === undefined) {
+  if (own === null) {
     return;
   }
 
-  // `getPrimaryInterfaceOf` walks the prototype chain, so a derived class being
-  // decorated for the first time resolves to its base's interface. Only an
-  // interface that differs from the inherited one is the class's own.
-  const inherited = PlatformObject.getPrimaryInterfaceOf(
+  // A derived class being decorated for the first time inherits its base's
+  // interface prototype object. Only an interface that differs from the
+  // inherited one is the class's own.
+  const inherited = InterfacePrototypeObject.getInterfaceOf(
     Object.getPrototypeOf(constr.prototype),
   );
 

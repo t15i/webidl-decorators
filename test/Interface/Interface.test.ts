@@ -1,4 +1,5 @@
 import {
+  Constructor,
   ExistingIndexedPropertySetter,
   Exposed,
   Interface,
@@ -6,6 +7,7 @@ import {
 } from "lib";
 
 import { ExistingIndexedPropertySetter as ExistingIndexedPropertySetterSymbol } from "@t15i/webspecs/webidl";
+import { Long } from "@t15i/webidl-types";
 
 import { describe, expect, test } from "vitest";
 
@@ -31,6 +33,7 @@ describe("@Interface", () => {
   test("should preserve constructor behavior", () => {
     @Exposed("Window")
     @Interface
+    @Constructor([Long])
     class Test {
       foo: number;
       constructor(foo: number) {
@@ -214,10 +217,12 @@ describe("@Interface", () => {
   test("should preserve instanceof for both base and derived classes", () => {
     @Exposed("Window")
     @Interface
+    @Constructor
     class Base {}
 
     @Exposed("Window")
     @Interface
+    @Constructor
     class Derived extends Base {}
 
     const instance = new Derived();
@@ -233,6 +238,7 @@ describe("@Interface", () => {
 
     @Exposed("Window")
     @Interface
+    @Constructor
     class Base {
       declare [Internals]: BaseState;
 
@@ -247,6 +253,7 @@ describe("@Interface", () => {
 
     @Exposed("Window")
     @Interface
+    @Constructor
     class Derived extends Base {
       declare [Internals]: DerivedState;
 
@@ -269,6 +276,7 @@ describe("@Interface", () => {
 
     @Exposed("Window")
     @Interface
+    @Constructor
     class Base {
       declare [Internals]: BaseState;
 
@@ -279,6 +287,7 @@ describe("@Interface", () => {
 
     @Exposed("Window")
     @Interface
+    @Constructor
     class Derived extends Base {}
 
     const a = new Derived();

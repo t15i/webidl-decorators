@@ -1,4 +1,4 @@
-import { Attribute, Exposed, Interface, ReflectSetter } from "lib";
+import { Attribute, Constructor, Exposed, Interface, ReflectSetter } from "lib";
 
 import {
   Boolean as BooleanType,
@@ -18,6 +18,7 @@ describe("@ReflectSetter", () => {
   test("reflects on setting while preserving a custom getter", () => {
     @Exposed("Window")
     @Interface("ReflectSetterToken")
+    @Constructor
     class ReflectSetterToken extends HTMLElement {
       @ReflectSetter
       @Attribute(DOMString)
@@ -44,6 +45,7 @@ describe("@ReflectSetter", () => {
   test("reflects a nullable DOMString setter, deleting the content attribute on null", () => {
     @Exposed("Window")
     @Interface("ReflectSetterNullableString")
+    @Constructor
     class ReflectSetterNullableString extends HTMLElement {
       @ReflectSetter
       @Attribute(Nullable(DOMString))
@@ -73,6 +75,7 @@ describe("@ReflectSetter", () => {
   test("reflects a nullable Element setter as content attribute presence", () => {
     @Exposed("Window")
     @Interface("ReflectSetterNullableElement")
+    @Constructor
     class ReflectSetterNullableElement extends HTMLElement {
       @ReflectSetter
       @Attribute(Nullable(InterfaceType(HTMLElement)))
@@ -103,6 +106,7 @@ describe("@ReflectSetter", () => {
   test("reflects a nullable FrozenArray of Element setter as content attribute presence", () => {
     @Exposed("Window")
     @Interface("ReflectSetterNullableFrozenArray")
+    @Constructor
     class ReflectSetterNullableFrozenArray extends HTMLElement {
       @ReflectSetter
       @Attribute(Nullable(FrozenArray(InterfaceType(HTMLElement))))
@@ -134,6 +138,7 @@ describe("@ReflectSetter", () => {
   test("accepts the factory form with no arguments", () => {
     @Exposed("Window")
     @Interface("ReflectSetterFactory")
+    @Constructor
     class ReflectSetterFactory extends HTMLElement {
       @ReflectSetter()
       @Attribute(DOMString)
@@ -157,6 +162,7 @@ describe("@ReflectSetter", () => {
   test("overrides the content attribute name", () => {
     @Exposed("Window")
     @Interface("ReflectSetterOverride")
+    @Constructor
     class ReflectSetterOverride extends HTMLElement {
       @ReflectSetter("data-token")
       @Attribute(DOMString)
@@ -181,6 +187,7 @@ describe("@ReflectSetter", () => {
   test("reflects on setting an auto-accessor, keeping the generated getter", () => {
     @Exposed("Window")
     @Interface("ReflectSetterAccessor")
+    @Constructor
     class ReflectSetterAccessor extends HTMLElement {
       @ReflectSetter
       @Attribute(Long)
@@ -202,6 +209,7 @@ describe("@ReflectSetter", () => {
   test("reflects on setting an auto-accessor via the factory form", () => {
     @Exposed("Window")
     @Interface("ReflectSetterAccessorFactory")
+    @Constructor
     class ReflectSetterAccessorFactory extends HTMLElement {
       @ReflectSetter("data-size")
       @Attribute(Long)
@@ -224,6 +232,7 @@ describe("@ReflectSetter", () => {
   test("reflects an unsigned long setter on an auto-accessor", () => {
     @Exposed("Window")
     @Interface("ReflectSetterUnsignedLong")
+    @Constructor
     class ReflectSetterUnsignedLong extends HTMLElement {
       @ReflectSetter
       @Attribute(UnsignedLong)
@@ -245,6 +254,7 @@ describe("@ReflectSetter", () => {
   test("reflects a double setter on an auto-accessor", () => {
     @Exposed("Window")
     @Interface("ReflectSetterDouble")
+    @Constructor
     class ReflectSetterDouble extends HTMLElement {
       @ReflectSetter
       @Attribute(Double)
@@ -263,6 +273,7 @@ describe("@ReflectSetter", () => {
   test("reflects a boolean setter on an auto-accessor as content attribute presence", () => {
     @Exposed("Window")
     @Interface("ReflectSetterBoolean")
+    @Constructor
     class ReflectSetterBoolean extends HTMLElement {
       @ReflectSetter
       @Attribute(BooleanType)
@@ -284,6 +295,7 @@ describe("@ReflectSetter", () => {
   test("reflects a USVString setter on an auto-accessor", () => {
     @Exposed("Window")
     @Interface("ReflectSetterUSVString")
+    @Constructor
     class ReflectSetterUSVString extends HTMLElement {
       @ReflectSetter
       @Attribute(USVString)

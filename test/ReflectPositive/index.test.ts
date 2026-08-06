@@ -1,4 +1,10 @@
-import { Attribute, Exposed, Interface, ReflectPositive } from "lib";
+import {
+  Attribute,
+  Constructor,
+  Exposed,
+  Interface,
+  ReflectPositive,
+} from "lib";
 
 import { DOMString, Double, Long, UnsignedLong } from "@t15i/webidl-types";
 
@@ -8,6 +14,7 @@ describe("@ReflectPositive", () => {
   test("reflects a double accessor, limited to positive numbers", () => {
     @Exposed("Window")
     @Interface("ReflectPositiveDouble")
+    @Constructor
     class ReflectPositiveDouble extends HTMLElement {
       @ReflectPositive
       @Attribute(Double)
@@ -27,6 +34,7 @@ describe("@ReflectPositive", () => {
   test("reflects an unsigned long accessor, limited to positive numbers", () => {
     @Exposed("Window")
     @Interface("ReflectPositiveUnsignedLong")
+    @Constructor
     class ReflectPositiveUnsignedLong extends HTMLElement {
       @ReflectPositive
       @Attribute(UnsignedLong)
@@ -49,6 +57,7 @@ describe("@ReflectPositive", () => {
   test("accepts the factory form with no arguments", () => {
     @Exposed("Window")
     @Interface("ReflectPositiveFactory")
+    @Constructor
     class ReflectPositiveFactory extends HTMLElement {
       @ReflectPositive()
       @Attribute(Double)
@@ -67,6 +76,7 @@ describe("@ReflectPositive", () => {
   test("overrides the content attribute name", () => {
     @Exposed("Window")
     @Interface("ReflectPositiveOverride")
+    @Constructor
     class ReflectPositiveOverride extends HTMLElement {
       @ReflectPositive("data-ratio")
       @Attribute(Double)
@@ -87,6 +97,7 @@ describe("@ReflectPositive", () => {
     expect(() => {
       @Exposed("Window")
       @Interface("ReflectPositiveLong")
+      @Constructor
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       class ReflectPositiveLong extends HTMLElement {
         @ReflectPositive
@@ -98,6 +109,7 @@ describe("@ReflectPositive", () => {
     expect(() => {
       @Exposed("Window")
       @Interface("ReflectPositiveString")
+      @Constructor
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       class ReflectPositiveString extends HTMLElement {
         @ReflectPositive

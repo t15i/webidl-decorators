@@ -4,6 +4,10 @@ export type AnyConstructor = new (...args: any[]) => any;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type AnyFunction = (...args: any[]) => any;
 
+export type AnyPrototype = {
+  constructor: AnyConstructor;
+};
+
 /**
  * The minimal decorator context shape shared by class and member decorators:
  * the decoration `metadata` object the shared draft registries key off.

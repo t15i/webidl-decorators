@@ -24,16 +24,21 @@ import { createTypedReflectedSetter } from "./createTypedReflectedSetter";
  * extended attribute: records the extended attribute on the reflected attribute
  * draft, then builds the reflected setter for the attribute's WebIDL type.
  *
- * Works on both an attribute `set` member and an auto-`accessor`. On a setter,
- * the reflected setter replaces the member and the separately declared getter is
- * preserved. On an auto-accessor, only the setter is overridden while the
- * generated getter (reading the backing field) is kept — sparing the caller from
- * declaring an explicit getter/setter pair just to reflect on setting.
+ * Works on both an attribute `set` member and an auto-`accessor`. In both cases
+ * only the attribute's setter steps are overridden with the reflected setter,
+ * while the getter steps registered by the inner {@link Attribute} — the
+ * separately declared getter, or the auto-accessor's backing-field getter — are
+ * left in place, sparing the caller from declaring an explicit getter/setter
+ * pair just to reflect on setting.
+ *
+ * Nothing is returned: the reflected setter step replaces the one the inner
+ * {@link Attribute} registered, and `Interface` later defines the guarded
+ * accessor — created by webspecs from the registered steps — on the interface
+ * prototype object.
  *
  * @param contentName - The explicit content attribute name, or `null` to
  *  default it to the IDL identifier lower-cased.
- * @param target - The decorator target: the inner setter, or the auto-accessor
- *  target whose getter is reused.
+ * @param target - The decorator target. Not used.
  * @param context - The setter or accessor decorator context.
  *
  * @throws TypeError if no WebIDL attribute is registered under the decorated
@@ -43,10 +48,10 @@ import { createTypedReflectedSetter } from "./createTypedReflectedSetter";
  */
 function defineReflectSetter<T extends Type = Type>(
   contentName: string | null,
-  target: ReflectedAttributeSetter<T> | ReflectedAttributeAccessor<T>,
+  _: ReflectedAttributeSetter<T> | ReflectedAttributeAccessor<T>,
   context:
     ReflectedAttributeSetterContext<T> | ReflectedAttributeAccessorContext<T>,
-): ReflectedAttributeSetter<T> | ReflectedAttributeAccessor<T> {
+): void {
   try {
     const { attribute } = getOwnAttributeDraftFromContext(context);
 
@@ -54,22 +59,15 @@ function defineReflectSetter<T extends Type = Type>(
 
     attribute.extendedAttributes[ReflectSetterSymbol] = contentName;
 
-    if (context.kind === "accessor") {
-      const accessor = target as ReflectedAttributeAccessor<T>;
-      return {
-        get: accessor.get,
-        set: createTypedReflectedSetter(
-          attribute as Attribute,
-          contentName,
-          getSetterContextFromAccessorContext(context),
-        ),
-      };
-    }
+    const setterContext =
+      context.kind === "accessor"
+        ? getSetterContextFromAccessorContext(context)
+        : context;
 
-    return createTypedReflectedSetter(
+    attribute.setterSteps = createTypedReflectedSetter(
       attribute as Attribute,
       contentName,
-      context,
+      setterContext,
     );
   } catch (e) {
     throw new ExtendedAttributeDefinitionError(ReflectSetterSymbol, context, {
@@ -121,7 +119,7 @@ function defineReflectSetter<T extends Type = Type>(
 export function ReflectSetter<T extends Type>(
   target: ReflectedAttributeSetter<T>,
   context: ReflectedAttributeSetterContext<T>,
-): ReflectedAttributeSetter<T>;
+): void;
 
 /**
  * Reflects the decorated WebIDL auto-accessor onto a content attribute on
@@ -149,7 +147,7 @@ export function ReflectSetter<T extends Type>(
 export function ReflectSetter<T extends Type>(
   target: ReflectedAttributeAccessor<T>,
   context: ReflectedAttributeAccessorContext<T>,
-): ReflectedAttributeAccessor<T>;
+): void;
 
 /**
  * Creates a decorator that reflects the decorated WebIDL setter or auto-accessor

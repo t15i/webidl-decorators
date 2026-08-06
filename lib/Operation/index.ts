@@ -4,12 +4,10 @@ import { unnamedOperationRegistry } from "@/UnnamedOperationRegistry";
 
 import {
   createOperationFromContext,
-  getOwnOperationDraftFromContext,
-  guard,
+  getInterfaceDraftFromContext,
+  getMembersFromContext,
   toArgumentList,
 } from "@/utils";
-import { assertUndefined } from "@/utils/assertions";
-import { OperationDefinitionError } from "@/utils/errors";
 
 import {
   type OperationDecoratorContext,
@@ -28,8 +26,9 @@ import type { OperationDecorator } from "./types";
  * identifier; an anonymous one (a `static` or special operation keyed by a
  * symbol) is stored in the {@link unnamedOperationRegistry} instead.
  *
- * The method is returned wrapped by {@link guard}, which enforces the
- * operation's WebIDL argument and return types on each call.
+ * Nothing is returned: the decorated method is left in place, and `Interface`
+ * later defines the guarded method — created by webspecs from the registered
+ * steps — on the interface prototype object.
  *
  * @internal
  */
@@ -38,24 +37,20 @@ function defineOperation<Params extends Type[], Return extends Type>(
   returnType: Return,
   target: OperationDecoratorTarget<Params, Return>,
   context: OperationDecoratorContext<Params, Return>,
-): typeof target {
-  try {
-    const { iface, members, operation } =
-      getOwnOperationDraftFromContext(context);
+): void {
+  const iface = getInterfaceDraftFromContext(context);
+  const members = getMembersFromContext(context, iface);
+  const op = createOperationFromContext({
+    target,
+    args,
+    returnType,
+    context,
+  });
 
-    assertUndefined(operation);
-
-    const op = createOperationFromContext({ args, returnType, context });
-
-    if (op.identifier !== undefined) {
-      members[op.identifier] = op;
-    } else {
-      unnamedOperationRegistry.add(context.metadata, context.name, op);
-    }
-
-    return guard(target, { iface, id: op.identifier, args, returnType });
-  } catch (e) {
-    throw new OperationDefinitionError(context, { cause: e });
+  if (op.identifier !== undefined) {
+    members[op.identifier] = op;
+  } else {
+    unnamedOperationRegistry.add(context.metadata, context.name, op);
   }
 }
 
