@@ -157,6 +157,34 @@ un-ported content.
 
 </details>
 
+## Validation and tree-shaking
+
+When a class is decorated with `@Interface`, the accumulated interface draft is
+checked for correctness (`assertInterface` plus webspecs' `validateInterface`)
+inside the class's initializer. These checks are valuable while authoring an
+interface, but they are expensive and pointless in a shipped production build,
+where the interface definitions are already known to be correct.
+
+The checks are therefore guarded by `process.env.NODE_ENV`:
+
+```ts
+if (process.env.NODE_ENV !== "production") {
+  assertInterface(iface);
+  validateInterface(iface);
+}
+```
+
+This package is published unminified with `"sideEffects": false`, so a
+consumer's bundler can act on the guard:
+
+- **Production build** — the bundler replaces `process.env.NODE_ENV` with
+  `"production"`, folds the branch to `if (false)`, eliminates it, and
+  tree-shakes the entire validation subtree (including webspecs'
+  `validateInterface`) out of the output. No configuration is required; a
+  standard `vite build` (or webpack `mode: "production"`) does this by default.
+- **Development** — the token resolves to `"development"`, so the checks run
+  exactly as before.
+
 ## License
 
 [MIT](./LICENSE)

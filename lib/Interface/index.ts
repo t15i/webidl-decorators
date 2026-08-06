@@ -25,6 +25,14 @@ import { adoptInterfacePrototypeObject } from "./adoptInterfacePrototypeObject";
 import type { InterfaceDecorator } from "./types";
 
 /**
+ * Minimal ambient typing for `process.env.NODE_ENV`, used by the dev-only
+ * validation guard below. Declared locally so the guard type-checks without
+ * depending on `@types/node`. The token is not read at runtime in a shipped
+ * bundle: a consumer's bundler replaces it at build time.
+ */
+declare const process: { env: { NODE_ENV?: string } };
+
+/**
  * Decorates a class as a WebIDL interface, registering `identifier` as its
  * WebIDL identifier.
  *
@@ -60,8 +68,16 @@ function defineInterface<T extends InterfaceDecoratorTarget>(
         unnamedOperationRegistry.drop(context.metadata);
         interfaceDraftRegistry.drop(context.metadata);
 
-        assertInterface(iface);
-        validateInterface(iface);
+        // Interface validation is expensive and only useful while authoring
+        // interfaces. Guarding it behind `process.env.NODE_ENV` lets a
+        // consumer's bundler fold this branch away in a production build and
+        // tree-shake the entire webspecs validation subtree out of the shipped
+        // output. In development the token is `"development"`, so the checks
+        // run as before. See README for the tree-shaking contract.
+        if (process.env.NODE_ENV !== "production") {
+          assertInterface(iface);
+          validateInterface(iface);
+        }
       } catch (e) {
         throw new InterfaceInitializationError(iface, { cause: e });
       }
@@ -71,9 +87,6 @@ function defineInterface<T extends InterfaceDecoratorTarget>(
       CustomElement(target, context);
     }
 
-    // Guard against re-decoration before the prototype is associated with its
-    // interface — the association below is what `assertNoDefinedInterface`
-    // detects, so it must run first.
     assertNoDefinedInterface(target);
 
     const proto = adoptInterfacePrototypeObject(target.prototype, iface);
