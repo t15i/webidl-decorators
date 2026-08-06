@@ -29,7 +29,7 @@ describe("@Getter", () => {
       @Constructor
       class Test {
         @Getter
-        @Operation([UnsignedLong], UnsignedLong)
+        @Operation(UnsignedLong, [UnsignedLong])
         item(i: number) {
           return i;
         }
@@ -77,7 +77,7 @@ describe("@Getter", () => {
       @Interface
       class Test {
         @Getter
-        @Operation([UnsignedLong], UnsignedLong)
+        @Operation(UnsignedLong, [UnsignedLong])
         item(i: number) {
           return i;
         }
@@ -103,7 +103,7 @@ describe("@Getter", () => {
       @Interface
       class Test {
         @Getter
-        @Operation([UnsignedLong], UnsignedLong)
+        @Operation(UnsignedLong, [UnsignedLong])
         item(v: number) {
           return v;
         }
@@ -132,7 +132,7 @@ describe("@Getter", () => {
       @Interface
       class Test {
         @Getter
-        @Operation([UnsignedLong], UnsignedLong)
+        @Operation(UnsignedLong, [UnsignedLong])
         [anonymous](v: number) {
           return v;
         }
@@ -166,7 +166,7 @@ describe("@Getter", () => {
       @Constructor
       class Test {
         @Getter
-        @Operation([DOMString], DOMString)
+        @Operation(DOMString, [DOMString])
         namedItem(name: string) {
           return name;
         }
@@ -208,7 +208,7 @@ describe("@Getter", () => {
       @Interface
       class Test {
         @Getter
-        @Operation([DOMString], DOMString)
+        @Operation(DOMString, [DOMString])
         namedItem(v: string) {
           return v;
         }
@@ -234,7 +234,7 @@ describe("@Getter", () => {
       @Interface
       class Test {
         @Getter
-        @Operation([DOMString], DOMString)
+        @Operation(DOMString, [DOMString])
         [anonymous](v: string) {
           return v;
         }

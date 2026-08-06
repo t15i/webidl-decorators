@@ -46,7 +46,7 @@ import type {
  * \@Interface
  * class DOMStringList {
  *   \@Setter
- *   \@Operation([UnsignedLong, DOMString], Undefined)
+ *   \@Operation(Undefined, [UnsignedLong, DOMString])
  *   setItem(index: number, value: string): undefined {
  *     // ...
  *   }
@@ -84,7 +84,7 @@ export function Setter(
  * \@Interface
  * class Storage {
  *   \@Setter
- *   \@Operation([DOMString, DOMString], Undefined)
+ *   \@Operation(Undefined, [DOMString, DOMString])
  *   setItem(key: string, value: string): undefined {
  *     // ...
  *   }

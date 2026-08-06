@@ -12,7 +12,7 @@ describe("@Operation", () => {
     @Interface
     @Constructor
     class Test {
-      @Operation([UnsignedLong], UnsignedLong)
+      @Operation(UnsignedLong, [UnsignedLong])
       item(i: number) {
         return i;
       }
@@ -42,11 +42,45 @@ describe("@Operation", () => {
     expect(() => methodSteps.call(instance, 0, 1)).not.toThrow();
   });
 
+  test("should default to an empty argument list when omitted", () => {
+    @Exposed("Window")
+    @Interface
+    class Test {
+      @Operation(UnsignedLong)
+      count(): number {
+        return 0;
+      }
+    }
+
+    const operation = getOperation(getInterface(Test), "count")!;
+
+    expect(operation.arguments).toEqual([]);
+    expect(operation.returnType).toBe(UnsignedLong);
+    expect((Test.prototype.count as (...a: unknown[]) => void).length).toBe(0);
+  });
+
+  test("should reject a method with arguments when the argument list is omitted", () => {
+    @Exposed("Window")
+    @Interface
+    class Test {
+      // @ts-expect-error omitting the argument list requires a no-argument method
+      @Operation(UnsignedLong)
+      count(extra: number): number {
+        void extra;
+        return 0;
+      }
+    }
+
+    const operation = getOperation(getInterface(Test), "count")!;
+
+    expect(operation.arguments).toEqual([]);
+  });
+
   test("should support multiple arguments", () => {
     @Exposed("Window")
     @Interface
     class Test {
-      @Operation([DOMString, UnsignedLong], Undefined)
+      @Operation(Undefined, [DOMString, UnsignedLong])
       set(key: string, value: number): undefined {
         void key;
         void value;
@@ -68,7 +102,7 @@ describe("@Operation", () => {
     @Exposed("Window")
     @Interface
     class Test {
-      @Operation([UnsignedLong], UnsignedLong)
+      @Operation(UnsignedLong, [UnsignedLong])
       static create(i: number) {
         return i;
       }
@@ -87,7 +121,7 @@ describe("@Operation", () => {
     @Exposed("Window")
     @Interface
     class Test {
-      @Operation([UnsignedLong], UnsignedLong)
+      @Operation(UnsignedLong, [UnsignedLong])
       [anonymous](i: number) {
         return i;
       }
@@ -109,12 +143,12 @@ describe("@Operation", () => {
       @Interface
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       class Test {
-        @Operation([UnsignedLong], UnsignedLong)
+        @Operation(UnsignedLong, [UnsignedLong])
         item(i: number) {
           return i;
         }
 
-        @Operation([UnsignedLong], UnsignedLong)
+        @Operation(UnsignedLong, [UnsignedLong])
         [item](i: number) {
           return i;
         }
@@ -135,7 +169,7 @@ describe("@Operation", () => {
           return 0;
         }
 
-        @Operation([UnsignedLong], UnsignedLong)
+        @Operation(UnsignedLong, [UnsignedLong])
         [foo](i: number) {
           return i;
         }

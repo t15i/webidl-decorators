@@ -35,7 +35,7 @@ describe("@SupportedPropertyIndices", () => {
     @Interface
     class Test {
       @Getter
-      @Operation([UnsignedLong], UnsignedLong)
+      @Operation(UnsignedLong, [UnsignedLong])
       item(index: number): number {
         return index;
       }

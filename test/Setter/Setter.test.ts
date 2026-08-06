@@ -37,13 +37,13 @@ describe("@Setter", () => {
       @Constructor
       class Test {
         @Getter
-        @Operation([UnsignedLong], UnsignedLong)
+        @Operation(UnsignedLong, [UnsignedLong])
         item(i: number) {
           return i;
         }
 
         @Setter
-        @Operation([UnsignedLong, UnsignedLong], Undefined)
+        @Operation(Undefined, [UnsignedLong, UnsignedLong])
         indexedPropertySetter(i: number, v: number): undefined {
           void i;
           void v;
@@ -93,13 +93,13 @@ describe("@Setter", () => {
       @Interface
       class Test {
         @Getter
-        @Operation([UnsignedLong], UnsignedLong)
+        @Operation(UnsignedLong, [UnsignedLong])
         item(i: number) {
           return i;
         }
 
         @Setter
-        @Operation([UnsignedLong, UnsignedLong], Undefined)
+        @Operation(Undefined, [UnsignedLong, UnsignedLong])
         indexedPropertySetter(k: number, v: number): undefined {
           void (k + v);
         }
@@ -131,13 +131,13 @@ describe("@Setter", () => {
       @Interface
       class Test {
         @Getter
-        @Operation([UnsignedLong], UnsignedLong)
+        @Operation(UnsignedLong, [UnsignedLong])
         item(i: number) {
           return i;
         }
 
         @Setter
-        @Operation([UnsignedLong, UnsignedLong], Undefined)
+        @Operation(Undefined, [UnsignedLong, UnsignedLong])
         [anonymous](k: number, v: number): undefined {
           void (k + v);
         }
@@ -174,13 +174,13 @@ describe("@Setter", () => {
       @Constructor
       class Test {
         @Getter
-        @Operation([DOMString], DOMString)
+        @Operation(DOMString, [DOMString])
         namedItem(name: string): string {
           return name;
         }
 
         @Setter
-        @Operation([DOMString, DOMString], Undefined)
+        @Operation(Undefined, [DOMString, DOMString])
         namedPropertySetter(name: string, value: string): undefined {
           void name;
           void value;
@@ -224,13 +224,13 @@ describe("@Setter", () => {
       @Interface
       class Test {
         @Getter
-        @Operation([DOMString], DOMString)
+        @Operation(DOMString, [DOMString])
         namedItem(name: string): string {
           return name;
         }
 
         @Setter
-        @Operation([DOMString, DOMString], Boolean)
+        @Operation(Boolean, [DOMString, DOMString])
         namedPropertySetter(k: string, v: string): boolean {
           void (k + v);
           return true;
@@ -252,13 +252,13 @@ describe("@Setter", () => {
       @Interface
       class Test {
         @Getter
-        @Operation([DOMString], DOMString)
+        @Operation(DOMString, [DOMString])
         namedItem(name: string): string {
           return name;
         }
 
         @Setter
-        @Operation([DOMString, DOMString], Undefined)
+        @Operation(Undefined, [DOMString, DOMString])
         namedPropertySetter(k: string, v: string): undefined {
           void (k + v);
         }
@@ -285,13 +285,13 @@ describe("@Setter", () => {
       @Interface
       class Test {
         @Getter
-        @Operation([DOMString], DOMString)
+        @Operation(DOMString, [DOMString])
         namedItem(name: string): string {
           return name;
         }
 
         @Setter
-        @Operation([DOMString, DOMString], Undefined)
+        @Operation(Undefined, [DOMString, DOMString])
         [anonymous](k: string, v: string): undefined {
           void (k + v);
         }
