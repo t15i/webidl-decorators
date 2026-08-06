@@ -62,7 +62,7 @@ describe("PlatformObject proxy", () => {
       @Constructor
       class Test {
         @Getter
-        @Operation([UnsignedLong], UnsignedLong)
+        @Operation(UnsignedLong, [UnsignedLong])
         item(i: number): number {
           return i;
         }

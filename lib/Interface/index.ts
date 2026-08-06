@@ -112,7 +112,7 @@ const InterfaceDefault = defineInterface.bind(undefined, undefined);
  * \@Interface
  * class HTMLCollection {
  *   \@Getter
- *   \@Operation([UnsignedLong], Nullable(Type(Element)))
+ *   \@Operation(Nullable(Type(Element)), [UnsignedLong])
  *   item(index: number): Element | null {
  *     // ...
  *     return value;
@@ -153,7 +153,7 @@ export function Interface<T extends InterfaceDecoratorTarget>(
  * \@Interface("HTMLCollection")
  * class HTMLCollectionImpl {
  *   \@Getter
- *   \@Operation([UnsignedLong], Nullable(Type(Element)))
+ *   \@Operation(Nullable(Type(Element)), [UnsignedLong])
  *   item(index: number): Element | null {
  *     // ...
  *     return value;

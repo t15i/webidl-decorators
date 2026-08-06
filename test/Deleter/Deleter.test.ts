@@ -25,13 +25,13 @@ describe("@Deleter", () => {
     @Constructor
     class Test {
       @Getter
-      @Operation([DOMString], DOMString)
+      @Operation(DOMString, [DOMString])
       namedItem(name: string): string {
         return name;
       }
 
       @Deleter
-      @Operation([DOMString], Undefined)
+      @Operation(Undefined, [DOMString])
       namedPropertyDeleter(name: string): undefined {
         void name;
       }
@@ -73,13 +73,13 @@ describe("@Deleter", () => {
     @Interface
     class Test {
       @Getter
-      @Operation([DOMString], DOMString)
+      @Operation(DOMString, [DOMString])
       namedItem(name: string): string {
         return name;
       }
 
       @Deleter
-      @Operation([DOMString], Boolean)
+      @Operation(Boolean, [DOMString])
       namedPropertyDeleter(name: string): boolean {
         void name;
         return true;
@@ -101,13 +101,13 @@ describe("@Deleter", () => {
     @Interface
     class Test {
       @Getter
-      @Operation([DOMString], DOMString)
+      @Operation(DOMString, [DOMString])
       namedItem(name: string): string {
         return name;
       }
 
       @Deleter
-      @Operation([DOMString], Undefined)
+      @Operation(Undefined, [DOMString])
       namedPropertyDeleter(name: string): undefined {
         void name;
       }
@@ -134,13 +134,13 @@ describe("@Deleter", () => {
     @Interface
     class Test {
       @Getter
-      @Operation([DOMString], DOMString)
+      @Operation(DOMString, [DOMString])
       [getter](name: string): string {
         return name;
       }
 
       @Deleter
-      @Operation([DOMString], Undefined)
+      @Operation(Undefined, [DOMString])
       [deleter](name: string): undefined {
         void name;
       }
@@ -173,13 +173,13 @@ describe("@Deleter", () => {
       }
 
       @Getter
-      @Operation([DOMString], DOMString)
+      @Operation(DOMString, [DOMString])
       [getter](name: string): string {
         return name;
       }
 
       @Deleter
-      @Operation([DOMString], Boolean)
+      @Operation(Boolean, [DOMString])
       [deleter](name: string): boolean {
         return name === "removable";
       }

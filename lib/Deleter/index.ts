@@ -39,7 +39,7 @@ import type {
  * \@Interface
  * class Storage {
  *   \@Deleter
- *   \@Operation([DOMString], Undefined)
+ *   \@Operation(Undefined, [DOMString])
  *   removeItem(key: string): undefined {
  *     // ...
  *   }

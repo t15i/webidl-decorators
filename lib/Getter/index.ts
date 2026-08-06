@@ -43,7 +43,7 @@ import type {
  * \@Interface
  * class NodeList {
  *   \@Getter
- *   \@Operation([UnsignedLong], NullableNode)
+ *   \@Operation(NullableNode, [UnsignedLong])
  *   item(index: number): Node | null {
  *     // ...
  *     return value;
@@ -81,7 +81,7 @@ export function Getter(
  * \@Interface
  * class HTMLCollection {
  *   \@Getter
- *   \@Operation([DOMString], NullableElement)
+ *   \@Operation(NullableElement, [DOMString])
  *   namedItem(name: string): Element | null {
  *     // ...
  *     return value;

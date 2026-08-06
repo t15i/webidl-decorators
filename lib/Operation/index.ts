@@ -55,12 +55,43 @@ function defineOperation<Params extends Type[], Return extends Type>(
 }
 
 /**
- * Creates a decorator that defines a method as a WebIDL operation of the WebIDL
- * interface, with `params` as the tuple of the operation's argument types and
- * `returnType` as its WebIDL return type.
+ * Creates a decorator that defines a method taking no arguments as a WebIDL
+ * operation of the WebIDL interface, with `returnType` as its WebIDL return
+ * type.
  *
- * @param params - The tuple of the operation's WebIDL argument types.
  * @param returnType - The WebIDL type the operation returns.
+ *
+ * @remarks
+ * The argument list is omitted, so it defaults to empty: the decorated method
+ * must take no arguments. Pass a second argument — the tuple of WebIDL argument
+ * types — to declare an operation that takes arguments.
+ *
+ * @example
+ * ```ts
+ * \@Interface
+ * class HTMLCollection {
+ *   \@Operation(UnsignedLong)
+ *   count(): number {
+ *     // ...
+ *     return value;
+ *   }
+ * }
+ * ```
+ *
+ * @see https://webidl.spec.whatwg.org/#idl-operations
+ */
+export function Operation<Return extends Type>(
+  returnType: Return,
+): OperationDecorator<[], Return>;
+
+/**
+ * Creates a decorator that defines a method as a WebIDL operation of the WebIDL
+ * interface, with `returnType` as its WebIDL return type and `params` as the
+ * tuple of the operation's argument types.
+ *
+ * @param returnType - The WebIDL type the operation returns.
+ * @param params - The tuple of the operation's WebIDL argument types. The
+ *   decorated method's parameter types must match this tuple.
  *
  * @remarks
  * The decorator may be applied to a method, including its `static` variant. When
@@ -77,7 +108,7 @@ function defineOperation<Params extends Type[], Return extends Type>(
  * ```ts
  * \@Interface
  * class HTMLCollection {
- *   \@Operation([UnsignedLong], NullableElement)
+ *   \@Operation(NullableElement, [UnsignedLong])
  *   item(index: number): Element | null {
  *     // ...
  *     return value;
@@ -87,14 +118,19 @@ function defineOperation<Params extends Type[], Return extends Type>(
  *
  * @see https://webidl.spec.whatwg.org/#idl-operations
  */
-export function Operation<Params extends Type[], Return extends Type>(
-  params: [...Params],
+export function Operation<Return extends Type, Params extends Type[]>(
   returnType: Return,
+  params: [...Params],
+): OperationDecorator<Params, Return>;
+
+export function Operation<Return extends Type, Params extends Type[] = []>(
+  returnType: Return,
+  params?: [...Params],
 ): OperationDecorator<Params, Return> {
-  const defineNamedPropertyGetterT = defineOperation<Params, Return>;
-  return defineNamedPropertyGetterT.bind(
+  const defineOperationT = defineOperation<Params, Return>;
+  return defineOperationT.bind(
     undefined,
-    toArgumentList(params),
+    toArgumentList((params ?? []) as [...Params]),
     returnType,
   );
 }

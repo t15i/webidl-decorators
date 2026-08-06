@@ -32,7 +32,7 @@
  *   }
  *
  *   \@Getter
- *   \@Operation([UnsignedLong], Nullable(Type(Element)))
+ *   \@Operation(Nullable(Type(Element)), [UnsignedLong])
  *   item(index: number): Element | null {
  *     return this[Internals].items[index] ?? null;
  *   }
