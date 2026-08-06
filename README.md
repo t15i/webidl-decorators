@@ -157,6 +157,47 @@ un-ported content.
 
 </details>
 
+## Validation and tree-shaking
+
+When a class is decorated with `@Interface`, the accumulated interface draft is
+checked for correctness (`assertInterface` plus webspecs' `validateInterface`)
+inside the class's initializer. These checks are valuable while authoring an
+interface, but they are expensive and pointless in a shipped production build,
+where the interface definitions are already known to be correct.
+
+The checks are therefore guarded by `process.env.NODE_ENV`:
+
+```ts
+if (process.env.NODE_ENV !== "production") {
+  assertInterface(iface);
+  validateInterface(iface);
+}
+```
+
+This package is published unminified with `"sideEffects": false`, so a
+consumer's bundler can act on the guard:
+
+- **Production build** — the bundler replaces `process.env.NODE_ENV` with
+  `"production"`, folds the branch to `if (false)`, eliminates it, and
+  tree-shakes the entire validation subtree (including webspecs'
+  `validateInterface`) out of the output. No configuration is required; a
+  standard `vite build` (or webpack `mode: "production"`) does this by default.
+- **Development** — the token resolves to `"development"`, so the checks run
+  exactly as before.
+
+Notes:
+
+- The guard uses `process.env.NODE_ENV` rather than `import.meta.env` on
+  purpose: `import.meta.env` is baked in at _this_ package's build time, whereas
+  `process.env.NODE_ENV` is left intact for the consumer's build to resolve.
+- Non-Vite bundlers that do not define `process.env.NODE_ENV` (plain Rollup,
+  esbuild) need `@rollup/plugin-replace` /
+  `--define:process.env.NODE_ENV='"production"'` to strip the checks; webpack
+  handles it via `mode`.
+- Loading the raw ESM without any bundler (e.g. native modules over a CDN)
+  leaves `process.env.NODE_ENV` unresolved; ship such builds through a bundler
+  step that replaces the token.
+
 ## License
 
 [MIT](./LICENSE)
