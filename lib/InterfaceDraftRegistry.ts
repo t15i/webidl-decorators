@@ -20,32 +20,19 @@ export class InterfaceDraftRegistry {
       return this.drafts_.get(metadata)!;
     }
 
-    let parentDraft: InterfaceDraft | null = null;
-
-    let proto = Object.getPrototypeOf(metadata);
-    while (proto !== null) {
-      if (this.drafts_.has(proto)) {
-        parentDraft = this.drafts_.get(proto)!;
-        break;
-      }
-
-      proto = Object.getPrototypeOf(proto);
-    }
-
-    const draft: InterfaceDraft = Object.create(parentDraft, {
-      extendedAttributes: {
-        value: Object.create(parentDraft?.extendedAttributes ?? null),
-      },
-      staticMembers: {
-        value: Object.create(parentDraft?.staticMembers ?? null),
-      },
-      members: {
-        value: Object.create(parentDraft?.members ?? null),
-      },
-    });
+    const draft: InterfaceDraft = {
+      inherit: null,
+      extendedAttributes: {},
+      members: {},
+      staticMembers: {},
+    };
     this.drafts_.set(metadata, draft);
 
     return draft;
+  }
+
+  drop(metadata: object): boolean {
+    return this.drafts_.delete(metadata);
   }
 }
 

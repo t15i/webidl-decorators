@@ -1,5 +1,6 @@
 import {
   Attribute,
+  Constructor,
   Exposed,
   Interface,
   Reflect,
@@ -14,6 +15,7 @@ describe("@ReflectNonNegative", () => {
   test("reflects a long accessor, limited to non-negative numbers", () => {
     @Exposed("Window")
     @Interface("ReflectNonNegativeLong")
+    @Constructor
     class ReflectNonNegativeLong extends HTMLElement {
       @ReflectNonNegative
       @Attribute(Long)
@@ -37,6 +39,7 @@ describe("@ReflectNonNegative", () => {
   test("accepts the factory form with no arguments", () => {
     @Exposed("Window")
     @Interface("ReflectNonNegativeFactory")
+    @Constructor
     class ReflectNonNegativeFactory extends HTMLElement {
       @ReflectNonNegative()
       @Attribute(Long)
@@ -58,6 +61,7 @@ describe("@ReflectNonNegative", () => {
   test("overrides the content attribute name", () => {
     @Exposed("Window")
     @Interface("ReflectNonNegativeOverride")
+    @Constructor
     class ReflectNonNegativeOverride extends HTMLElement {
       @ReflectNonNegative("data-size")
       @Attribute(Long)
@@ -81,6 +85,7 @@ describe("@ReflectNonNegative", () => {
     expect(() => {
       @Exposed("Window")
       @Interface("ReflectNonNegativeUnsignedLong")
+      @Constructor
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       class ReflectNonNegativeUnsignedLong extends HTMLElement {
         @ReflectNonNegative
@@ -92,6 +97,7 @@ describe("@ReflectNonNegative", () => {
     expect(() => {
       @Exposed("Window")
       @Interface("ReflectNonNegativeString")
+      @Constructor
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       class ReflectNonNegativeString extends HTMLElement {
         @ReflectNonNegative
@@ -105,6 +111,7 @@ describe("@ReflectNonNegative", () => {
     expect(() => {
       @Exposed("Window")
       @Interface("ReflectNonNegativeDoubleTrigger")
+      @Constructor
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       class ReflectNonNegativeDoubleTrigger extends HTMLElement {
         @Reflect

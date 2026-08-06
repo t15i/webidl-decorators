@@ -1,4 +1,11 @@
-import { Attribute, Exposed, Interface, Reflect, ReflectRange } from "lib";
+import {
+  Attribute,
+  Constructor,
+  Exposed,
+  Interface,
+  Reflect,
+  ReflectRange,
+} from "lib";
 
 import { DOMString, Long, UnsignedLong } from "@t15i/webidl-types";
 
@@ -8,6 +15,7 @@ describe("@ReflectRange", () => {
   test("clamps the value to the range on getting", () => {
     @Exposed("Window")
     @Interface("ReflectRangeClamp")
+    @Constructor
     class ReflectRangeClamp extends HTMLElement {
       @Reflect
       @ReflectRange(0, 10)
@@ -33,6 +41,7 @@ describe("@ReflectRange", () => {
   test("clamps to a non-zero lower bound on getting", () => {
     @Exposed("Window")
     @Interface("ReflectRangeLowerBound")
+    @Constructor
     class ReflectRangeLowerBound extends HTMLElement {
       @Reflect
       @ReflectRange(1, 100)
@@ -59,6 +68,7 @@ describe("@ReflectRange", () => {
     expect(() => {
       @Exposed("Window")
       @Interface("ReflectRangeNoAttribute")
+      @Constructor
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       class ReflectRangeNoAttribute extends HTMLElement {
         @ReflectRange(0, 10)
@@ -71,6 +81,7 @@ describe("@ReflectRange", () => {
     expect(() => {
       @Exposed("Window")
       @Interface("ReflectRangeBadOrder")
+      @Constructor
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       class ReflectRangeBadOrder extends HTMLElement {
         @Attribute(UnsignedLong)
@@ -84,6 +95,7 @@ describe("@ReflectRange", () => {
     expect(() => {
       @Exposed("Window")
       @Interface("ReflectRangeMethod")
+      @Constructor
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       class ReflectRangeMethod extends HTMLElement {
         // @ts-expect-error method members are rejected at compile time
@@ -97,6 +109,7 @@ describe("@ReflectRange", () => {
     expect(() => {
       @Exposed("Window")
       @Interface("ReflectRangeLong")
+      @Constructor
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       class ReflectRangeLong extends HTMLElement {
         @Reflect
@@ -109,6 +122,7 @@ describe("@ReflectRange", () => {
     expect(() => {
       @Exposed("Window")
       @Interface("ReflectRangeString")
+      @Constructor
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       class ReflectRangeString extends HTMLElement {
         @Reflect
@@ -123,6 +137,7 @@ describe("@ReflectRange", () => {
     expect(() => {
       @Exposed("Window")
       @Interface("ReflectRangeOrphan")
+      @Constructor
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       class ReflectRangeOrphan extends HTMLElement {
         @ReflectRange(0, 10)

@@ -1,5 +1,6 @@
 import {
   Attribute,
+  Constructor,
   Exposed,
   Getter,
   Interface,
@@ -40,6 +41,7 @@ describe("PlatformObject proxy", () => {
     test("should expose own properties directly on a non-proxied instance", () => {
       @Exposed("Window")
       @Interface
+      @Constructor
       class Test {
         foo: number = 42;
       }
@@ -57,6 +59,7 @@ describe("PlatformObject proxy", () => {
     function defineLegacyClass() {
       @Exposed("Window")
       @Interface
+      @Constructor
       class Test {
         @Getter
         @Operation([UnsignedLong], UnsignedLong)

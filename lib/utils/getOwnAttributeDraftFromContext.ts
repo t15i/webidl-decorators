@@ -1,6 +1,7 @@
 import {
   getIdentifierFromContext,
   getInterfaceDraftFromContext,
+  getMembersFromContext,
 } from "@/utils";
 import {
   type AttributeDecoratorContext,
@@ -54,7 +55,7 @@ export function getOwnAttributeDraftFromContext(
   }
 
   const iface = getInterfaceDraftFromContext(context);
-  const members = context.static ? iface.staticMembers : iface.members;
+  const members = getMembersFromContext(context, iface);
 
   const member = Object.hasOwn(members, id) ? members[id] : undefined;
 

@@ -16,4 +16,11 @@ export default [
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   prettier,
+  {
+    files: ["**/*.ts"],
+    plugins: { tsdoc },
+    rules: {
+      "tsdoc/syntax": "error",
+    },
+  },
 ];

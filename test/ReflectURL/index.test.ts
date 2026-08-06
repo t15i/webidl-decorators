@@ -1,4 +1,4 @@
-import { Attribute, Exposed, Interface, ReflectURL } from "lib";
+import { Attribute, Constructor, Exposed, Interface, ReflectURL } from "lib";
 
 import { DOMString, USVString } from "@t15i/webidl-types";
 
@@ -8,6 +8,7 @@ describe("@ReflectURL", () => {
   test("reflects a USVString accessor, treating the content attribute as a URL", () => {
     @Exposed("Window")
     @Interface("ReflectURLHref")
+    @Constructor
     class ReflectURLHref extends HTMLElement {
       @ReflectURL
       @Attribute(USVString)
@@ -25,6 +26,7 @@ describe("@ReflectURL", () => {
   test("accepts the factory form with no arguments", () => {
     @Exposed("Window")
     @Interface("ReflectURLFactory")
+    @Constructor
     class ReflectURLFactory extends HTMLElement {
       @ReflectURL()
       @Attribute(USVString)
@@ -43,6 +45,7 @@ describe("@ReflectURL", () => {
   test("overrides the content attribute name", () => {
     @Exposed("Window")
     @Interface("ReflectURLOverride")
+    @Constructor
     class ReflectURLOverride extends HTMLElement {
       @ReflectURL("data-href")
       @Attribute(USVString)
@@ -63,6 +66,7 @@ describe("@ReflectURL", () => {
     expect(() => {
       @Exposed("Window")
       @Interface("ReflectURLString")
+      @Constructor
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       class ReflectURLString extends HTMLElement {
         @ReflectURL

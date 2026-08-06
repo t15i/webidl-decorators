@@ -1,4 +1,4 @@
-import { Attribute, Exposed, Interface } from "lib";
+import { Attribute, Constructor, Exposed, Interface } from "lib";
 
 import { isReadonlyAttribute, isStaticAttribute } from "@t15i/webspecs/webidl";
 import { DOMString, USVString } from "@t15i/webidl-types";
@@ -172,9 +172,10 @@ describe("@Attribute", () => {
     expect(isReadonlyAttribute(attribute)).toBe(false);
   });
 
-  test("should coerce the returned value through the attribute type in the getter steps", () => {
+  test("should coerce the returned value through the attribute type on getting", () => {
     @Exposed("Window")
     @Interface
+    @Constructor
     class Test {
       @Attribute(DOMString)
       get foo() {
@@ -182,17 +183,19 @@ describe("@Attribute", () => {
       }
     }
 
-    const attribute = getAttribute(getInterface(Test), "foo")!;
     const instance = new Test();
 
-    expect(attribute.getterSteps.call(instance)).toBe("42");
+    // Coercion happens in the guarded accessor of the interface prototype
+    // object, not in the getter steps (which now dispatch to the raw getter).
+    expect(instance.foo).toBe("42");
   });
 
-  test("should coerce the assigned value through the attribute type in the setter steps", () => {
+  test("should coerce the assigned value through the attribute type on setting", () => {
     let received: unknown;
 
     @Exposed("Window")
     @Interface
+    @Constructor
     class Test {
       @Attribute(DOMString)
       get foo() {
@@ -205,10 +208,11 @@ describe("@Attribute", () => {
       }
     }
 
-    const attribute = getAttribute(getInterface(Test), "foo")!;
     const instance = new Test();
 
-    attribute.setterSteps!.call(instance, 42 as unknown as string);
+    // Coercion happens in the guarded accessor of the interface prototype
+    // object, not in the setter steps (which now dispatch to the raw setter).
+    (instance as { foo: unknown }).foo = 42;
 
     expect(received).toBe("42");
   });
@@ -216,6 +220,7 @@ describe("@Attribute", () => {
   test("should replace the decorated getter with a wrapped getter that coerces through the attribute type on the prototype", () => {
     @Exposed("Window")
     @Interface
+    @Constructor
     class Test {
       @Attribute(DOMString)
       get foo() {
@@ -232,6 +237,7 @@ describe("@Attribute", () => {
   test("should keep an auto-accessor attribute readable and writable on instances", () => {
     @Exposed("Window")
     @Interface
+    @Constructor
     class Test {
       @Attribute(DOMString)
       accessor foo = "bar";
@@ -267,7 +273,7 @@ describe("@Attribute", () => {
 
     const i = getInterface(Derived);
     const own = getAttribute(i, "foo")!;
-    const inherited = getAttribute(Object.getPrototypeOf(i), "foo")!;
+    const inherited = getAttribute(i.inherit!, "foo")!;
 
     expect(own.type).toBe(USVString);
     expect(inherited.type).toBe(DOMString);

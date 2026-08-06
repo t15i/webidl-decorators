@@ -1,4 +1,5 @@
 import {
+  Constructor,
   Deleter,
   Exposed,
   Getter,
@@ -21,6 +22,7 @@ describe("@Deleter", () => {
   test("should mark the @Operation as the [NamedPropertyDeleter] of the interface", () => {
     @Exposed("Window")
     @Interface
+    @Constructor
     class Test {
       @Getter
       @Operation([DOMString], DOMString)
@@ -59,7 +61,7 @@ describe("@Deleter", () => {
     );
     expect(() => methodSteps.call(instance)).toThrow(
       new TypeError(
-        "Failed to execute 'namedPropertyDeleter' on 'Test': 1 argument required, but only 0 present.",
+        "Failed to execute 'namedPropertyDeleter' on 'Test': At least 1 argument required, but only 0 passed",
       ),
     );
     expect(() => methodSteps.call(instance, "x")).not.toThrow();
@@ -163,6 +165,7 @@ describe("@Deleter", () => {
 
     @Exposed("Window")
     @Interface
+    @Constructor
     class Test {
       @SupportedPropertyNames
       supportedPropertyNames(): Set<string> {

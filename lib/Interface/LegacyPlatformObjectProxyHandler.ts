@@ -3,7 +3,7 @@ import {
   LegacyPlatformObjectInternalMethods,
 } from "@t15i/webspecs/webidl";
 
-import { Internals } from "./internals";
+import { Internals } from "./Internals";
 
 export const LegacyPlatformObjectProxyHandler: ProxyHandler<PlatformObject> = {
   get(o, p, receiver) {

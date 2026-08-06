@@ -1,5 +1,6 @@
 import {
   Attribute,
+  Constructor,
   Exposed,
   Interface,
   Reflect,
@@ -14,6 +15,7 @@ import {
   InterfaceType,
   Long,
   Nullable,
+  Union,
   UnsignedLong,
   USVString,
 } from "@t15i/webidl-types";
@@ -24,6 +26,7 @@ describe("@Reflect", () => {
   test("reflects a long accessor, parsing and serializing the content attribute", () => {
     @Exposed("Window")
     @Interface("ReflectLong")
+    @Constructor
     class ReflectLong extends HTMLElement {
       @Reflect
       @Attribute(Long)
@@ -43,6 +46,7 @@ describe("@Reflect", () => {
   test("reflects an unsigned long accessor", () => {
     @Exposed("Window")
     @Interface("ReflectUnsignedLong")
+    @Constructor
     class ReflectUnsignedLong extends HTMLElement {
       @Reflect
       @Attribute(UnsignedLong)
@@ -62,6 +66,7 @@ describe("@Reflect", () => {
   test("reflects a double accessor", () => {
     @Exposed("Window")
     @Interface("ReflectDouble")
+    @Constructor
     class ReflectDouble extends HTMLElement {
       @Reflect
       @Attribute(Double)
@@ -79,6 +84,7 @@ describe("@Reflect", () => {
   test("reflects a boolean accessor as content attribute presence", () => {
     @Exposed("Window")
     @Interface("ReflectBoolean")
+    @Constructor
     class ReflectBoolean extends HTMLElement {
       @Reflect
       @Attribute(BooleanType)
@@ -101,6 +107,7 @@ describe("@Reflect", () => {
   test("reflects a DOMString accessor to and from a content attribute", () => {
     @Exposed("Window")
     @Interface("ReflectString")
+    @Constructor
     class ReflectString extends HTMLElement {
       @Reflect
       @Attribute(DOMString)
@@ -120,6 +127,7 @@ describe("@Reflect", () => {
   test("reflects a USVString accessor", () => {
     @Exposed("Window")
     @Interface("ReflectUSVString")
+    @Constructor
     class ReflectUSVString extends HTMLElement {
       @Reflect
       @Attribute(USVString)
@@ -137,6 +145,7 @@ describe("@Reflect", () => {
   test("reflects a nullable DOMString accessor, deleting the content attribute on null", () => {
     @Exposed("Window")
     @Interface("ReflectNullableString")
+    @Constructor
     class ReflectNullableString extends HTMLElement {
       @Reflect
       @Attribute(Nullable(DOMString))
@@ -162,6 +171,7 @@ describe("@Reflect", () => {
   test("reflects a nullable Element accessor to and from an explicitly set element", () => {
     @Exposed("Window")
     @Interface("ReflectNullableElement")
+    @Constructor
     class ReflectNullableElement extends HTMLElement {
       @Reflect
       @Attribute(Nullable(InterfaceType(HTMLElement)))
@@ -192,6 +202,7 @@ describe("@Reflect", () => {
   test("reflects a nullable FrozenArray of Element accessor, defaulting to null", () => {
     @Exposed("Window")
     @Interface("ReflectNullableFrozenArray")
+    @Constructor
     class ReflectNullableFrozenArray extends HTMLElement {
       @Reflect
       @Attribute(Nullable(FrozenArray(InterfaceType(HTMLElement))))
@@ -212,6 +223,7 @@ describe("@Reflect", () => {
   test("accepts the factory form with no arguments", () => {
     @Exposed("Window")
     @Interface("ReflectFactory")
+    @Constructor
     class ReflectFactory extends HTMLElement {
       @Reflect()
       @Attribute(DOMString)
@@ -228,6 +240,7 @@ describe("@Reflect", () => {
   test("overrides the content attribute name", () => {
     @Exposed("Window")
     @Interface("ReflectOverride")
+    @Constructor
     class ReflectOverride extends HTMLElement {
       @Reflect("data-foo")
       @Attribute(DOMString)
@@ -245,6 +258,7 @@ describe("@Reflect", () => {
   test("defaults the content attribute name to the lower-cased IDL name", () => {
     @Exposed("Window")
     @Interface("ReflectCamelCase")
+    @Constructor
     class ReflectCamelCase extends HTMLElement {
       @Reflect
       @Attribute(DOMString)
@@ -262,6 +276,7 @@ describe("@Reflect", () => {
     expect(() => {
       @Exposed("Window")
       @Interface("ReflectGetter")
+      @Constructor
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       class ReflectGetter extends HTMLElement {
         // @ts-expect-error getter members are rejected at compile time
@@ -278,6 +293,7 @@ describe("@Reflect", () => {
     expect(() => {
       @Exposed("Window")
       @Interface("ReflectNoAttribute")
+      @Constructor
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       class ReflectNoAttribute extends HTMLElement {
         @Reflect
@@ -290,6 +306,7 @@ describe("@Reflect", () => {
     expect(() => {
       @Exposed("Window")
       @Interface("ReflectDoubleTrigger")
+      @Constructor
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       class ReflectDoubleTrigger extends HTMLElement {
         @Reflect
@@ -302,17 +319,14 @@ describe("@Reflect", () => {
 
   test("throws when applied to an unsupported IDL type", () => {
     expect(() => {
-      class CustomType {}
-      const Custom = (value: unknown): CustomType => value as CustomType;
-      Object.defineProperty(Custom, "name", { value: "Custom" });
-
       @Exposed("Window")
       @Interface("ReflectUnsupported")
+      @Constructor
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       class ReflectUnsupported extends HTMLElement {
         @Reflect
-        @Attribute(Custom)
-        accessor foo: CustomType = new CustomType();
+        @Attribute(Union(Double, DOMString))
+        accessor foo: number | string = 0;
       }
     }).toThrow(TypeError);
   });
@@ -320,6 +334,7 @@ describe("@Reflect", () => {
   test("invalidates the cached getter when the content attribute changes externally", () => {
     @Exposed("Window")
     @Interface("ReflectCacheInvalidation")
+    @Constructor
     class ReflectCacheInvalidation extends HTMLElement {
       @Reflect
       @Attribute(DOMString)
@@ -348,6 +363,7 @@ describe("@Reflect", () => {
   test("resolves a nullable Element from the content attribute id and resets the explicitly set element on external change", () => {
     @Exposed("Window")
     @Interface("ReflectNullableElementSync")
+    @Constructor
     class ReflectNullableElementSync extends HTMLElement {
       @Reflect
       @Attribute(Nullable(InterfaceType(HTMLElement)))
@@ -389,6 +405,7 @@ describe("@Reflect", () => {
   test("reflects a nullable FrozenArray of Element on setting, reads it back, and resets on external change", () => {
     @Exposed("Window")
     @Interface("ReflectNullableFrozenArraySync")
+    @Constructor
     class ReflectNullableFrozenArraySync extends HTMLElement {
       @Reflect
       @Attribute(Nullable(FrozenArray(InterfaceType(HTMLElement))))
@@ -434,6 +451,7 @@ describe("@Reflect", () => {
 
     @Exposed("Window")
     @Interface("ReflectWithOwnCallback")
+    @Constructor
     class ReflectWithOwnCallback extends HTMLElement {
       @Reflect
       @Attribute(DOMString)
@@ -464,6 +482,7 @@ describe("@Reflect", () => {
   test("merges reflected content attributes into a static getter observedAttributes", () => {
     @Exposed("Window")
     @Interface("ReflectWithObservedGetter")
+    @Constructor
     class ReflectWithObservedGetter extends HTMLElement {
       @Reflect
       @Attribute(DOMString)
@@ -496,6 +515,7 @@ describe("@Reflect", () => {
   test("merges reflected content attributes into a static observedAttributes field", () => {
     @Exposed("Window")
     @Interface("ReflectWithObservedField")
+    @Constructor
     class ReflectWithObservedField extends HTMLElement {
       @Reflect
       @Attribute(DOMString)

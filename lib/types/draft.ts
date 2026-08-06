@@ -1,13 +1,24 @@
 import type { PropertyKey } from "@t15i/webspecs/ecma";
 import type {
   Attribute,
+  ConstructorOperation,
   Interface,
+  InterfaceExtendedAttributes,
   InterfaceMembers,
   InterfaceStaticMembers,
   Operation,
   RegularAttribute,
   Type,
 } from "@t15i/webspecs/webidl";
+
+/**
+ * The extended-attribute table of an {@link InterfaceDraft}: the same keys as
+ * {@link InterfaceExtendedAttributes}, but with every entry optional, since a
+ * draft accumulates them one decorator at a time.
+ */
+export type InterfaceDraftExtendedAttributes = {
+  [K in keyof InterfaceExtendedAttributes]?: InterfaceExtendedAttributes[K];
+};
 
 /**
  * A draft of a WebIDL definition `T`: the same shape as the finished
@@ -44,22 +55,25 @@ export type RegularAttributeDraft<T extends Type = Type> = Draft<
   "getterSteps" | "setterSteps"
 >;
 
-/**
- * A draft of a WebIDL operation.
- *
- * @remarks
- * An operation is created whole — its signature, identifier, and method
- * steps are all derived the moment the decorator runs — so no field is
- * optional; the alias marks operations that still live in an
- * {@link InterfaceDraft}.
- */
+/** A draft of a WebIDL operation. */
 export type OperationDraft<
   Args extends Type[] = Type[],
   Return extends Type = Type,
 > = Draft<Operation<Args, Return>>;
 
-/** A draft of a WebIDL interface member. */
-export type MemberDraft = AttributeDraft | OperationDraft;
+/** A draft of a WebIDL constructor operation. */
+export type ConstructorOperationDraft<Args extends Type[] = Type[]> = Draft<
+  ConstructorOperation<Args>
+>;
+
+/**
+ * A draft of a named WebIDL interface member — one registered under an
+ * identifier. A constructor operation is keyed by the fixed `"constructor"`
+ * slot rather than an identifier, so it is not part of this union; see
+ * {@link ConstructorOperationDraft}.
+ */
+export type MemberDraft =
+  AttributeDraft | OperationDraft | ConstructorOperationDraft;
 
 /**
  * Maps a member-table slot to its draft: an attribute to its
@@ -109,9 +123,10 @@ export type InterfaceDraftStaticMembers = {
  * a complete {@link Interface} before associating it with the class.
  */
 export interface InterfaceDraft extends Draft<
-  Omit<Interface, "members" | "staticMembers">,
+  Omit<Interface, "extendedAttributes" | "members" | "staticMembers">,
   "identifier"
 > {
+  extendedAttributes: InterfaceDraftExtendedAttributes;
   members: InterfaceDraftMembers;
   staticMembers: InterfaceDraftStaticMembers;
 }

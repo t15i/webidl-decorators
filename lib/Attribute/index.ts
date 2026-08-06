@@ -1,11 +1,7 @@
-import { type ArgumentList, type Type } from "@t15i/webspecs/webidl";
-import { Undefined } from "@t15i/webidl-types";
+import { type Type } from "@t15i/webspecs/webidl";
 
 import {
-  guard,
   createAttributeFromContext,
-  getAttributeGetterStepsFromContext,
-  getAttributeSetterStepsFromContext,
   getOwnAttributeDraftFromContext,
 } from "@/utils";
 import { assertStrictOneOfType } from "@/utils/assertions";
@@ -35,8 +31,9 @@ import type { AttributeDecorator } from "./types";
  * defined first), it is extended in place after asserting it is an attribute of
  * type `T`, and stays `readonly` only while it has no setter steps.
  *
- * The getter is returned wrapped by {@link guard}, which enforces the
- * attribute's WebIDL type on the value it returns.
+ * Nothing is returned: the decorated getter is left in place, and `Interface`
+ * later defines the guarded accessor — created by webspecs from the registered
+ * steps — on the interface prototype object.
  *
  * @internal
  */
@@ -46,10 +43,9 @@ function defineAttributeGetter<T extends Type>(
   context:
     | Getter<AttributeDecoratorContext<T>>
     | Accessor<AttributeDecoratorContext<T>>,
-) {
+): void {
   try {
-    const { iface, members, id, attribute } =
-      getOwnAttributeDraftFromContext(context);
+    const { members, id, attribute } = getOwnAttributeDraftFromContext(context);
 
     if (attribute) {
       assertStrictOneOfType(attribute.type, T);
@@ -57,15 +53,11 @@ function defineAttributeGetter<T extends Type>(
       if (attribute.setterSteps === undefined) {
         attribute.keywords.add("readonly");
       }
-      attribute.getterSteps = getAttributeGetterStepsFromContext(context);
+      attribute.getterSteps = target;
     } else {
       members[id] = createAttributeFromContext(T, context);
+      members[id].getterSteps = target;
     }
-
-    const args: ArgumentList<[]> = [];
-    const returnType = T;
-
-    return guard(target, { iface, id, args, returnType });
   } catch (e) {
     throw new AttributeDefinitionExtensionError(context, T, { cause: e });
   }
@@ -82,8 +74,9 @@ function defineAttributeGetter<T extends Type>(
  * asserting it is an attribute of type `T`, and its `readonly` keyword is
  * dropped so the attribute becomes read–write.
  *
- * The setter is returned wrapped by {@link guard}, which enforces the
- * attribute's WebIDL type on the value assigned to it.
+ * Nothing is returned: the decorated setter is left in place, and `Interface`
+ * later defines the guarded accessor — created by webspecs from the registered
+ * steps — on the interface prototype object.
  *
  * @internal
  */
@@ -93,24 +86,19 @@ function defineAttributeSetter<T extends Type>(
   context:
     | Setter<AttributeDecoratorContext<T>>
     | Accessor<AttributeDecoratorContext<T>>,
-) {
+): void {
   try {
-    const { iface, members, id, attribute } =
-      getOwnAttributeDraftFromContext(context);
+    const { members, id, attribute } = getOwnAttributeDraftFromContext(context);
 
     if (attribute) {
       assertStrictOneOfType(attribute.type, T);
 
       attribute.keywords.delete("readonly");
-      attribute.setterSteps = getAttributeSetterStepsFromContext(context);
+      attribute.setterSteps = target;
     } else {
       members[id] = createAttributeFromContext(T, context);
+      members[id].setterSteps = target;
     }
-
-    const args: ArgumentList<[T]> = [{ type: T }];
-    const returnType = Undefined;
-
-    return guard(target, { iface, id, args, returnType });
   } catch (e) {
     throw new AttributeDefinitionExtensionError(context, T, { cause: e });
   }
@@ -127,46 +115,33 @@ function defineAttributeSetter<T extends Type>(
  * registers the attribute and the setter extends it in place, yielding a
  * read–write attribute.
  *
+ * Nothing is returned, so the decorated member keeps its original definition;
+ * the guarded accessor is installed on the interface prototype object by
+ * `Interface`.
+ *
  * @internal
  */
 function defineAttribute<T extends Type>(
   T: T,
-  target: GetterAttributeDecoratorTarget<T>,
-  context: Getter<AttributeDecoratorContext<T>>,
-): GetterAttributeDecoratorTarget<T>;
-
-function defineAttribute<T extends Type>(
-  T: T,
-  target: SetterAttributeDecoratorTarget<T>,
-  context: Setter<AttributeDecoratorContext<T>>,
-): SetterAttributeDecoratorTarget<T>;
-
-function defineAttribute<T extends Type>(
-  T: T,
-  target: AccessorAttributeDecoratorTarget<T>,
-  context: Accessor<AttributeDecoratorContext<T>>,
-): AccessorAttributeDecoratorTarget<T>;
-
-function defineAttribute<T extends Type>(
-  T: T,
   target: AttributeDecoratorTarget<T>,
   context: AttributeDecoratorContext<T>,
-): AttributeDecoratorTarget<T> {
+): void {
   switch (context.kind) {
     case "getter": {
       const getter = target as GetterAttributeDecoratorTarget<T>;
-      return defineAttributeGetter(T, getter, context);
+      defineAttributeGetter(T, getter, context);
+      return;
     }
     case "setter": {
       const setter = target as SetterAttributeDecoratorTarget<T>;
-      return defineAttributeSetter(T, setter, context);
+      defineAttributeSetter(T, setter, context);
+      return;
     }
     case "accessor": {
       const accessor = target as AccessorAttributeDecoratorTarget<T>;
-      return {
-        get: defineAttributeGetter(T, accessor.get, context),
-        set: defineAttributeSetter(T, accessor.set, context),
-      };
+      defineAttributeGetter(T, accessor.get, context);
+      defineAttributeSetter(T, accessor.set, context);
+      return;
     }
   }
 }

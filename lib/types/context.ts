@@ -1,11 +1,19 @@
 import type { NativeType, Type } from "@t15i/webspecs/webidl";
 
 import type { AnyConstructor } from "./common";
-import type { OperationDecoratorTarget } from "./target";
+import type {
+  ConstructorDecoratorTarget,
+  OperationDecoratorTarget,
+} from "./target";
 
 export type InterfaceDecoratorContext<
   Class extends AnyConstructor = AnyConstructor,
 > = ClassDecoratorContext<Class>;
+
+export type ConstructorDecoratorContext<
+  Params extends Type[] = Type[],
+  This extends object = object,
+> = ClassDecoratorContext<ConstructorDecoratorTarget<Params, This>>;
 
 export type MemberDecoratorContext<This extends object = object> =
   | AttributeDecoratorContext<Type, This>

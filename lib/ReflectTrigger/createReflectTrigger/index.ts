@@ -20,8 +20,14 @@ import { createTypedReflectedAccessor } from "./createTypedReflectedAccessor";
  * runs the shared steps — resolve the own attribute draft, assert an attribute
  * is registered under the decorated identifier, set `flag` on it, record
  * `symbol` (mapped to the explicit content name or `null`), then dispatch on
- * the WebIDL type to build the reflected accessor — wrapping any failure in an
+ * the WebIDL type to build the reflected accessor and install its getter and
+ * setter as the attribute's steps — wrapping any failure in an
  * {@link ExtendedAttributeDefinitionError} named after `symbol`.
+ *
+ * Nothing is returned: the reflected getter and setter steps replace the ones
+ * the inner {@link Attribute} registered, and `Interface` later defines the
+ * guarded accessor — created by webspecs from those steps — on the interface
+ * prototype object.
  *
  * @param symbol - The reflect trigger's extended-attribute symbol, recorded on
  *  the attribute and used to name failures.
@@ -43,7 +49,7 @@ export function createReflectTrigger(
     contentName: string | null,
     _: ReflectedAttributeAccessor<T>,
     context: ReflectedAttributeAccessorContext<T>,
-  ): ReflectedAttributeAccessor<T> {
+  ): void {
     try {
       const { attribute } = getOwnAttributeDraftFromContext(context);
 
@@ -52,11 +58,14 @@ export function createReflectTrigger(
       attribute.extendedAttributes[symbol] = contentName;
       if (flag) attribute[flag] = true;
 
-      return createTypedReflectedAccessor(
+      const { get, set } = createTypedReflectedAccessor(
         attribute as Attribute,
         contentName,
         context,
       );
+
+      attribute.getterSteps = get;
+      attribute.setterSteps = set;
     } catch (e) {
       throw new ExtendedAttributeDefinitionError(symbol, context, { cause: e });
     }

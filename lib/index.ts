@@ -2,6 +2,7 @@ export * from "./Interface";
 
 export * from "./Attribute";
 export * from "./Operation";
+export * from "./Constructor";
 
 export * from "./Getter";
 export * from "./Setter";

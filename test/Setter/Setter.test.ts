@@ -1,5 +1,6 @@
 import {
   Attribute,
+  Constructor,
   Exposed,
   Getter,
   Interface,
@@ -17,7 +18,12 @@ import {
   NewIndexedPropertySetter as NewIndexedPropertySetterSymbol,
   NewNamedPropertySetter as NewNamedPropertySetterSymbol,
 } from "@t15i/webspecs/webidl";
-import { Boolean, DOMString, Undefined, UnsignedLong } from "@t15i/webidl-types";
+import {
+  Boolean,
+  DOMString,
+  Undefined,
+  UnsignedLong,
+} from "@t15i/webidl-types";
 
 import { describe, expect, test } from "vitest";
 
@@ -28,6 +34,7 @@ describe("@Setter", () => {
     test("should mark the @Operation as the [IndexedPropertySetter] of the interface", () => {
       @Exposed("Window")
       @Interface
+      @Constructor
       class Test {
         @Getter
         @Operation([UnsignedLong], UnsignedLong)
@@ -74,7 +81,7 @@ describe("@Setter", () => {
       );
       expect(() => methodSteps.call(instance, 0)).toThrow(
         new TypeError(
-          "Failed to execute 'indexedPropertySetter' on 'Test': 2 arguments required, but only 1 present.",
+          "Failed to execute 'indexedPropertySetter' on 'Test': At least 2 arguments required, but only 1 passed",
         ),
       );
       expect(() => methodSteps.call(instance, 0, 0)).not.toThrow();
@@ -148,7 +155,9 @@ describe("@Setter", () => {
 
       const i = getInterface(Test);
 
-      expect(i.members[IndexedPropertySetterSymbol]!.identifier).toBeUndefined();
+      expect(
+        i.members[IndexedPropertySetterSymbol]!.identifier,
+      ).toBeUndefined();
       expect(i.members[NewIndexedPropertySetterSymbol]).toBe(
         i.members[IndexedPropertySetterSymbol]!.methodSteps,
       );
@@ -162,6 +171,7 @@ describe("@Setter", () => {
     test("should mark the @Operation as the [NamedPropertySetter] of the interface", () => {
       @Exposed("Window")
       @Interface
+      @Constructor
       class Test {
         @Getter
         @Operation([DOMString], DOMString)
@@ -202,7 +212,7 @@ describe("@Setter", () => {
       );
       expect(() => methodSteps.call(instance, "x")).toThrow(
         new TypeError(
-          "Failed to execute 'namedPropertySetter' on 'Test': 2 arguments required, but only 1 present.",
+          "Failed to execute 'namedPropertySetter' on 'Test': At least 2 arguments required, but only 1 passed",
         ),
       );
       expect(() => methodSteps.call(instance, "x", "y")).not.toThrow();

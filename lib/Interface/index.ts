@@ -1,9 +1,10 @@
 import {
+  InterfacePrototypeObject,
   validateInterface,
-  PlatformObject as WebIDLPlatformObject,
   type Interface,
 } from "@t15i/webspecs/webidl";
 
+import { interfaceDraftRegistry } from "@/InterfaceDraftRegistry";
 import { unnamedOperationRegistry } from "@/UnnamedOperationRegistry";
 
 import { getInterfaceDraftFromContext } from "@/utils";
@@ -18,8 +19,8 @@ import {
   type InterfaceDecoratorTarget,
 } from "@/types";
 
-import { PlatformObject } from "./PlatformObject";
 import { CustomElement } from "./CustomElement";
+import { adoptInterfacePrototypeObject } from "./adoptInterfacePrototypeObject";
 
 import type { InterfaceDecorator } from "./types";
 
@@ -41,19 +42,26 @@ function defineInterface<T extends InterfaceDecoratorTarget>(
       );
     }
 
-    const iface = getInterfaceDraftFromContext(context);
+    const iface = getInterfaceDraftFromContext(context) as Interface;
     iface.identifier = (identifier ?? context.name)!;
+
+    const parent = Object.getPrototypeOf(target.prototype);
+    if (parent !== null) {
+      const parentIface = InterfacePrototypeObject.getInterfaceOf(parent);
+      if (parentIface !== null) {
+        iface.inherit = parentIface;
+        Object.setPrototypeOf(iface.members, parentIface.members);
+        Object.setPrototypeOf(iface.staticMembers, parentIface.staticMembers);
+      }
+    }
 
     context.addInitializer(function () {
       try {
-        assertNoDefinedInterface(this);
-        assertInterface(iface);
-
-        validateInterface(iface);
-
-        WebIDLPlatformObject.setPrimaryInterfaceOf(this.prototype, iface);
-
         unnamedOperationRegistry.drop(context.metadata);
+        interfaceDraftRegistry.drop(context.metadata);
+
+        assertInterface(iface);
+        validateInterface(iface);
       } catch (e) {
         throw new InterfaceInitializationError(iface, { cause: e });
       }
@@ -62,7 +70,14 @@ function defineInterface<T extends InterfaceDecoratorTarget>(
     if (target.prototype instanceof HTMLElement) {
       CustomElement(target, context);
     }
-    return PlatformObject(target);
+
+    // Guard against re-decoration before the prototype is associated with its
+    // interface — the association below is what `assertNoDefinedInterface`
+    // detects, so it must run first.
+    assertNoDefinedInterface(target);
+
+    const proto = adoptInterfacePrototypeObject(target.prototype, iface);
+    return proto.constructor;
   } catch (e) {
     throw new InterfaceDefinitionError({ cause: e });
   }
@@ -161,4 +176,4 @@ export function Interface(...args: unknown[]) {
   return defineInterface.bind(undefined, args[0] as string);
 }
 
-export { Internals } from "./PlatformObject";
+export { Internals } from "./Internals";

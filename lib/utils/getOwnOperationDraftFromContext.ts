@@ -5,7 +5,7 @@ import { unnamedOperationRegistry } from "@/UnnamedOperationRegistry";
 import {
   getIdentifierFromContext,
   getInterfaceDraftFromContext,
-  getTypeId,
+  getMembersFromContext,
 } from "@/utils";
 import {
   type InterfaceDraft,
@@ -26,42 +26,26 @@ export type OwnOperationDraftFromContextResult<
   operation: OperationDraft<Params, Return> | undefined;
 };
 
-export function getOwnOperationDraftFromContext(
-  context: OperationDecoratorContext,
-): OwnOperationDraftFromContextResult;
-
-export function getOwnOperationDraftFromContext<
-  Params extends Type[] = Type[],
-  Return extends Type = Type,
->(
-  context: OperationDecoratorContext<Params, Return>,
-  args: Params,
-  returnType: Return,
-): OwnOperationDraftFromContextResult<Params, Return>;
-
 /**
- * Resolves, from an operation decorator `context`, everything an operation or
- * special-operation decorator needs to register its definition: the operation's
- * identifier, the interface draft it belongs to, the member table (static or
- * regular) the definition goes into, and the operation draft already registered
- * under the identifier, if any.
+ * Resolves, from an operation decorator `context`, everything an operation
+ * decorator needs to register its definition: the operation's identifier — or
+ * `undefined` for an anonymous operation — the interface draft it belongs to,
+ * the member table (static or regular) the definition goes into, and the
+ * operation draft already registered for it, if any.
  *
  * @remarks
- * A named operation is looked up in the interface's member table; an anonymous
- * one (a special operation keyed by a symbol) is looked up in the
- * {@link unnamedOperationRegistry} by its property name. When a member is
- * already registered but is not an operation, that is an error. When `args` and
- * `returnType` are supplied, the existing operation must match them exactly —
- * mismatching arity, argument type, or return type is rejected — so a
- * re-definition of the same identifier is only accepted for the same signature.
+ * A named operation is looked up in the member table under its identifier; an
+ * anonymous one (a symbol-keyed static or special operation) is looked up in the
+ * {@link unnamedOperationRegistry} by decoration metadata and property name. When
+ * a member is already registered but is not an operation, that is an error — the
+ * returned `operation` is otherwise narrowed to an {@link OperationDraft}.
  */
-export function getOwnOperationDraftFromContext<
-  Params extends Type[] = Type[],
-  Return extends Type = Type,
->(context: OperationDecoratorContext, args?: Params, returnType?: Return) {
+export function getOwnOperationDraftFromContext(
+  context: OperationDecoratorContext,
+): OwnOperationDraftFromContextResult {
   const id = getIdentifierFromContext(context);
   const iface = getInterfaceDraftFromContext(context);
-  const members = context.static ? iface.staticMembers : iface.members;
+  const members = getMembersFromContext(context, iface);
 
   let member: MemberDraft | undefined;
 
@@ -80,28 +64,6 @@ export function getOwnOperationDraftFromContext<
       throw new TypeError(
         `A ${member.kind} member${named} is already defined, but a WebIDL operation was expected`,
       );
-    }
-
-    if (args !== undefined && returnType !== undefined) {
-      if (member.arguments.length !== args.length) {
-        throw new TypeError(
-          `Operation${named} is already defined with ${member.arguments.length} argument(s), but ${args.length} were provided`,
-        );
-      }
-
-      for (let i = 0; i < member.arguments.length; i++) {
-        if (member.arguments[i]!.type !== args[i]) {
-          throw new TypeError(
-            `Operation${named} argument ${i} is already defined with type '${getTypeId(member.arguments[i]!.type) ?? "unknown"}', but '${getTypeId(args[i]!) ?? "unknown"}' was provided`,
-          );
-        }
-      }
-
-      if (member.returnType !== returnType) {
-        throw new TypeError(
-          `Operation${named} is already defined with return type '${getTypeId(member.returnType) ?? "unknown"}', but '${getTypeId(returnType) ?? "unknown"}' was provided`,
-        );
-      }
     }
   }
 

@@ -17,8 +17,9 @@ import type { ReflectionContext, ReflectedAttributeSpec } from "../types";
  * initializer and kept in a `WeakMap`) and passed as the `this` of the spec's
  * getter and setter. When the spec provides attribute change steps, they are
  * registered on the class metadata under the content attribute name for the
- * class decorator to wire into `attributeChangedCallback`. The setter coerces
- * the assigned value through the attribute's WebIDL type before delegating.
+ * class decorator to wire into `attributeChangedCallback`. The returned getter
+ * and setter are installed as the attribute's steps, so webspecs coerces the
+ * assigned value through the attribute's WebIDL type before the setter runs.
  *
  * @param spec - The getter, setter, and optional attribute change steps for the
  *  attribute's WebIDL type.
@@ -83,7 +84,7 @@ export function createReflectedAccessor<
         targets.get(this)!,
         idlAttribute,
         contentAttributeName,
-        idlAttribute.type(value),
+        value,
       );
     },
   };

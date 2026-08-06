@@ -1,5 +1,6 @@
 import {
   Attribute,
+  Constructor,
   Exposed,
   Interface,
   ReflectPositiveWithFallback,
@@ -13,6 +14,7 @@ describe("@ReflectPositiveWithFallback", () => {
   test("reflects an unsigned long accessor, limited to positive numbers with fallback", () => {
     @Exposed("Window")
     @Interface("ReflectPositiveWithFallbackUnsignedLong")
+    @Constructor
     class ReflectPositiveWithFallbackUnsignedLong extends HTMLElement {
       @ReflectPositiveWithFallback
       @Attribute(UnsignedLong)
@@ -35,6 +37,7 @@ describe("@ReflectPositiveWithFallback", () => {
   test("falls back to the minimum when set below one instead of throwing", () => {
     @Exposed("Window")
     @Interface("ReflectPositiveWithFallbackFallback")
+    @Constructor
     class ReflectPositiveWithFallbackFallback extends HTMLElement {
       @ReflectPositiveWithFallback
       @Attribute(UnsignedLong)
@@ -63,6 +66,7 @@ describe("@ReflectPositiveWithFallback", () => {
   test("overrides the content attribute name", () => {
     @Exposed("Window")
     @Interface("ReflectPositiveWithFallbackOverride")
+    @Constructor
     class ReflectPositiveWithFallbackOverride extends HTMLElement {
       @ReflectPositiveWithFallback("data-span")
       @Attribute(UnsignedLong)
@@ -86,6 +90,7 @@ describe("@ReflectPositiveWithFallback", () => {
     expect(() => {
       @Exposed("Window")
       @Interface("ReflectPositiveWithFallbackDouble")
+      @Constructor
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       class ReflectPositiveWithFallbackDouble extends HTMLElement {
         @ReflectPositiveWithFallback
@@ -97,6 +102,7 @@ describe("@ReflectPositiveWithFallback", () => {
     expect(() => {
       @Exposed("Window")
       @Interface("ReflectPositiveWithFallbackLong")
+      @Constructor
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       class ReflectPositiveWithFallbackLong extends HTMLElement {
         @ReflectPositiveWithFallback
@@ -108,6 +114,7 @@ describe("@ReflectPositiveWithFallback", () => {
     expect(() => {
       @Exposed("Window")
       @Interface("ReflectPositiveWithFallbackString")
+      @Constructor
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       class ReflectPositiveWithFallbackString extends HTMLElement {
         @ReflectPositiveWithFallback
