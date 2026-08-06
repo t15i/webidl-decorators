@@ -185,19 +185,6 @@ consumer's bundler can act on the guard:
 - **Development** — the token resolves to `"development"`, so the checks run
   exactly as before.
 
-Notes:
-
-- The guard uses `process.env.NODE_ENV` rather than `import.meta.env` on
-  purpose: `import.meta.env` is baked in at _this_ package's build time, whereas
-  `process.env.NODE_ENV` is left intact for the consumer's build to resolve.
-- Non-Vite bundlers that do not define `process.env.NODE_ENV` (plain Rollup,
-  esbuild) need `@rollup/plugin-replace` /
-  `--define:process.env.NODE_ENV='"production"'` to strip the checks; webpack
-  handles it via `mode`.
-- Loading the raw ESM without any bundler (e.g. native modules over a CDN)
-  leaves `process.env.NODE_ENV` unresolved; ship such builds through a bundler
-  step that replaces the token.
-
 ## License
 
 [MIT](./LICENSE)
