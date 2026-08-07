@@ -3,7 +3,7 @@
   "type": "module",
   "sideEffects": false,
   "version": "2.0.3",
-  "description": "TypeScript decorators for declaring WebIDL interfaces, attributes, and special operations directly on classes.",
+  "description": "TypeScript decorators for declaring WebIDL interfaces directly on classes.",
   "keywords": [
     "webidl",
     "decorators",
@@ -56,7 +56,7 @@
     "@babel/preset-typescript": "^7.29.7",
     "@eslint/js": "^10.0.1",
     "@t15i/webidl-types": "^1.0.0",
-    "@t15i/webspecs": "^0.13.0",
+    "@t15i/webspecs": "^0.13.1",
     "@vitest/browser-playwright": "^4.1.4",
     "@vitest/coverage-istanbul": "^4.1.4",
     "eslint": "^10.4.1",
@@ -73,7 +73,7 @@
   },
   "peerDependencies": {
     "@t15i/webidl-types": "^1.0.0",
-    "@t15i/webspecs": "^0.13.0"
+    "@t15i/webspecs": "^0.13.1"
   },
   "publishConfig": {
     "access": "public"

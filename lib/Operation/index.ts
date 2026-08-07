@@ -108,7 +108,7 @@ export function Operation<Return extends Type>(
  * ```ts
  * \@Interface
  * class HTMLCollection {
- *   \@Operation(NullableElement, [UnsignedLong])
+ *   \@Operation(Nullable(InterfaceType(Element)), [UnsignedLong])
  *   item(index: number): Element | null {
  *     // ...
  *     return value;

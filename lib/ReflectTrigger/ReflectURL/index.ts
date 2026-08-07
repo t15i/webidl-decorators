@@ -20,7 +20,7 @@ import { createReflectTrigger } from "../createReflectTrigger";
  * ```ts
  * \@Exposed("Window")
  * \@Interface
- * class HTMLModElement {
+ * class HTMLModElement extends HTMLElement {
  *   \@ReflectURL
  *   \@Attribute(USVString)
  *   accessor cite: string = "";

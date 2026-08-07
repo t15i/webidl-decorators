@@ -20,7 +20,7 @@ import { createReflectTrigger } from "../createReflectTrigger";
  * ```ts
  * \@Exposed("Window")
  * \@Interface
- * class HTMLInputElement {
+ * class HTMLInputElement extends HTMLElement {
  *   \@ReflectNonNegative
  *   \@Attribute(Long)
  *   accessor maxLength: number = 0;

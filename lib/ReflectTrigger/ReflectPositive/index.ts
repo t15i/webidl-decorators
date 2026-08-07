@@ -20,7 +20,7 @@ import { createReflectTrigger } from "../createReflectTrigger";
  * ```ts
  * \@Exposed("Window")
  * \@Interface
- * class HTMLProgressElement {
+ * class HTMLProgressElement extends HTMLElement {
  *   \@ReflectPositive
  *   \@Attribute(Double)
  *   accessor max: number = 1;

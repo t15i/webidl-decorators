@@ -75,7 +75,7 @@ function defineReflectRange(
  * ```ts
  * \@Exposed("Window")
  * \@Interface
- * class HTMLInputElement {
+ * class HTMLInputElement extends HTMLElement {
  *   \@ReflectRange(0, 65535)
  *   \@Reflect
  *   \@Attribute(UnsignedLong)
