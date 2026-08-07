@@ -22,8 +22,8 @@ import type {
  *
  * Defining a behavior that is already present overwrites it, letting an
  * explicit behavior decorator take precedence over one installed earlier —
- * for example the {@link NamedPropertyDeterminator} an anonymous
- * {@link NamedPropertyGetter} registers by default.
+ * for example the {@link NamedPropertyDeterminator} an anonymous named property
+ * {@link Getter} registers by default.
  *
  * For the registered behavior to take effect, the enclosing class must also be
  * decorated with {@link Interface}.

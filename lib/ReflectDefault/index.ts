@@ -70,7 +70,7 @@ function defineReflectDefault(
  * ```ts
  * \@Exposed("Window")
  * \@Interface
- * class HTMLInputElement {
+ * class HTMLInputElement extends HTMLElement {
  *   \@ReflectDefault(20)
  *   \@Reflect
  *   \@Attribute(Long)

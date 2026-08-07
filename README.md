@@ -1,11 +1,12 @@
 # webidl-decorators — TypeScript decorators for WebIDL interfaces
 
 A set of TypeScript decorators that let you declare
-[WebIDL](https://webidl.spec.whatwg.org/) interfaces, attributes, and special
-operations directly on classes. WebIDL types (`UnsignedLong`, `DOMString`,
-`Nullable`, …) come from [`@t15i/webidl-types`](https://github.com/t15i/webidl-types),
-and the runtime semantics — platform object behavior, indexed/named property
-access, setters, and deleters — are provided by
+[WebIDL](https://webidl.spec.whatwg.org/) interfaces, attributes, operations,
+constructors, and special operations directly on classes. WebIDL types
+(`UnsignedLong`, `DOMString`, `Nullable`, …) come from
+[`@t15i/webidl-types`](https://github.com/t15i/webidl-types), and the runtime
+semantics — platform object behavior, indexed/named property access, setters,
+deleters, and attribute reflection — are provided by
 [`@t15i/webspecs`](https://github.com/t15i/webspecs).
 
 > **Coverage is intentionally narrow** — this is a knowledge base, not a
@@ -31,7 +32,8 @@ import {
   Interface,
   Exposed,
   Attribute,
-  IndexedPropertyGetter,
+  Operation,
+  Getter,
   SupportedPropertyIndices,
   // ...
 } from "@t15i/webidl-decorators";
@@ -47,7 +49,8 @@ import {
   Interface,
   Exposed,
   Attribute,
-  IndexedPropertyGetter,
+  Operation,
+  Getter,
   SupportedPropertyIndices,
 } from "@t15i/webidl-decorators";
 import { UnsignedLong, Nullable, InterfaceType } from "@t15i/webidl-types";
@@ -60,7 +63,8 @@ class HTMLCollection {
     // ...
   }
 
-  @IndexedPropertyGetter(Nullable(InterfaceType(Element)))
+  @Getter
+  @Operation(Nullable(InterfaceType(Element)), [UnsignedLong])
   item(index: number): Element | null {
     // ...
   }
@@ -77,9 +81,49 @@ _outside_ `@Interface` (so its identifier is finalized first) and installs the
 interface object on the global (e.g. `window.HTMLCollection`). An interface that
 is never marked as exposed is rejected when `@Interface` finalizes it.
 
+An operation is declared with `@Operation(returnType, [argTypes])`; the argument
+list is optional and defaults to empty. A constructor is declared by applying
+`@Constructor` (or `@Constructor([argTypes])`) to the class alongside
+`@Interface`.
+
+A special operation is a regular `@Operation` additionally marked with `@Getter`,
+`@Setter`, or `@Deleter`; whether it acts on indexed or named properties is
+inferred from the first argument type — an `unsigned long` index makes it
+indexed, a `DOMString` name makes it named. The behavior decorators
+(`@SupportedPropertyIndices`, `@NewNamedPropertySetter`, …) fill in the
+supporting steps that a bare getter/setter/deleter cannot.
+
 > The decorator proposal used is the
 > [TC39 stage-3 / 2023-11](https://github.com/tc39/proposal-decorators)
 > variant. Make sure your toolchain supports it.
+
+### Reflected attributes
+
+An IDL attribute of an element interface can reflect a content attribute. Stack
+a reflect decorator on top of `@Attribute`, applied to an `accessor` member of a
+class that extends `HTMLElement`:
+
+```ts
+import { Interface, Exposed, Attribute, Reflect } from "@t15i/webidl-decorators";
+import { DOMString } from "@t15i/webidl-types";
+
+@Exposed("Window")
+@Interface
+class HTMLInputElement extends HTMLElement {
+  @Reflect
+  @Attribute(DOMString)
+  accessor name: string = "";
+}
+```
+
+Reading `name` returns the parsed `name` content attribute; assigning to it
+writes the attribute back. The content attribute name defaults to a lower-cased
+copy of the IDL identifier and can be overridden by calling the decorator as a
+factory (`@Reflect("data-name")`). `@ReflectNonNegative`, `@ReflectPositive`,
+`@ReflectPositiveWithFallback`, and `@ReflectURL` reflect with the corresponding
+limits; `@ReflectDefault` and `@ReflectRange` supplement a reflect trigger with
+a default value or a clamped range; `@ReflectSetter` reflects on assignment
+only, keeping the separately declared getter.
 
 ### Private state on legacy platform objects
 
@@ -120,27 +164,28 @@ un-ported content.
 - **§2 Interface definition language**
   - **§2.2 Interfaces**
     - [x] `@Interface`
-  - **§2.5 Members**
+  - **§2.5 Interface members**
     - **§2.5.2 Attributes**
       - [x] `@Attribute`
+    - **§2.5.3 Operations**
+      - [x] `@Operation`
+    - **§2.5.4 Constructor operations**
+      - [x] `@Constructor`
     - **§2.5.6 Special operations**
+      - [x] `@Getter`
+      - [x] `@Setter`
+      - [x] `@Deleter`
       - **§2.5.6.1 Indexed properties**
-        - [x] `@IndexedPropertyGetter`
-        - [x] `@IndexedPropertySetter`
+        - [x] `@SupportedPropertyIndices`
         - [x] `@IndexedPropertyDeterminator`
         - [x] `@NewIndexedPropertySetter`
         - [x] `@ExistingIndexedPropertySetter`
-        - [x] `@SupportedPropertyIndices`
       - **§2.5.6.2 Named properties**
-        - [x] `@NamedPropertyGetter`
-        - [x] `@NamedPropertySetter`
-        - [x] `@NamedPropertyDeleter`
+        - [x] `@SupportedPropertyNames`
         - [x] `@NamedPropertyDeterminator`
         - [x] `@NewNamedPropertySetter`
         - [x] `@ExistingNamedPropertySetter`
         - [x] `@ExistingNamedPropertyDeleter`
-        - [x] `@SupportedPropertyNames`
-      - ...
     - ...
   - ...
 - **§3 JavaScript binding**
@@ -152,6 +197,24 @@ un-ported content.
     - **§3.4.9 [LegacyUnenumerableNamedProperties]**
       - [x] `@LegacyUnenumerableNamedProperties`
     - ...
+  - ...
+- ...
+
+</details>
+
+<details>
+<summary><strong>HTML</strong> (<a href="https://html.spec.whatwg.org/multipage/common-dom-interfaces.html">spec</a>)</summary>
+
+- **§2.6 Common DOM interfaces**
+  - **§2.6.1 Reflecting content attributes in IDL attributes**
+    - [x] `@Reflect`
+    - [x] `@ReflectSetter`
+    - [x] `@ReflectDefault`
+    - [x] `@ReflectRange`
+    - [x] `@ReflectNonNegative`
+    - [x] `@ReflectPositive`
+    - [x] `@ReflectPositiveWithFallback`
+    - [x] `@ReflectURL`
   - ...
 - ...
 

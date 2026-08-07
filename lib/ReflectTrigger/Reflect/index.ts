@@ -22,7 +22,7 @@ import { createReflectTrigger } from "../createReflectTrigger";
  * ```ts
  * \@Exposed("Window")
  * \@Interface
- * class HTMLInputElement {
+ * class HTMLInputElement extends HTMLElement {
  *   \@Reflect
  *   \@Attribute(DOMString)
  *   accessor name: string = "";

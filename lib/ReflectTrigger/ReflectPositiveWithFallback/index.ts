@@ -20,7 +20,7 @@ import { createReflectTrigger } from "../createReflectTrigger";
  * ```ts
  * \@Exposed("Window")
  * \@Interface
- * class HTMLTableColElement {
+ * class HTMLTableColElement extends HTMLElement {
  *   \@ReflectPositiveWithFallback
  *   \@Attribute(UnsignedLong)
  *   accessor span: number = 1;

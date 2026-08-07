@@ -97,7 +97,7 @@ function defineReflectSetter<T extends Type = Type>(
  * ```ts
  * \@Exposed("Window")
  * \@Interface
- * class HTMLInputElement {
+ * class HTMLInputElement extends HTMLElement {
  *   \@ReflectSetter
  *   \@Attribute(DOMString)
  *   set value(value: string) {
@@ -137,7 +137,7 @@ export function ReflectSetter<T extends Type>(
  * ```ts
  * \@Exposed("Window")
  * \@Interface
- * class HTMLInputElement {
+ * class HTMLInputElement extends HTMLElement {
  *   \@ReflectSetter
  *   \@Attribute(DOMString)
  *   accessor value: string = "";
