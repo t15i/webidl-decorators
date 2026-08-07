@@ -2,7 +2,7 @@
   "name": "@t15i/webidl-decorators",
   "type": "module",
   "sideEffects": false,
-  "version": "2.0.3",
+  "version": "3.0.0",
   "description": "TypeScript decorators for declaring WebIDL interfaces directly on classes.",
   "keywords": [
     "webidl",
