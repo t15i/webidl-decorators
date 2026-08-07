@@ -1,18 +1,16 @@
-export * from "./Attribute";
-export * from "./Exposed";
-export * from "./ExistingIndexedPropertySetter";
-export * from "./ExistingNamedPropertyDeleter";
-export * from "./ExistingNamedPropertySetter";
-export * from "./IndexedPropertyDeterminator";
-export * from "./IndexedPropertyGetter";
-export * from "./IndexedPropertySetter";
 export * from "./Interface";
+
+export * from "./Attribute";
+export * from "./Operation";
+export * from "./Constructor";
+
+export * from "./Getter";
+export * from "./Setter";
+export * from "./Deleter";
+export * from "./Behavior";
+
+export * from "./Exposed";
 export * from "./LegacyUnenumerableNamedProperties";
-export * from "./NamedPropertyDeleter";
-export * from "./NamedPropertyDeterminator";
-export * from "./NamedPropertyGetter";
-export * from "./NamedPropertySetter";
-export * from "./NewIndexedPropertySetter";
-export * from "./NewNamedPropertySetter";
-export * from "./SupportedPropertyIndices";
-export * from "./SupportedPropertyName";
+export * from "./ReflectDefault";
+export * from "./ReflectRange";
+export * from "./ReflectTrigger";

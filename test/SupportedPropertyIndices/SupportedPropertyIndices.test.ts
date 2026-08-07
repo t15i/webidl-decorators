@@ -1,8 +1,9 @@
 import {
   Attribute,
   Exposed,
-  IndexedPropertyGetter,
+  Getter,
   Interface,
+  Operation,
   SupportedPropertyIndices,
 } from "lib";
 
@@ -33,8 +34,9 @@ describe("@SupportedPropertyIndices", () => {
     @Exposed("Window")
     @Interface
     class Test {
-      @IndexedPropertyGetter(UnsignedLong)
-      item(index: number): number | null {
+      @Getter
+      @Operation(UnsignedLong, [UnsignedLong])
+      item(index: number): number {
         return index;
       }
 

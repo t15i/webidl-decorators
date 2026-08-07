@@ -1,45 +1,36 @@
 import {
+  InterfacePrototypeObject,
   validateInterface,
-  PlatformObject as WebIDLPlatformObject,
+  type Interface,
 } from "@t15i/webspecs/webidl";
 
-import { getInterfaceDraftFromContext } from "@/utils";
-import { assertInterface } from "@/utils/assertions";
-import { InterfaceDefinitionError } from "@/utils/errors";
+import { interfaceDraftRegistry } from "@/InterfaceDraftRegistry";
+import { unnamedOperationRegistry } from "@/UnnamedOperationRegistry";
 
-import type {
-  InterfaceDecoratorContext,
-  InterfaceDecoratorTarget,
+import { getInterfaceDraftFromContext } from "@/utils";
+import { assertInterface, assertNoDefinedInterface } from "@/utils/assertions";
+import {
+  InterfaceDefinitionError,
+  InterfaceInitializationError,
+} from "@/utils/errors";
+
+import {
+  type InterfaceDecoratorContext,
+  type InterfaceDecoratorTarget,
 } from "@/types";
 
-import { PlatformObject } from "./PlatformObject";
-
-export { Internals } from "./PlatformObject/internals";
+import { CustomElement } from "./CustomElement";
+import { adoptInterfacePrototypeObject } from "./adoptInterfacePrototypeObject";
 
 import type { InterfaceDecorator } from "./types";
 
-function interfaceInitializer(
-  target: InterfaceDecoratorTarget,
-  context: InterfaceDecoratorContext,
-) {
-  const iface = getInterfaceDraftFromContext(context);
-
-  try {
-    const existing: unknown = WebIDLPlatformObject.getPrimaryInterfaceOf(
-      target.prototype,
-    );
-    if (existing === iface) {
-      throw new TypeError("The interface is already defined");
-    }
-
-    assertInterface(iface);
-    validateInterface(iface);
-  } catch (e) {
-    throw new InterfaceDefinitionError(iface, { cause: e });
-  }
-
-  WebIDLPlatformObject.setPrimaryInterfaceOf(target.prototype, iface);
-}
+/**
+ * Minimal ambient typing for `process.env.NODE_ENV`, used by the dev-only
+ * validation guard below. Declared locally so the guard type-checks without
+ * depending on `@types/node`. The token is not read at runtime in a shipped
+ * bundle: a consumer's bundler replaces it at build time.
+ */
+declare const process: { env: { NODE_ENV?: string } };
 
 /**
  * Decorates a class as a WebIDL interface, registering `identifier` as its
@@ -51,25 +42,61 @@ function defineInterface<T extends InterfaceDecoratorTarget>(
   identifier: string | undefined,
   target: T,
   context: InterfaceDecoratorContext,
-): T {
-  if (identifier === undefined && context.name === undefined) {
-    throw TypeError(
-      "Expected at least one identifier or context.name to be 'string'",
-    );
+): typeof target {
+  try {
+    if (identifier === undefined && context.name === undefined) {
+      throw TypeError(
+        "Expected at least one identifier or context.name to be 'string'",
+      );
+    }
+
+    const iface = getInterfaceDraftFromContext(context) as Interface;
+    iface.identifier = (identifier ?? context.name)!;
+
+    const parent = Object.getPrototypeOf(target.prototype);
+    if (parent !== null) {
+      const parentIface = InterfacePrototypeObject.getInterfaceOf(parent);
+      if (parentIface !== null) {
+        iface.inherit = parentIface;
+        Object.setPrototypeOf(iface.members, parentIface.members);
+        Object.setPrototypeOf(iface.staticMembers, parentIface.staticMembers);
+      }
+    }
+
+    context.addInitializer(function () {
+      try {
+        unnamedOperationRegistry.drop(context.metadata);
+        interfaceDraftRegistry.drop(context.metadata);
+
+        // Interface validation is expensive and only useful while authoring
+        // interfaces. Guarding it behind `process.env.NODE_ENV` lets a
+        // consumer's bundler fold this branch away in a production build and
+        // tree-shake the entire webspecs validation subtree out of the shipped
+        // output. In development the token is `"development"`, so the checks
+        // run as before. See README for the tree-shaking contract.
+        if (process.env.NODE_ENV !== "production") {
+          assertInterface(iface);
+          validateInterface(iface);
+        }
+      } catch (e) {
+        throw new InterfaceInitializationError(iface, { cause: e });
+      }
+    });
+
+    if (target.prototype instanceof HTMLElement) {
+      CustomElement(target, context);
+    }
+
+    assertNoDefinedInterface(target);
+
+    const proto = adoptInterfacePrototypeObject(target.prototype, iface);
+    return proto.constructor;
+  } catch (e) {
+    throw new InterfaceDefinitionError({ cause: e });
   }
-
-  const i = getInterfaceDraftFromContext(context);
-  i.identifier = (identifier ?? context.name)!;
-
-  context.addInitializer(interfaceInitializer.bind(undefined, target, context));
-
-  return PlatformObject(target);
 }
 
-const InterfaceDefault = defineInterface.bind(
-  undefined,
-  undefined,
-) as InterfaceDecorator;
+const InterfaceDefault = defineInterface.bind(undefined, undefined);
 
 /**
  * Decorates a class as a WebIDL interface, using the class name as the WebIDL
@@ -97,7 +124,8 @@ const InterfaceDefault = defineInterface.bind(
  * ```ts
  * \@Interface
  * class HTMLCollection {
- *   \@IndexedPropertyGetter(Nullable(Type(Element)))
+ *   \@Getter
+ *   \@Operation(Nullable(InterfaceType(Element)), [UnsignedLong])
  *   item(index: number): Element | null {
  *     // ...
  *     return value;
@@ -137,7 +165,8 @@ export function Interface<T extends InterfaceDecoratorTarget>(
  * ```ts
  * \@Interface("HTMLCollection")
  * class HTMLCollectionImpl {
- *   \@IndexedPropertyGetter(Nullable(Type(Element)))
+ *   \@Getter
+ *   \@Operation(Nullable(InterfaceType(Element)), [UnsignedLong])
  *   item(index: number): Element | null {
  *     // ...
  *     return value;
@@ -157,8 +186,7 @@ export function Interface(...args: unknown[]) {
     );
   }
 
-  return defineInterface.bind(
-    undefined,
-    args[0] as string,
-  ) as InterfaceDecorator;
+  return defineInterface.bind(undefined, args[0] as string);
 }
+
+export { Internals } from "./Internals";
