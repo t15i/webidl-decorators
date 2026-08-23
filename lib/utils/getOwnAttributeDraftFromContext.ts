@@ -2,6 +2,8 @@ import {
   getIdentifierFromContext,
   getInterfaceDraftFromContext,
   getMembersFromContext,
+  getDraftSlotKind,
+  isAttributeDraftSlot,
 } from "@/utils";
 import {
   type AttributeDecoratorContext,
@@ -40,7 +42,7 @@ export function getOwnAttributeDraftFromContext(
  * @remarks
  * Attributes are never anonymous, so a missing identifier is an error rather
  * than a valid anonymous member. When a member is already registered under the
- * identifier but is not an attribute, that too is an error — the returned
+ * identifier but is not an attribute, that too is an error - the returned
  * `attribute` is otherwise narrowed to an {@link AttributeDraft}.
  */
 export function getOwnAttributeDraftFromContext(
@@ -59,12 +61,10 @@ export function getOwnAttributeDraftFromContext(
 
   const member = Object.hasOwn(members, id) ? members[id] : undefined;
 
-  if (member) {
-    if (member?.kind !== "attribute") {
-      throw new TypeError(
-        `A ${member.kind} member '${id}' is already defined, but a WebIDL attribute was expected`,
-      );
-    }
+  if (member !== undefined && !isAttributeDraftSlot(member)) {
+    throw new TypeError(
+      `A ${getDraftSlotKind(member)} member '${id}' is already defined, but a WebIDL attribute was expected`,
+    );
   }
 
   return { id, iface, members, attribute: member };

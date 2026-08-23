@@ -1,4 +1,3 @@
-import { ReflectPositiveWithFallback as ReflectPositiveWithFallbackSymbol } from "@t15i/webspecs/html";
 import type { ReflectTriggerDecorator } from "@/types";
 
 import { createReflectTrigger } from "../createReflectTrigger";
@@ -31,6 +30,6 @@ import { createReflectTrigger } from "../createReflectTrigger";
  */
 export const ReflectPositiveWithFallback: ReflectTriggerDecorator =
   createReflectTrigger(
-    ReflectPositiveWithFallbackSymbol,
+    "reflectPositiveWithFallback",
     "limitedToOnlyPositiveNumbersWithFallback",
   );

@@ -1,4 +1,3 @@
-import { ReflectSetter as ReflectSetterSymbol } from "@t15i/webspecs/html";
 import type { Attribute, Type } from "@t15i/webspecs/webidl";
 
 import {
@@ -57,7 +56,7 @@ function defineReflectSetter<T extends Type = Type>(
 
     assertDefined(attribute, context);
 
-    attribute.extendedAttributes[ReflectSetterSymbol] = contentName;
+    attribute.extendedAttributes.reflectSetter = contentName;
 
     const setterContext =
       context.kind === "accessor"
@@ -70,7 +69,7 @@ function defineReflectSetter<T extends Type = Type>(
       setterContext,
     );
   } catch (e) {
-    throw new ExtendedAttributeDefinitionError(ReflectSetterSymbol, context, {
+    throw new ExtendedAttributeDefinitionError("ReflectSetter", context, {
       cause: e,
     });
   }

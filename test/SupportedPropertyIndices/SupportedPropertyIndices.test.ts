@@ -1,4 +1,5 @@
 import {
+  Argument,
   Attribute,
   Exposed,
   Getter,
@@ -7,7 +8,6 @@ import {
   SupportedPropertyIndices,
 } from "lib";
 
-import { SupportedPropertyIndices as SupportedPropertyIndicesSymbol } from "@t15i/webspecs/webidl";
 import { UnsignedLong } from "@t15i/webidl-types";
 
 import { describe, expect, test } from "vitest";
@@ -25,7 +25,7 @@ describe("@SupportedPropertyIndices", () => {
       }
     }
 
-    expect(getInterface(Test).members[SupportedPropertyIndicesSymbol]).toBe(
+    expect(getInterface(Test).behaviors.supportedPropertyIndices).toBe(
       Test.prototype.supportedPropertyIndices,
     );
   });
@@ -35,7 +35,7 @@ describe("@SupportedPropertyIndices", () => {
     @Interface
     class Test {
       @Getter
-      @Operation(UnsignedLong, [UnsignedLong])
+      @Operation(UnsignedLong, [Argument(UnsignedLong, "index")])
       item(index: number): number {
         return index;
       }
@@ -51,7 +51,7 @@ describe("@SupportedPropertyIndices", () => {
       }
     }
 
-    expect(getInterface(Test).members[SupportedPropertyIndicesSymbol]).toBe(
+    expect(getInterface(Test).behaviors.supportedPropertyIndices).toBe(
       Test.prototype.supportedPropertyIndices,
     );
   });

@@ -1,5 +1,4 @@
 import { Double, Long, UnsignedLong } from "@t15i/webidl-types";
-import { ReflectDefault as ReflectDefaultSymbol } from "@t15i/webspecs/html";
 
 import { getOwnAttributeDraftFromContext } from "@/utils";
 import { assertDefined, assertOneOfType } from "@/utils/assertions";
@@ -40,10 +39,10 @@ function defineReflectDefault(
 
     const valueT = attribute.type(value);
 
-    attribute.extendedAttributes[ReflectDefaultSymbol] = valueT;
+    attribute.extendedAttributes.reflectDefault = valueT;
     attribute.defaultValue = valueT;
   } catch (e) {
-    throw new ExtendedAttributeDefinitionError(ReflectDefaultSymbol, context, {
+    throw new ExtendedAttributeDefinitionError("ReflectDefault", context, {
       cause: e,
     });
   }

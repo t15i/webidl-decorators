@@ -1,11 +1,8 @@
-import { SupportedPropertyIndices as SupportedPropertyIndicesSymbol } from "@t15i/webspecs/webidl";
-
 import { defineBehavior } from "./defineBehavior";
 import type { BehaviorDecorator } from "./types";
 
-export type SupportedPropertyIndicesDecorator = BehaviorDecorator<
-  typeof SupportedPropertyIndicesSymbol
->;
+export type SupportedPropertyIndicesDecorator =
+  BehaviorDecorator<"supportedPropertyIndices">;
 
 /**
  * Defines the decorated method as the behavior to get the supported property
@@ -37,4 +34,4 @@ export type SupportedPropertyIndicesDecorator = BehaviorDecorator<
  * @see https://webidl.spec.whatwg.org/#idl-indexed-properties
  */
 export const SupportedPropertyIndices: SupportedPropertyIndicesDecorator =
-  defineBehavior.bind(undefined, SupportedPropertyIndicesSymbol);
+  defineBehavior.bind(undefined, "supportedPropertyIndices");

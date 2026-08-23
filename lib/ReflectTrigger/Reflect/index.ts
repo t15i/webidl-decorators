@@ -1,4 +1,3 @@
-import { Reflect as ReflectSymbol } from "@t15i/webspecs/html";
 import type { ReflectTriggerDecorator } from "@/types";
 
 import { createReflectTrigger } from "../createReflectTrigger";
@@ -31,5 +30,4 @@ import { createReflectTrigger } from "../createReflectTrigger";
  *
  * @see https://html.spec.whatwg.org/multipage/common-dom-interfaces.html#xattr-reflect
  */
-export const Reflect: ReflectTriggerDecorator =
-  createReflectTrigger(ReflectSymbol);
+export const Reflect: ReflectTriggerDecorator = createReflectTrigger("reflect");

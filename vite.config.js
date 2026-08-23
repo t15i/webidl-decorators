@@ -21,6 +21,7 @@ export default {
       enforce: "pre",
       include: /\.tsx?$/,
       babelConfig: {
+        sourceMaps: true,
         plugins: [
           [
             "@babel/plugin-transform-typescript",
@@ -48,7 +49,7 @@ export default {
       provider: "istanbul",
       include: ["lib/**/*.ts"],
       thresholds: {
-        90: true,
+        100: true,
       },
       reporter: "text",
     },

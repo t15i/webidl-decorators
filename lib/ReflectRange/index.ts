@@ -1,4 +1,3 @@
-import { ReflectRange as ReflectRangeSymbol } from "@t15i/webspecs/html";
 import { UnsignedLong } from "@t15i/webidl-types";
 
 import { getOwnAttributeDraftFromContext } from "@/utils";
@@ -44,10 +43,10 @@ function defineReflectRange(
 
     const range: [number, number] = [attribute.type(min), attribute.type(max)];
 
-    attribute.extendedAttributes[ReflectRangeSymbol] = range;
+    attribute.extendedAttributes.reflectRange = range;
     attribute.clampedToRange = range;
   } catch (e) {
-    throw new ExtendedAttributeDefinitionError(ReflectRangeSymbol, context, {
+    throw new ExtendedAttributeDefinitionError("ReflectRange", context, {
       cause: e,
     });
   }

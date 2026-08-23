@@ -1,4 +1,5 @@
 import {
+  Argument,
   Attribute,
   Constructor,
   Exposed,
@@ -10,14 +11,6 @@ import {
   SupportedPropertyNames,
 } from "lib";
 
-import {
-  ExistingIndexedPropertySetter as ExistingIndexedPropertySetterSymbol,
-  ExistingNamedPropertySetter as ExistingNamedPropertySetterSymbol,
-  IndexedPropertySetter as IndexedPropertySetterSymbol,
-  NamedPropertySetter as NamedPropertySetterSymbol,
-  NewIndexedPropertySetter as NewIndexedPropertySetterSymbol,
-  NewNamedPropertySetter as NewNamedPropertySetterSymbol,
-} from "@t15i/webspecs/webidl";
 import {
   Boolean,
   DOMString,
@@ -37,13 +30,16 @@ describe("@Setter", () => {
       @Constructor
       class Test {
         @Getter
-        @Operation(UnsignedLong, [UnsignedLong])
+        @Operation(UnsignedLong, [Argument(UnsignedLong, "index")])
         item(i: number) {
           return i;
         }
 
         @Setter
-        @Operation(Undefined, [UnsignedLong, UnsignedLong])
+        @Operation(Undefined, [
+          Argument(UnsignedLong, "index"),
+          Argument(UnsignedLong, "value"),
+        ])
         indexedPropertySetter(i: number, v: number): undefined {
           void i;
           void v;
@@ -61,8 +57,7 @@ describe("@Setter", () => {
       }
 
       const instance = new Test();
-      const operation =
-        getInterface(Test).members[IndexedPropertySetterSymbol]!;
+      const operation = getInterface(Test).indexedPropertySetter!;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const methodSteps = Test.prototype.indexedPropertySetter as any;
 
@@ -71,8 +66,16 @@ describe("@Setter", () => {
       expect(operation.keywords.has("setter")).toBe(true);
       expect(operation.identifier).toBe("indexedPropertySetter");
       expect(operation.returnType).toBe(Undefined);
-      expect(operation.arguments[0]).toEqual({ type: UnsignedLong });
-      expect(operation.arguments[1]).toEqual({ type: UnsignedLong });
+      expect(operation.arguments[0]).toEqual({
+        type: UnsignedLong,
+        identifier: "index",
+        keywords: new Set(),
+      });
+      expect(operation.arguments[1]).toEqual({
+        type: UnsignedLong,
+        identifier: "value",
+        keywords: new Set(),
+      });
       expect(typeof operation.methodSteps).toBe("function");
       expect(methodSteps.length).toBe(2);
       expect(methodSteps.name).toBe("indexedPropertySetter");
@@ -93,13 +96,16 @@ describe("@Setter", () => {
       @Interface
       class Test {
         @Getter
-        @Operation(UnsignedLong, [UnsignedLong])
+        @Operation(UnsignedLong, [Argument(UnsignedLong, "index")])
         item(i: number) {
           return i;
         }
 
         @Setter
-        @Operation(Undefined, [UnsignedLong, UnsignedLong])
+        @Operation(Undefined, [
+          Argument(UnsignedLong, "index"),
+          Argument(UnsignedLong, "value"),
+        ])
         indexedPropertySetter(k: number, v: number): undefined {
           void (k + v);
         }
@@ -117,11 +123,9 @@ describe("@Setter", () => {
 
       const i = getInterface(Test);
 
-      expect(i.members[IndexedPropertySetterSymbol]!.identifier).toBe(
-        "indexedPropertySetter",
-      );
-      expect(i.members[NewIndexedPropertySetterSymbol]).toBeUndefined();
-      expect(i.members[ExistingIndexedPropertySetterSymbol]).toBeUndefined();
+      expect(i.indexedPropertySetter!.identifier).toBe("indexedPropertySetter");
+      expect(i.behaviors.newIndexedPropertySetter).toBeUndefined();
+      expect(i.behaviors.existingIndexedPropertySetter).toBeUndefined();
     });
 
     test("should register the behaviors to set the value of a new and existing indexed property for an anonymous setter", () => {
@@ -131,13 +135,16 @@ describe("@Setter", () => {
       @Interface
       class Test {
         @Getter
-        @Operation(UnsignedLong, [UnsignedLong])
+        @Operation(UnsignedLong, [Argument(UnsignedLong, "index")])
         item(i: number) {
           return i;
         }
 
         @Setter
-        @Operation(Undefined, [UnsignedLong, UnsignedLong])
+        @Operation(Undefined, [
+          Argument(UnsignedLong, "index"),
+          Argument(UnsignedLong, "value"),
+        ])
         [anonymous](k: number, v: number): undefined {
           void (k + v);
         }
@@ -155,14 +162,12 @@ describe("@Setter", () => {
 
       const i = getInterface(Test);
 
-      expect(
-        i.members[IndexedPropertySetterSymbol]!.identifier,
-      ).toBeUndefined();
-      expect(i.members[NewIndexedPropertySetterSymbol]).toBe(
-        i.members[IndexedPropertySetterSymbol]!.methodSteps,
+      expect(i.indexedPropertySetter!.identifier).toBeUndefined();
+      expect(i.behaviors.newIndexedPropertySetter).toBe(
+        i.indexedPropertySetter!.methodSteps,
       );
-      expect(i.members[ExistingIndexedPropertySetterSymbol]).toBe(
-        i.members[IndexedPropertySetterSymbol]!.methodSteps,
+      expect(i.behaviors.existingIndexedPropertySetter).toBe(
+        i.indexedPropertySetter!.methodSteps,
       );
     });
   });
@@ -174,13 +179,16 @@ describe("@Setter", () => {
       @Constructor
       class Test {
         @Getter
-        @Operation(DOMString, [DOMString])
+        @Operation(DOMString, [Argument(DOMString, "name")])
         namedItem(name: string): string {
           return name;
         }
 
         @Setter
-        @Operation(Undefined, [DOMString, DOMString])
+        @Operation(Undefined, [
+          Argument(DOMString, "name"),
+          Argument(DOMString, "value"),
+        ])
         namedPropertySetter(name: string, value: string): undefined {
           void name;
           void value;
@@ -193,7 +201,7 @@ describe("@Setter", () => {
       }
 
       const instance = new Test();
-      const operation = getInterface(Test).members[NamedPropertySetterSymbol]!;
+      const operation = getInterface(Test).namedPropertySetter!;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const methodSteps = Test.prototype.namedPropertySetter as any;
 
@@ -202,8 +210,16 @@ describe("@Setter", () => {
       expect(operation.keywords.has("setter")).toBe(true);
       expect(operation.identifier).toBe("namedPropertySetter");
       expect(operation.returnType).toBe(Undefined);
-      expect(operation.arguments[0]).toEqual({ type: DOMString });
-      expect(operation.arguments[1]).toEqual({ type: DOMString });
+      expect(operation.arguments[0]).toEqual({
+        type: DOMString,
+        identifier: "name",
+        keywords: new Set(),
+      });
+      expect(operation.arguments[1]).toEqual({
+        type: DOMString,
+        identifier: "value",
+        keywords: new Set(),
+      });
       expect(typeof operation.methodSteps).toBe("function");
       expect(methodSteps.length).toBe(2);
       expect(methodSteps.name).toBe("namedPropertySetter");
@@ -224,13 +240,16 @@ describe("@Setter", () => {
       @Interface
       class Test {
         @Getter
-        @Operation(DOMString, [DOMString])
+        @Operation(DOMString, [Argument(DOMString, "name")])
         namedItem(name: string): string {
           return name;
         }
 
         @Setter
-        @Operation(Boolean, [DOMString, DOMString])
+        @Operation(Boolean, [
+          Argument(DOMString, "name"),
+          Argument(DOMString, "value"),
+        ])
         namedPropertySetter(k: string, v: string): boolean {
           void (k + v);
           return true;
@@ -242,7 +261,7 @@ describe("@Setter", () => {
         }
       }
 
-      const operation = getInterface(Test).members[NamedPropertySetterSymbol]!;
+      const operation = getInterface(Test).namedPropertySetter!;
 
       expect(operation.returnType).toBe(Boolean);
     });
@@ -252,13 +271,16 @@ describe("@Setter", () => {
       @Interface
       class Test {
         @Getter
-        @Operation(DOMString, [DOMString])
+        @Operation(DOMString, [Argument(DOMString, "name")])
         namedItem(name: string): string {
           return name;
         }
 
         @Setter
-        @Operation(Undefined, [DOMString, DOMString])
+        @Operation(Undefined, [
+          Argument(DOMString, "name"),
+          Argument(DOMString, "value"),
+        ])
         namedPropertySetter(k: string, v: string): undefined {
           void (k + v);
         }
@@ -271,11 +293,9 @@ describe("@Setter", () => {
 
       const i = getInterface(Test);
 
-      expect(i.members[NamedPropertySetterSymbol]!.identifier).toBe(
-        "namedPropertySetter",
-      );
-      expect(i.members[NewNamedPropertySetterSymbol]).toBeUndefined();
-      expect(i.members[ExistingNamedPropertySetterSymbol]).toBeUndefined();
+      expect(i.namedPropertySetter!.identifier).toBe("namedPropertySetter");
+      expect(i.behaviors.newNamedPropertySetter).toBeUndefined();
+      expect(i.behaviors.existingNamedPropertySetter).toBeUndefined();
     });
 
     test("should register the behaviors to set the value of a new and existing named property for an anonymous setter", () => {
@@ -285,13 +305,16 @@ describe("@Setter", () => {
       @Interface
       class Test {
         @Getter
-        @Operation(DOMString, [DOMString])
+        @Operation(DOMString, [Argument(DOMString, "name")])
         namedItem(name: string): string {
           return name;
         }
 
         @Setter
-        @Operation(Undefined, [DOMString, DOMString])
+        @Operation(Undefined, [
+          Argument(DOMString, "name"),
+          Argument(DOMString, "value"),
+        ])
         [anonymous](k: string, v: string): undefined {
           void (k + v);
         }
@@ -304,14 +327,36 @@ describe("@Setter", () => {
 
       const i = getInterface(Test);
 
-      expect(i.members[NamedPropertySetterSymbol]!.identifier).toBeUndefined();
-      expect(i.members[NewNamedPropertySetterSymbol]).toBe(
-        i.members[NamedPropertySetterSymbol]!.methodSteps,
+      expect(i.namedPropertySetter!.identifier).toBeUndefined();
+      expect(i.behaviors.newNamedPropertySetter).toBe(
+        i.namedPropertySetter!.methodSteps,
       );
-      expect(i.members[ExistingNamedPropertySetterSymbol]).toBe(
-        i.members[NamedPropertySetterSymbol]!.methodSteps,
+      expect(i.behaviors.existingNamedPropertySetter).toBe(
+        i.namedPropertySetter!.methodSteps,
       );
     });
+  });
+
+  test("should leave an operation taking no arguments unmarked as a setter", () => {
+    expect(() => {
+      @Exposed("Window")
+      @Interface
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      class Test {
+        @Setter
+        @Operation(Undefined)
+        setItem(): undefined {
+          return;
+        }
+      }
+    }).toThrow(
+      expect.objectContaining({
+        cause: expect.objectContaining({
+          message:
+            "This operation is declared as a special operation but, taking no arguments, matches no getter, setter, or deleter declaration.",
+        }),
+      }),
+    );
   });
 
   test("should reject a @Setter without a preceding @Operation", () => {

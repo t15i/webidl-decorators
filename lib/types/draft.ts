@@ -1,8 +1,9 @@
-import type { PropertyKey } from "@t15i/webspecs/ecma";
 import type {
   Attribute,
   ConstructorOperation,
+  Identifier,
   Interface,
+  InterfaceBehaviors,
   InterfaceExtendedAttributes,
   InterfaceMembers,
   InterfaceStaticMembers,
@@ -22,8 +23,8 @@ export type InterfaceDraftExtendedAttributes = {
 
 /**
  * A draft of a WebIDL definition `T`: the same shape as the finished
- * definition, but with the fields `K` — the parts the drafting process has
- * not necessarily produced yet — optional. Every other field stays required.
+ * definition, but with the fields `K` - the parts the drafting process has
+ * not necessarily produced yet - optional. Every other field stays required.
  *
  * @remarks
  * A draft is explicit about what may be missing: only the fields listed in
@@ -39,8 +40,8 @@ export type Draft<T, K extends keyof T = never> = Omit<T, K> &
  * with the `getterSteps` and `setterSteps` fields optional.
  *
  * @remarks
- * Decorators build attributes up incrementally — a getter registers an
- * attribute without its setter steps, a later setter extends it in place — so
+ * Decorators build attributes up incrementally - a getter registers an
+ * attribute without its setter steps, a later setter extends it in place - so
  * until the enclosing class is finalized by {@link Interface} either accessor
  * steps may still be missing. Everything else is derived from the WebIDL
  * type and the decorator context up front.
@@ -67,28 +68,35 @@ export type ConstructorOperationDraft<Args extends Type[] = Type[]> = Draft<
 >;
 
 /**
- * A draft of a named WebIDL interface member — one registered under an
- * identifier. A constructor operation is keyed by the fixed `"constructor"`
- * slot rather than an identifier, so it is not part of this union; see
- * {@link ConstructorOperationDraft}.
+ * A draft of a single WebIDL interface member: one attribute, one of the
+ * operations overloaded under a single identifier, or one of the constructor
+ * operations overloaded under the fixed `"constructor"` slot - never the slot
+ * that holds them, for which see {@link InterfaceDraftMemberSlot}.
  */
 export type MemberDraft =
   AttributeDraft | OperationDraft | ConstructorOperationDraft;
 
 /**
  * Maps a member-table slot to its draft: an attribute to its
- * {@link AttributeDraft} and an operation to its {@link OperationDraft},
- * preserving the member's type parameters; behavior functions are registered
- * whole and keep their shape.
+ * {@link AttributeDraft}, and the overloads held under one identifier to the
+ * list of their {@link OperationDraft}s.
  */
 type MemberSlotDraft<V> =
   V extends Attribute<infer T extends Type>
     ? AttributeDraft<T>
-    : V extends Operation<infer Args, infer Return>
-      ? OperationDraft<Args, Return>
-      : V;
+    : V extends Operation[]
+      ? OperationDraft[]
+      : V extends ConstructorOperation[]
+        ? ConstructorOperationDraft[]
+        : V;
 
-export type InterfaceDraftSpecialMembers = Record<PropertyKey, OperationDraft>;
+/**
+ * One slot of an {@link InterfaceDraft}'s member table: an attribute, or the
+ * operations overloaded under a single identifier.
+ */
+export type InterfaceDraftMemberSlot = MemberSlotDraft<
+  InterfaceMembers[Identifier]
+>;
 
 /**
  * The member table of an {@link InterfaceDraft}: the same slots as
@@ -109,11 +117,36 @@ export type InterfaceDraftStaticMembers = {
 };
 
 /**
+ * The behavior table of an {@link InterfaceDraft}: the same shape as
+ * {@link InterfaceBehaviors}, whose entries are all optional already, since an
+ * interface supplies only the algorithms its members call for.
+ */
+export type InterfaceDraftBehaviors = InterfaceBehaviors;
+
+/**
+ * The fields of {@link Interface} that hold a special operation - one field per
+ * variety, since a special operation carries no identifier to be keyed by.
+ */
+export type SpecialOperationVariety = {
+  [K in keyof Interface]-?: NonNullable<Interface[K]> extends Operation
+    ? K
+    : never;
+}[keyof Interface];
+
+/**
+ * The special operations of an {@link InterfaceDraft}: the same fields as on
+ * {@link Interface}, each holding an {@link OperationDraft}.
+ */
+export type InterfaceDraftSpecialOperations = {
+  [K in SpecialOperationVariety]?: OperationDraft;
+};
+
+/**
  * A draft of a WebIDL interface: the same shape as {@link Interface}, but
  * with the `identifier` optional and the member tables holding member
- * drafts. The `extendedAttributes`, `members`, and `staticMembers`
- * containers are created up front by the {@link interfaceDraftRegistry} that
- * hands out the draft.
+ * drafts. The `extendedAttributes`, `behaviors`, `members`, and
+ * `staticMembers` containers are created up front by the
+ * {@link interfaceDraftRegistry} that hands out the draft.
  *
  * @remarks
  * A draft is what member decorators accumulate their definitions into while
@@ -122,11 +155,22 @@ export type InterfaceDraftStaticMembers = {
  * {@link Interface} decorator validates the finished draft and narrows it to
  * a complete {@link Interface} before associating it with the class.
  */
-export interface InterfaceDraft extends Draft<
-  Omit<Interface, "extendedAttributes" | "members" | "staticMembers">,
-  "identifier"
-> {
+export interface InterfaceDraft
+  extends
+    Draft<
+      Omit<
+        Interface,
+        | "extendedAttributes"
+        | "behaviors"
+        | "members"
+        | "staticMembers"
+        | SpecialOperationVariety
+      >,
+      "identifier"
+    >,
+    InterfaceDraftSpecialOperations {
   extendedAttributes: InterfaceDraftExtendedAttributes;
+  behaviors: InterfaceDraftBehaviors;
   members: InterfaceDraftMembers;
   staticMembers: InterfaceDraftStaticMembers;
 }

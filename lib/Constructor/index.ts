@@ -3,7 +3,6 @@ import { type ArgumentList, type Type } from "@t15i/webspecs/webidl";
 import {
   createConstructorFromContext,
   getInterfaceDraftFromContext,
-  toArgumentList,
 } from "@/utils";
 
 import {
@@ -19,7 +18,7 @@ import type { ConstructorDecorator } from "./types";
  * @remarks
  * Builds a constructor operation draft from `context`, the decorated class, and
  * `args`, and stores it under the fixed `"constructor"` key of the interface's
- * regular (non-static) members — a constructor operation has no identifier, so
+ * regular (non-static) members - a constructor operation has no identifier, so
  * it is keyed by that slot rather than by name.
  *
  * Nothing is returned: the decorated class is left in place, and `Interface`
@@ -39,8 +38,8 @@ function defineConstructor<Params extends Type[]>(
   // `iface.members.constructor` resolves in the type system to the built-in
   // `Object.prototype.constructor` slot rather than the member-table index
   // signature, so the write is routed through the index signature by way of a
-  // widened key — storing the operation under the fixed `"constructor"` key.
-  iface.members["constructor" as string] = constructorOperation;
+  // widened key - storing the operation under the fixed `"constructor"` key.
+  iface.members["constructor" as string] = [constructorOperation];
 }
 
 const DefaultConstructor = defineConstructor.bind(undefined, []);
@@ -73,10 +72,11 @@ export function Constructor(
 
 /**
  * Creates a decorator that defines the decorated class's constructor as the
- * WebIDL constructor operation of the WebIDL interface, with `params` as the
- * tuple of the constructor's argument types.
+ * WebIDL constructor operation of the WebIDL interface, with `args` as the
+ * constructor's argument list.
  *
- * @param params - The tuple of the constructor's WebIDL argument types.
+ * @param args - The constructor's WebIDL argument list, each argument built
+ *   with {@link Argument} and optionally wrapped in {@link Optional}.
  *
  * @remarks
  * The decorator is applied to the class, alongside {@link Interface}. Unlike
@@ -90,7 +90,7 @@ export function Constructor(
  * @example
  * ```ts
  * \@Interface
- * \@Constructor([DOMString])
+ * \@Constructor([Argument(DOMString, "name")])
  * class Thing {
  *   constructor(name: string) {
  *     // ...
@@ -101,7 +101,7 @@ export function Constructor(
  * @see https://webidl.spec.whatwg.org/#idl-constructors
  */
 export function Constructor<Params extends Type[]>(
-  params: [...Params],
+  args: ArgumentList<Params>,
 ): ConstructorDecorator<Params>;
 
 export function Constructor<Params extends Type[] = Type[]>(
@@ -115,5 +115,5 @@ export function Constructor<Params extends Type[] = Type[]>(
   }
 
   const defineConstructorT = defineConstructor<Params>;
-  return defineConstructorT.bind(undefined, toArgumentList(args[0] as Params));
+  return defineConstructorT.bind(undefined, args[0] as ArgumentList<Params>);
 }

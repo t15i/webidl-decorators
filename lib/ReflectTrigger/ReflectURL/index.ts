@@ -1,4 +1,3 @@
-import { ReflectURL as ReflectURLSymbol } from "@t15i/webspecs/html";
 import type { ReflectTriggerDecorator } from "@/types";
 
 import { createReflectTrigger } from "../createReflectTrigger";
@@ -30,6 +29,6 @@ import { createReflectTrigger } from "../createReflectTrigger";
  * @see https://html.spec.whatwg.org/multipage/common-dom-interfaces.html#xattr-reflecturl
  */
 export const ReflectURL: ReflectTriggerDecorator = createReflectTrigger(
-  ReflectURLSymbol,
+  "reflectUrl",
   "treatedAsURL",
 );

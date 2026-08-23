@@ -1,11 +1,8 @@
-import { IndexedPropertyDeterminator as IndexedPropertyDeterminatorSymbol } from "@t15i/webspecs/webidl";
-
 import { defineBehavior } from "./defineBehavior";
 import type { BehaviorDecorator } from "./types";
 
-export type IndexedPropertyDeterminatorDecorator = BehaviorDecorator<
-  typeof IndexedPropertyDeterminatorSymbol
->;
+export type IndexedPropertyDeterminatorDecorator =
+  BehaviorDecorator<"indexedPropertyDeterminator">;
 
 /**
  * Defines the decorated method as the behavior to determine the value of an
@@ -37,4 +34,4 @@ export type IndexedPropertyDeterminatorDecorator = BehaviorDecorator<
  * @see https://webidl.spec.whatwg.org/#dfn-determine-the-value-of-an-indexed-property
  */
 export const IndexedPropertyDeterminator: IndexedPropertyDeterminatorDecorator =
-  defineBehavior.bind(undefined, IndexedPropertyDeterminatorSymbol);
+  defineBehavior.bind(undefined, "indexedPropertyDeterminator");

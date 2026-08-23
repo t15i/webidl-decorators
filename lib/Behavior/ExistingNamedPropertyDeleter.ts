@@ -1,11 +1,8 @@
-import { ExistingNamedPropertyDeleter as ExistingNamedPropertyDeleterSymbol } from "@t15i/webspecs/webidl";
-
 import { defineBehavior } from "./defineBehavior";
 import type { BehaviorDecorator } from "./types";
 
-export type ExistingNamedPropertyDeleterDecorator = BehaviorDecorator<
-  typeof ExistingNamedPropertyDeleterSymbol
->;
+export type ExistingNamedPropertyDeleterDecorator =
+  BehaviorDecorator<"existingNamedPropertyDeleter">;
 
 /**
  * Defines the decorated method as the behavior to delete an existing named
@@ -36,4 +33,4 @@ export type ExistingNamedPropertyDeleterDecorator = BehaviorDecorator<
  * @see https://webidl.spec.whatwg.org/#dfn-delete-an-existing-named-property
  */
 export const ExistingNamedPropertyDeleter: ExistingNamedPropertyDeleterDecorator =
-  defineBehavior.bind(undefined, ExistingNamedPropertyDeleterSymbol);
+  defineBehavior.bind(undefined, "existingNamedPropertyDeleter");

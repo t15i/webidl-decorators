@@ -1,4 +1,5 @@
-import { Exposed, type Interface } from "@t15i/webspecs/webidl";
+import type { Interface } from "@t15i/webspecs/webidl";
+import { isAttributeDraftSlot } from "@/utils";
 import type { InterfaceDraft } from "@/types";
 
 /**
@@ -17,22 +18,30 @@ import type { InterfaceDraft } from "@/types";
 export function assertInterface(
   draft: InterfaceDraft,
 ): asserts draft is Interface {
-  if (!(Exposed in draft.extendedAttributes)) {
+  if (draft.extendedAttributes.exposed === undefined) {
     throw new TypeError(
       "An interface must be exposed on at least one global; apply @Exposed",
     );
   }
 
-  if (!("identifier" in draft)) {
+  // An own key, not `in`: a draft inherits from the interface its class extends,
+  // so `in` would find the parent's identifier on a draft that has none.
+  if (!Object.hasOwn(draft, "identifier")) {
     throw new TypeError("An interface must have an identifier");
   }
 
   for (const members of [draft.staticMembers, draft.members]) {
     for (const memberId of Object.keys(members)) {
-      const member = members[memberId]!;
-      if (member.kind === "attribute" && !("getterSteps" in member)) {
+      const slot = members[memberId]!;
+
+      // Only an attribute can be missing the steps that make it complete.
+      if (!isAttributeDraftSlot(slot)) {
+        continue;
+      }
+
+      if (!("getterSteps" in slot)) {
         throw new TypeError(
-          `The attribute '${member.identifier}' must define a getter`,
+          `The attribute '${slot.identifier}' must define a getter`,
         );
       }
     }

@@ -1,10 +1,4 @@
 import {
-  ExistingIndexedPropertySetter as ExistingIndexedPropertySetter,
-  NewIndexedPropertySetter as NewIndexedPropertySetter,
-  IndexedPropertySetter as IndexedPropertySetterSymbol,
-  ExistingNamedPropertySetter as ExistingNamedPropertySetter,
-  NewNamedPropertySetter as NewNamedPropertySetter,
-  NamedPropertySetter as NamedPropertySetterSymbol,
   isDOMStringType,
   isUnsignedLongType,
   type DOMStringType,
@@ -12,7 +6,10 @@ import {
   type UnsignedLongType,
 } from "@t15i/webspecs/webidl";
 
-import { getOwnOperationDraftFromContext } from "@/utils";
+import {
+  getOverloadFromTarget,
+  getOwnOperationSlotDraftFromContext,
+} from "@/utils";
 import { assertDefined } from "@/utils/assertions";
 import { SpecialOperationDefinitionError } from "@/utils/errors";
 
@@ -24,7 +21,7 @@ import type {
 
 /**
  * Marks the decorated operation as the `[IndexedPropertySetter]` of the WebIDL
- * interface — the internal method invoked when a value is written to an indexed
+ * interface - the internal method invoked when a value is written to an indexed
  * property of an instance.
  *
  * @param target - The decorated method.
@@ -46,7 +43,7 @@ import type {
  * \@Interface
  * class DOMStringList {
  *   \@Setter
- *   \@Operation(Undefined, [UnsignedLong, DOMString])
+ *   \@Operation(Undefined, [Argument(UnsignedLong, "index"), Argument(DOMString, "value")])
  *   setItem(index: number, value: string): undefined {
  *     // ...
  *   }
@@ -62,7 +59,7 @@ export function Setter(
 
 /**
  * Marks the decorated operation as the `[NamedPropertySetter]` of the WebIDL
- * interface — the internal method invoked when a value is written to a named
+ * interface - the internal method invoked when a value is written to a named
  * property of an instance.
  *
  * @param target - The decorated method.
@@ -84,7 +81,7 @@ export function Setter(
  * \@Interface
  * class Storage {
  *   \@Setter
- *   \@Operation(Undefined, [DOMString, DOMString])
+ *   \@Operation(Undefined, [Argument(DOMString, "key"), Argument(DOMString, "value")])
  *   setItem(key: string, value: string): undefined {
  *     // ...
  *   }
@@ -99,7 +96,7 @@ export function Setter(
 ): void;
 
 export function Setter(
-  _:
+  target:
     | OperationDecoratorTarget<[UnsignedLongType, Type], Type>
     | OperationDecoratorTarget<[DOMStringType, Type], Type>,
   context:
@@ -107,9 +104,11 @@ export function Setter(
     | Special<OperationDecoratorContext<[DOMStringType, Type], Type>>,
 ): void {
   try {
-    const { iface, operation: op } = getOwnOperationDraftFromContext(context);
+    const { iface, slot } = getOwnOperationSlotDraftFromContext(context);
 
-    assertDefined(op, context);
+    assertDefined(slot, context);
+
+    const op = getOverloadFromTarget(slot, target);
 
     op.keywords.add("setter");
 
@@ -118,18 +117,18 @@ export function Setter(
     }
 
     if (isUnsignedLongType(op.arguments[0]!.type)) {
-      iface.members[IndexedPropertySetterSymbol] = op;
+      iface.indexedPropertySetter = op;
       if (op.identifier === undefined) {
-        iface.members[ExistingIndexedPropertySetter] ??= op.methodSteps;
-        iface.members[NewIndexedPropertySetter] ??= op.methodSteps;
+        iface.behaviors.existingIndexedPropertySetter ??= op.methodSteps;
+        iface.behaviors.newIndexedPropertySetter ??= op.methodSteps;
       }
     }
 
     if (isDOMStringType(op.arguments[0]!.type)) {
-      iface.members[NamedPropertySetterSymbol] = op;
+      iface.namedPropertySetter = op;
       if (op.identifier === undefined) {
-        iface.members[ExistingNamedPropertySetter] ??= op.methodSteps;
-        iface.members[NewNamedPropertySetter] ??= op.methodSteps;
+        iface.behaviors.existingNamedPropertySetter ??= op.methodSteps;
+        iface.behaviors.newNamedPropertySetter ??= op.methodSteps;
       }
     }
   } catch (e) {

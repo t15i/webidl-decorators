@@ -8,7 +8,9 @@ import {
 } from "lib";
 
 import {
+  Annotated,
   Boolean as BooleanType,
+  Clamp,
   DOMString,
   Double,
   FrozenArray,
@@ -331,6 +333,38 @@ describe("@Reflect", () => {
     }).toThrow(TypeError);
   });
 
+  test("throws when applied to a nullable type that is not reflectable", () => {
+    expect(() => {
+      @Exposed("Window")
+      @Interface("ReflectUnsupportedNullable")
+      @Constructor
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      class ReflectUnsupportedNullable extends HTMLElement {
+        @Reflect
+        @Attribute(Nullable(Long))
+        accessor foo: number | null = null;
+      }
+    }).toThrow(TypeError);
+  });
+
+  test("names the decorated member as static when applied to a static accessor", () => {
+    expect(() => {
+      @Exposed("Window")
+      @Interface("ReflectStatic")
+      @Constructor
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      class ReflectStatic extends HTMLElement {
+        // @ts-expect-error static members are rejected at compile time; the
+        // decorator is exported to untyped callers too, so the failure has to
+        // be reported at runtime as well.
+        @Reflect
+        static accessor foo: string = "";
+      }
+    }).toThrow(
+      "Cannot apply the [Reflect] extended attribute to static member 'foo'",
+    );
+  });
+
   test("invalidates the cached getter when the content attribute changes externally", () => {
     @Exposed("Window")
     @Interface("ReflectCacheInvalidation")
@@ -479,6 +513,69 @@ describe("@Reflect", () => {
     expect(changes).toContainEqual(["foo", null, "bar"]);
   });
 
+  test("normalizes the namespace of a namespaced content attribute change", () => {
+    const NAMESPACE = "http://example.com/ns";
+    const changes: (string | null)[][] = [];
+
+    @Exposed("Window")
+    @Interface("ReflectWithNamespacedChange")
+    @Constructor
+    class ReflectWithNamespacedChange extends HTMLElement {
+      @Reflect
+      @Attribute(DOMString)
+      accessor foo: string = "";
+
+      attributeChangedCallback(
+        name: string,
+        oldValue: string | null,
+        newValue: string | null,
+        namespace: string | null,
+      ): void {
+        changes.push([name, oldValue, newValue, namespace]);
+      }
+    }
+
+    customElements.define(
+      "reflect-with-namespaced-change",
+      ReflectWithNamespacedChange,
+    );
+    const el = document.createElement(
+      "reflect-with-namespaced-change",
+    ) as ReflectWithNamespacedChange;
+
+    // A content attribute in a namespace still reaches the callback, with its
+    // namespace passed through rather than dropped. Reflection reads the
+    // null-namespace attribute, so the IDL attribute is left alone.
+    el.setAttributeNS(NAMESPACE, "foo", "bar");
+
+    expect(el.foo).toBe("");
+    expect(changes).toContainEqual(["foo", null, "bar", NAMESPACE]);
+  });
+
+  test("reflects an annotated IDL type through its underlying type", () => {
+    @Exposed("Window")
+    @Interface("ReflectAnnotatedLong")
+    @Constructor
+    class ReflectAnnotatedLong extends HTMLElement {
+      // The annotation does not hide the reflectable type beneath it: the
+      // dispatch unwraps `[Clamp] long` and reflects it as a long.
+      @Reflect
+      @Attribute(Annotated({ [Clamp]: null }, Long))
+      accessor foo: number = 0;
+    }
+
+    customElements.define("reflect-annotated-long", ReflectAnnotatedLong);
+    const el = document.createElement(
+      "reflect-annotated-long",
+    ) as ReflectAnnotatedLong;
+
+    el.foo = 12;
+    expect(el.getAttribute("foo")).toBe("12");
+
+    el.setAttribute("foo", "34");
+    expect(el.foo).toBe(34);
+  });
+
   test("merges reflected content attributes into a static getter observedAttributes", () => {
     @Exposed("Window")
     @Interface("ReflectWithObservedGetter")
@@ -507,6 +604,38 @@ describe("@Reflect", () => {
     const el = document.createElement(
       "reflect-with-observed-getter",
     ) as ReflectWithObservedGetter;
+
+    el.setAttribute("foo", "bar");
+    expect(el.foo).toBe("bar");
+  });
+
+  test("merges reflected content attributes into a static getter that observes nothing", () => {
+    @Exposed("Window")
+    @Interface("ReflectWithEmptyObservedGetter")
+    @Constructor
+    class ReflectWithEmptyObservedGetter extends HTMLElement {
+      @Reflect
+      @Attribute(DOMString)
+      accessor foo: string = "";
+
+      // The wrapper tolerates a getter that yields nothing, so the reflected
+      // content attribute is still observed.
+      static get observedAttributes(): string[] {
+        return undefined as unknown as string[];
+      }
+    }
+
+    expect([...ReflectWithEmptyObservedGetter.observedAttributes]).toEqual([
+      "foo",
+    ]);
+
+    customElements.define(
+      "reflect-with-empty-observed-getter",
+      ReflectWithEmptyObservedGetter,
+    );
+    const el = document.createElement(
+      "reflect-with-empty-observed-getter",
+    ) as ReflectWithEmptyObservedGetter;
 
     el.setAttribute("foo", "bar");
     expect(el.foo).toBe("bar");

@@ -1,11 +1,8 @@
-import { NewNamedPropertySetter as NewNamedPropertySetterSymbol } from "@t15i/webspecs/webidl";
-
 import { defineBehavior } from "./defineBehavior";
 import type { BehaviorDecorator } from "./types";
 
-export type NewNamedPropertySetterDecorator = BehaviorDecorator<
-  typeof NewNamedPropertySetterSymbol
->;
+export type NewNamedPropertySetterDecorator =
+  BehaviorDecorator<"newNamedPropertySetter">;
 
 /**
  * Defines the decorated method as the behavior to set the value of a new
@@ -36,4 +33,4 @@ export type NewNamedPropertySetterDecorator = BehaviorDecorator<
  * @see https://webidl.spec.whatwg.org/#idl-named-properties
  */
 export const NewNamedPropertySetter: NewNamedPropertySetterDecorator =
-  defineBehavior.bind(undefined, NewNamedPropertySetterSymbol);
+  defineBehavior.bind(undefined, "newNamedPropertySetter");

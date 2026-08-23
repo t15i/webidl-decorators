@@ -28,7 +28,7 @@ export class SpecialOperationDefinitionError extends TypeError {
     const identifier = getIdentifierFromContext(context);
     const named = identifier !== undefined ? ` '${identifier}'` : "";
 
-    super(`Cannot define ${kind} ${named}`, options);
+    super(`Cannot define ${kind}${named}`, options);
 
     this.name = "SpecialOperationDefinitionError";
   }

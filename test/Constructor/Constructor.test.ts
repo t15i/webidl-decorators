@@ -1,8 +1,8 @@
-import { Constructor, Exposed, Interface } from "lib";
+import { Argument, Constructor, Exposed, Interface } from "lib";
 
 import { DOMString, UnsignedLong } from "@t15i/webidl-types";
 
-import { getOwnConstructorOperation } from "@t15i/webspecs/webidl";
+import { getOwnConstructorOperations } from "@t15i/webspecs/webidl";
 
 import { describe, expect, test } from "vitest";
 
@@ -12,7 +12,7 @@ describe("@Constructor", () => {
   test("should register a constructor operation under the 'constructor' key of the regular members", () => {
     @Exposed("Window")
     @Interface
-    @Constructor([DOMString])
+    @Constructor([Argument(DOMString, "name")])
     class Test {
       constructor(name: string) {
         void name;
@@ -20,14 +20,16 @@ describe("@Constructor", () => {
     }
 
     const iface = getInterface(Test);
-    const operation = getOwnConstructorOperation(iface)!;
+    const operation = getOwnConstructorOperations(iface)[0]!;
 
     expect(operation).toBeDefined();
     expect(operation.kind).toBe("constructor");
-    expect(operation.arguments).toEqual([{ type: DOMString }]);
+    expect(operation.arguments).toEqual([
+      { type: DOMString, identifier: "name", keywords: new Set() },
+    ]);
     expect(typeof operation.constructorSteps).toBe("function");
 
-    // No identifier and no return type — a constructor operation carries
+    // No identifier and no return type - a constructor operation carries
     // neither, unlike a regular operation.
     expect("identifier" in operation).toBe(false);
     expect("returnType" in operation).toBe(false);
@@ -36,7 +38,7 @@ describe("@Constructor", () => {
   test("should support multiple arguments", () => {
     @Exposed("Window")
     @Interface
-    @Constructor([DOMString, UnsignedLong])
+    @Constructor([Argument(DOMString, "key"), Argument(UnsignedLong, "value")])
     class Test {
       constructor(key: string, value: number) {
         void key;
@@ -44,11 +46,11 @@ describe("@Constructor", () => {
       }
     }
 
-    const operation = getOwnConstructorOperation(getInterface(Test))!;
+    const operation = getOwnConstructorOperations(getInterface(Test))[0]!;
 
     expect(operation.arguments).toEqual([
-      { type: DOMString },
-      { type: UnsignedLong },
+      { type: DOMString, identifier: "key", keywords: new Set() },
+      { type: UnsignedLong, identifier: "value", keywords: new Set() },
     ]);
   });
 
@@ -58,7 +60,7 @@ describe("@Constructor", () => {
     @Constructor([])
     class Test {}
 
-    const operation = getOwnConstructorOperation(getInterface(Test))!;
+    const operation = getOwnConstructorOperations(getInterface(Test))[0]!;
 
     expect(operation.arguments).toEqual([]);
   });
@@ -69,16 +71,32 @@ describe("@Constructor", () => {
     @Constructor
     class Test {}
 
-    const operation = getOwnConstructorOperation(getInterface(Test))!;
+    const operation = getOwnConstructorOperations(getInterface(Test))[0]!;
 
     expect(operation.kind).toBe("constructor");
     expect(operation.arguments).toEqual([]);
   });
 
+  test("should hold the constructor operation in a list, as every operation slot does", () => {
+    @Exposed("Window")
+    @Interface
+    @Constructor([Argument(DOMString, "name")])
+    class Test {
+      constructor(name: string) {
+        void name;
+      }
+    }
+
+    const operations = getOwnConstructorOperations(getInterface(Test));
+
+    expect(operations).toHaveLength(1);
+    expect(operations[0]!.kind).toBe("constructor");
+  });
+
   test("should register on the regular members, not the static members", () => {
     @Exposed("Window")
     @Interface
-    @Constructor([DOMString])
+    @Constructor([Argument(DOMString, "name")])
     class Test {
       constructor(name: string) {
         void name;
@@ -91,10 +109,18 @@ describe("@Constructor", () => {
     expect(Object.hasOwn(iface.staticMembers, "constructor")).toBe(false);
   });
 
+  test("should reject construction of an interface that declares no constructor operation", () => {
+    @Exposed("Window")
+    @Interface
+    class Test {}
+
+    expect(() => new Test()).toThrow(new TypeError("Illegal constructor"));
+  });
+
   test("should construct an instance whose primary interface is the registered one", () => {
     @Exposed("Window")
     @Interface
-    @Constructor([DOMString])
+    @Constructor([Argument(DOMString, "name")])
     class Test {
       name: string;
       constructor(name: string) {

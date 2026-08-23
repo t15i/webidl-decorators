@@ -8,6 +8,7 @@ import {
   InterfaceType,
   Long,
   Nullable,
+  Union,
   UnsignedLong,
   USVString,
 } from "@t15i/webidl-types";
@@ -309,5 +310,48 @@ describe("@ReflectSetter", () => {
 
     el.ping = "abc";
     expect(el.getAttribute("ping")).toBe("abc");
+  });
+
+  test("throws when no attribute is declared for the same identifier", () => {
+    expect(() => {
+      @Exposed("Window")
+      @Interface("ReflectSetterNoAttribute")
+      @Constructor
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      class ReflectSetterNoAttribute extends HTMLElement {
+        @ReflectSetter
+        accessor foo: string = "";
+      }
+    }).toThrow(
+      "Cannot apply the [ReflectSetter] extended attribute to member 'foo'",
+    );
+  });
+
+  test("throws when applied to an unsupported IDL type", () => {
+    expect(() => {
+      @Exposed("Window")
+      @Interface("ReflectSetterUnsupported")
+      @Constructor
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      class ReflectSetterUnsupported extends HTMLElement {
+        @ReflectSetter
+        @Attribute(Union(Double, DOMString))
+        accessor foo: number | string = 0;
+      }
+    }).toThrow(TypeError);
+  });
+
+  test("throws when applied to a nullable type that is not reflectable", () => {
+    expect(() => {
+      @Exposed("Window")
+      @Interface("ReflectSetterUnsupportedNullable")
+      @Constructor
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      class ReflectSetterUnsupportedNullable extends HTMLElement {
+        @ReflectSetter
+        @Attribute(Nullable(Long))
+        accessor foo: number | null = null;
+      }
+    }).toThrow(TypeError);
   });
 });

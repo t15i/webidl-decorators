@@ -1,4 +1,5 @@
 import {
+  Argument,
   Constructor,
   Deleter,
   Exposed,
@@ -8,10 +9,6 @@ import {
   SupportedPropertyNames,
 } from "lib";
 
-import {
-  ExistingNamedPropertyDeleter as ExistingNamedPropertyDeleterSymbol,
-  NamedPropertyDeleter as NamedPropertyDeleterSymbol,
-} from "@t15i/webspecs/webidl";
 import { Boolean, DOMString, Undefined } from "@t15i/webidl-types";
 
 import { describe, expect, test } from "vitest";
@@ -25,13 +22,13 @@ describe("@Deleter", () => {
     @Constructor
     class Test {
       @Getter
-      @Operation(DOMString, [DOMString])
+      @Operation(DOMString, [Argument(DOMString, "name")])
       namedItem(name: string): string {
         return name;
       }
 
       @Deleter
-      @Operation(Undefined, [DOMString])
+      @Operation(Undefined, [Argument(DOMString, "name")])
       namedPropertyDeleter(name: string): undefined {
         void name;
       }
@@ -43,7 +40,7 @@ describe("@Deleter", () => {
     }
 
     const instance = new Test();
-    const operation = getInterface(Test).members[NamedPropertyDeleterSymbol]!;
+    const operation = getInterface(Test).namedPropertyDeleter!;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const methodSteps = Test.prototype.namedPropertyDeleter as any;
 
@@ -52,7 +49,9 @@ describe("@Deleter", () => {
     expect(operation.keywords.has("deleter")).toBe(true);
     expect(operation.identifier).toBe("namedPropertyDeleter");
     expect(operation.returnType).toBe(Undefined);
-    expect(operation.arguments).toEqual([{ type: DOMString }]);
+    expect(operation.arguments).toEqual([
+      { type: DOMString, identifier: "name", keywords: new Set() },
+    ]);
     expect(typeof operation.methodSteps).toBe("function");
     expect(methodSteps.length).toBe(1);
     expect(methodSteps.name).toBe("namedPropertyDeleter");
@@ -73,13 +72,13 @@ describe("@Deleter", () => {
     @Interface
     class Test {
       @Getter
-      @Operation(DOMString, [DOMString])
+      @Operation(DOMString, [Argument(DOMString, "name")])
       namedItem(name: string): string {
         return name;
       }
 
       @Deleter
-      @Operation(Boolean, [DOMString])
+      @Operation(Boolean, [Argument(DOMString, "name")])
       namedPropertyDeleter(name: string): boolean {
         void name;
         return true;
@@ -91,7 +90,7 @@ describe("@Deleter", () => {
       }
     }
 
-    const operation = getInterface(Test).members[NamedPropertyDeleterSymbol]!;
+    const operation = getInterface(Test).namedPropertyDeleter!;
 
     expect(operation.returnType).toBe(Boolean);
   });
@@ -101,13 +100,13 @@ describe("@Deleter", () => {
     @Interface
     class Test {
       @Getter
-      @Operation(DOMString, [DOMString])
+      @Operation(DOMString, [Argument(DOMString, "name")])
       namedItem(name: string): string {
         return name;
       }
 
       @Deleter
-      @Operation(Undefined, [DOMString])
+      @Operation(Undefined, [Argument(DOMString, "name")])
       namedPropertyDeleter(name: string): undefined {
         void name;
       }
@@ -120,10 +119,8 @@ describe("@Deleter", () => {
 
     const i = getInterface(Test);
 
-    expect(i.members[NamedPropertyDeleterSymbol]!.identifier).toBe(
-      "namedPropertyDeleter",
-    );
-    expect(i.members[ExistingNamedPropertyDeleterSymbol]).toBeUndefined();
+    expect(i.namedPropertyDeleter!.identifier).toBe("namedPropertyDeleter");
+    expect(i.behaviors.existingNamedPropertyDeleter).toBeUndefined();
   });
 
   test("should register the behavior to delete an existing named property for an anonymous deleter", () => {
@@ -134,13 +131,13 @@ describe("@Deleter", () => {
     @Interface
     class Test {
       @Getter
-      @Operation(DOMString, [DOMString])
+      @Operation(DOMString, [Argument(DOMString, "name")])
       [getter](name: string): string {
         return name;
       }
 
       @Deleter
-      @Operation(Undefined, [DOMString])
+      @Operation(Undefined, [Argument(DOMString, "name")])
       [deleter](name: string): undefined {
         void name;
       }
@@ -153,9 +150,9 @@ describe("@Deleter", () => {
 
     const i = getInterface(Test);
 
-    expect(i.members[NamedPropertyDeleterSymbol]!.identifier).toBeUndefined();
-    expect(i.members[ExistingNamedPropertyDeleterSymbol]).toBe(
-      i.members[NamedPropertyDeleterSymbol]!.methodSteps,
+    expect(i.namedPropertyDeleter!.identifier).toBeUndefined();
+    expect(i.behaviors.existingNamedPropertyDeleter).toBe(
+      i.namedPropertyDeleter!.methodSteps,
     );
   });
 
@@ -173,13 +170,13 @@ describe("@Deleter", () => {
       }
 
       @Getter
-      @Operation(DOMString, [DOMString])
+      @Operation(DOMString, [Argument(DOMString, "name")])
       [getter](name: string): string {
         return name;
       }
 
       @Deleter
-      @Operation(Boolean, [DOMString])
+      @Operation(Boolean, [Argument(DOMString, "name")])
       [deleter](name: string): boolean {
         return name === "removable";
       }
@@ -189,6 +186,28 @@ describe("@Deleter", () => {
 
     expect(delete instance["removable"]).toBe(true);
     expect(() => delete instance["sticky"]).toThrow(TypeError);
+  });
+
+  test("should leave an operation taking no arguments unmarked as a deleter", () => {
+    expect(() => {
+      @Exposed("Window")
+      @Interface
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      class Test {
+        @Deleter
+        @Operation(Undefined)
+        removeItem(): undefined {
+          return;
+        }
+      }
+    }).toThrow(
+      expect.objectContaining({
+        cause: expect.objectContaining({
+          message:
+            "This operation is declared as a special operation but, taking no arguments, matches no getter, setter, or deleter declaration.",
+        }),
+      }),
+    );
   });
 
   test("should reject a @Deleter without a preceding @Operation", () => {

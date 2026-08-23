@@ -1,7 +1,5 @@
 import { Exposed, Interface } from "lib";
 
-import { Exposed as ExposedSymbol } from "@t15i/webspecs/webidl";
-
 import { describe, expect, test } from "vitest";
 
 import { getInterface } from "../utils";
@@ -14,8 +12,8 @@ describe("@Exposed", () => {
 
     const { extendedAttributes } = getInterface(Test);
 
-    expect(ExposedSymbol in extendedAttributes).toBe(true);
-    expect(extendedAttributes[ExposedSymbol]).toBe("Window");
+    expect(Object.hasOwn(extendedAttributes, "exposed")).toBe(true);
+    expect(extendedAttributes.exposed).toBe("Window");
   });
 
   test("should install the interface object on the global under its identifier", () => {
@@ -40,6 +38,16 @@ describe("@Exposed", () => {
     class HTMLCollection {}
 
     expect(globals["HTMLCollection"]).toBe(original);
+  });
+
+  test("should reject an exposure with no @Interface applied inside it", () => {
+    expect(() => {
+      @Exposed("Window")
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      class Test {}
+    }).toThrow(
+      "@Exposed requires @Interface applied inside it (`@Exposed @Interface`)",
+    );
   });
 
   test("should reject an interface that is never marked as exposed", () => {
