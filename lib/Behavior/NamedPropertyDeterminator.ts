@@ -1,11 +1,8 @@
-import { NamedPropertyDeterminator as NamedPropertyDeterminatorSymbol } from "@t15i/webspecs/webidl";
-
 import { defineBehavior } from "./defineBehavior";
 import type { BehaviorDecorator } from "./types";
 
-export type NamedPropertyDeterminatorDecorator = BehaviorDecorator<
-  typeof NamedPropertyDeterminatorSymbol
->;
+export type NamedPropertyDeterminatorDecorator =
+  BehaviorDecorator<"namedPropertyDeterminator">;
 
 /**
  * Defines the decorated method as the behavior to determine the value of a
@@ -37,4 +34,4 @@ export type NamedPropertyDeterminatorDecorator = BehaviorDecorator<
  * @see https://webidl.spec.whatwg.org/#dfn-determine-the-value-of-a-named-property
  */
 export const NamedPropertyDeterminator: NamedPropertyDeterminatorDecorator =
-  defineBehavior.bind(undefined, NamedPropertyDeterminatorSymbol);
+  defineBehavior.bind(undefined, "namedPropertyDeterminator");

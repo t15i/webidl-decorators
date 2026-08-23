@@ -1,5 +1,4 @@
 import { getIdentifierFromContext } from "../getIdentifierFromContext";
-import { describeKey } from "../describeKey";
 
 import type { AttributeDecoratorContext } from "@/types";
 
@@ -8,8 +7,9 @@ import type { AttributeDecoratorContext } from "@/types";
  * `@ReflectDefault`, `@ReflectNonNegative`, …) cannot be applied to the member
  * it decorates.
  *
- * @param xattr - The extended-attribute symbol whose decorator failed; its
- *  description names the extended attribute in the message.
+ * @param xattr - The name of the extended attribute whose decorator failed, as
+ *  the spec spells it. A caller holding only the key converts it first, with
+ *  `describeExtendedAttribute`.
  * @param context - The decorator context of the member the decorator was
  *  applied to.
  * @param options - Standard error options; use `cause` to wrap the underlying
@@ -24,12 +24,12 @@ import type { AttributeDecoratorContext } from "@/types";
  */
 export class ExtendedAttributeDefinitionError extends TypeError {
   constructor(
-    xattr: symbol,
+    xattr: string,
     context: AttributeDecoratorContext,
     options?: ErrorOptions,
   ) {
     super(
-      `Cannot apply the [${describeKey(xattr)}] extended attribute to ${context.static ? "static " : ""}member '${getIdentifierFromContext(context)}'`,
+      `Cannot apply the [${xattr}] extended attribute to ${context.static ? "static " : ""}member '${getIdentifierFromContext(context)}'`,
       options,
     );
 

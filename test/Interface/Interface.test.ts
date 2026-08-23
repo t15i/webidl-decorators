@@ -1,4 +1,5 @@
 import {
+  Argument,
   Constructor,
   ExistingIndexedPropertySetter,
   Exposed,
@@ -6,7 +7,6 @@ import {
   Internals,
 } from "lib";
 
-import { ExistingIndexedPropertySetter as ExistingIndexedPropertySetterSymbol } from "@t15i/webspecs/webidl";
 import { Long } from "@t15i/webidl-types";
 
 import { describe, expect, test } from "vitest";
@@ -33,7 +33,7 @@ describe("@Interface", () => {
   test("should preserve constructor behavior", () => {
     @Exposed("Window")
     @Interface
-    @Constructor([Long])
+    @Constructor([Argument(Long, "foo")])
     class Test {
       foo: number;
       constructor(foo: number) {
@@ -152,7 +152,7 @@ describe("@Interface", () => {
     expect(Object.getPrototypeOf(derivedMembers)).toBe(baseMembers);
   });
 
-  test("should inherit interface members from a parent metadata via the prototype chain", () => {
+  test("should inherit behaviors from a parent metadata via the prototype chain", () => {
     @Exposed("Window")
     @Interface
     class Base {
@@ -169,12 +169,51 @@ describe("@Interface", () => {
 
     const i = getInterface(Derived);
 
-    expect(i.members[ExistingIndexedPropertySetterSymbol]).toBe(
+    expect(i.behaviors.existingIndexedPropertySetter).toBe(
       Derived.prototype.existingIndexedPropertySetter,
     );
     expect(
-      Object.getPrototypeOf(i.members)[ExistingIndexedPropertySetterSymbol],
+      Object.getPrototypeOf(i.behaviors).existingIndexedPropertySetter,
     ).toBe(Base.prototype.existingIndexedPropertySetter);
+  });
+
+  test("should inherit the interface itself from the one its class extends", () => {
+    @Exposed("Window")
+    @Interface
+    class Base {}
+
+    @Exposed("Window")
+    @Interface
+    class Derived extends Base {}
+
+    const base = getInterface(Base);
+    const derived = getInterface(Derived);
+
+    expect(Object.getPrototypeOf(derived)).toBe(base);
+    expect(derived.inherit).toBe(base);
+    expect(derived.identifier).toBe("Derived");
+  });
+
+  test("should leave a behavior a derived class does not redeclare inherited", () => {
+    @Exposed("Window")
+    @Interface
+    class Base {
+      @ExistingIndexedPropertySetter
+      existingIndexedPropertySetter() {}
+    }
+
+    @Exposed("Window")
+    @Interface
+    class Derived extends Base {}
+
+    const i = getInterface(Derived);
+
+    expect(Object.hasOwn(i.behaviors, "existingIndexedPropertySetter")).toBe(
+      false,
+    );
+    expect(i.behaviors.existingIndexedPropertySetter).toBe(
+      Base.prototype.existingIndexedPropertySetter,
+    );
   });
 
   test("should throw when @Interface is applied a second time to the same class", () => {

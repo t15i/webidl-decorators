@@ -1,5 +1,17 @@
-import { Attribute, Constructor, Exposed, Interface, Operation } from "lib";
+// Overloads are declared as private methods, which nothing in the class body
+// ever calls: the decorator registers them.
+/* eslint-disable no-unused-private-class-members */
 
+import {
+  Argument,
+  Attribute,
+  Constructor,
+  Exposed,
+  Interface,
+  Operation,
+} from "lib";
+
+import type { Operation as IDLOperation } from "@t15i/webspecs/webidl";
 import { DOMString, Undefined, UnsignedLong } from "@t15i/webidl-types";
 
 import { describe, expect, test } from "vitest";
@@ -12,7 +24,7 @@ describe("@Operation", () => {
     @Interface
     @Constructor
     class Test {
-      @Operation(UnsignedLong, [UnsignedLong])
+      @Operation(UnsignedLong, [Argument(UnsignedLong, "index")])
       item(i: number) {
         return i;
       }
@@ -26,7 +38,9 @@ describe("@Operation", () => {
     expect(operation.kind).toBe("operation");
     expect(operation.identifier).toBe("item");
     expect(operation.returnType).toBe(UnsignedLong);
-    expect(operation.arguments).toEqual([{ type: UnsignedLong }]);
+    expect(operation.arguments).toEqual([
+      { type: UnsignedLong, identifier: "index", keywords: new Set() },
+    ]);
     expect(typeof operation.methodSteps).toBe("function");
     expect(methodSteps.length).toBe(1);
     expect(methodSteps.name).toBe("item");
@@ -80,7 +94,10 @@ describe("@Operation", () => {
     @Exposed("Window")
     @Interface
     class Test {
-      @Operation(Undefined, [DOMString, UnsignedLong])
+      @Operation(Undefined, [
+        Argument(DOMString, "key"),
+        Argument(UnsignedLong, "value"),
+      ])
       set(key: string, value: number): undefined {
         void key;
         void value;
@@ -91,8 +108,8 @@ describe("@Operation", () => {
     const operation = getOperation(getInterface(Test), "set")!;
 
     expect(operation.arguments).toEqual([
-      { type: DOMString },
-      { type: UnsignedLong },
+      { type: DOMString, identifier: "key", keywords: new Set() },
+      { type: UnsignedLong, identifier: "value", keywords: new Set() },
     ]);
     expect(operation.returnType).toBe(Undefined);
     expect((Test.prototype.set as (...a: unknown[]) => void).length).toBe(2);
@@ -102,16 +119,18 @@ describe("@Operation", () => {
     @Exposed("Window")
     @Interface
     class Test {
-      @Operation(UnsignedLong, [UnsignedLong])
+      @Operation(UnsignedLong, [Argument(UnsignedLong, "index")])
       static create(i: number) {
         return i;
       }
     }
 
     const i = getInterface(Test);
+    const overloads = i.staticMembers["create"];
 
-    expect(i.staticMembers["create"]).toBeDefined();
-    expect(i.staticMembers["create"]!.kind).toBe("operation");
+    expect(overloads).toBeDefined();
+    expect(overloads).toHaveLength(1);
+    expect((overloads as IDLOperation[])[0]!.kind).toBe("operation");
     expect(i.members["create"]).toBeUndefined();
   });
 
@@ -121,7 +140,7 @@ describe("@Operation", () => {
     @Exposed("Window")
     @Interface
     class Test {
-      @Operation(UnsignedLong, [UnsignedLong])
+      @Operation(UnsignedLong, [Argument(UnsignedLong, "index")])
       [anonymous](i: number) {
         return i;
       }
@@ -132,33 +151,30 @@ describe("@Operation", () => {
     expect(Object.getOwnPropertySymbols(i.members)).not.toContain(anonymous);
   });
 
-  test("should reject a second operation defined under the same identifier", () => {
-    // The second member reuses the identifier "item" via a widened (non-literal)
-    // computed key, so the collision is a WebIDL one caught at run time rather
-    // than a duplicate JS binding rejected by the compiler.
-    const item: string = "item";
-
-    expect(() => {
-      @Exposed("Window")
-      @Interface
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      class Test {
-        @Operation(UnsignedLong, [UnsignedLong])
-        item(i: number) {
-          return i;
-        }
-
-        @Operation(UnsignedLong, [UnsignedLong])
-        [item](i: number) {
-          return i;
-        }
+  test("should register an operation under an identifier Object.prototype also carries", () => {
+    // The member table is a plain object, so `members["toString"]` resolves to
+    // `Object.prototype.toString` unless the lookup asks for an own key. A
+    // stringifier is a real WebIDL operation, so the identifier is not
+    // hypothetical.
+    @Exposed("Window")
+    @Interface
+    @Constructor
+    class Test {
+      @Operation(DOMString)
+      toString(): string {
+        return "Test";
       }
-    }).toThrow();
+    }
+
+    const instance = new Test();
+    const operation = getOperation(getInterface(Test), "toString")!;
+
+    expect(operation.kind).toBe("operation");
+    expect(operation.identifier).toBe("toString");
+    expect(instance.toString()).toBe("Test");
   });
 
-  test("should reject an operation defined under an identifier already used by another member kind", () => {
-    const foo: string = "foo";
-
+  test("should reject an operation whose identifier is already an attribute", () => {
     expect(() => {
       @Exposed("Window")
       @Interface
@@ -169,11 +185,44 @@ describe("@Operation", () => {
           return 0;
         }
 
-        @Operation(UnsignedLong, [UnsignedLong])
-        [foo](i: number) {
+        // The overload declares the WebIDL identifier "foo", which the attribute
+        // above already holds. The JS names differ, so nothing but WebIDL sees
+        // the collision - two elements of the same JS name are rejected by the
+        // decorator transform long before this library runs.
+        @Operation(UnsignedLong, [Argument(UnsignedLong, "index")])
+        #foo1(i: number) {
           return i;
         }
       }
-    }).toThrow();
+    }).toThrow(
+      "attribute member 'foo' is already defined, but a WebIDL operation was expected",
+    );
+  });
+
+  test("should reject an attribute whose identifier is already an operation", () => {
+    expect(() => {
+      @Exposed("Window")
+      @Interface
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      class Test {
+        @Operation(UnsignedLong, [Argument(UnsignedLong, "index")])
+        #bar1(i: number) {
+          return i;
+        }
+
+        @Attribute(UnsignedLong)
+        get bar() {
+          return 0;
+        }
+      }
+    }).toThrow(
+      expect.objectContaining({
+        cause: expect.objectContaining({
+          message: expect.stringContaining(
+            "operation member 'bar' is already defined, but a WebIDL attribute was expected",
+          ),
+        }),
+      }),
+    );
   });
 });

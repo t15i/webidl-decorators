@@ -1,11 +1,9 @@
-import {
-  NamedPropertyDeleter as NamedPropertyDeleterSymbol,
-  ExistingNamedPropertyDeleter as ExistingNamedPropertyDeleterSymbol,
-  type DOMStringType,
-  type Type,
-} from "@t15i/webspecs/webidl";
+import { type DOMStringType, type Type } from "@t15i/webspecs/webidl";
 
-import { getOwnOperationDraftFromContext } from "@/utils";
+import {
+  getOverloadFromTarget,
+  getOwnOperationSlotDraftFromContext,
+} from "@/utils";
 import { assertDefined } from "@/utils/assertions";
 import { SpecialOperationDefinitionError } from "@/utils/errors";
 
@@ -17,11 +15,10 @@ import type {
 
 /**
  * Marks the decorated operation as the `[NamedPropertyDeleter]` of the WebIDL
- * interface — the internal method invoked when a named property is deleted from
+ * interface - the internal method invoked when a named property is deleted from
  * an instance.
  *
- * @param _ - The decorated method (unused; the operation is read back from the
- *  draft registered by {@link Operation}).
+ * @param target - The decorated method.
  * @param context - The decorator context object.
  *
  * @remarks
@@ -39,7 +36,7 @@ import type {
  * \@Interface
  * class Storage {
  *   \@Deleter
- *   \@Operation(Undefined, [DOMString])
+ *   \@Operation(Undefined, [Argument(DOMString, "key")])
  *   removeItem(key: string): undefined {
  *     // ...
  *   }
@@ -49,22 +46,23 @@ import type {
  * @see https://webidl.spec.whatwg.org/#idl-named-properties
  */
 export function Deleter(
-  _: OperationDecoratorTarget<[DOMStringType], Type>,
+  target: OperationDecoratorTarget<[DOMStringType], Type>,
   context: Special<OperationDecoratorContext<[DOMStringType], Type>>,
 ): void {
   try {
-    const { iface, operation } = getOwnOperationDraftFromContext(context);
+    const { iface, slot } = getOwnOperationSlotDraftFromContext(context);
 
-    assertDefined(operation, context);
+    assertDefined(slot, context);
+
+    const operation = getOverloadFromTarget(slot, target);
 
     operation.keywords.add("deleter");
 
     if (operation.arguments.length < 1) return;
 
-    iface.members[NamedPropertyDeleterSymbol] = operation;
+    iface.namedPropertyDeleter = operation;
     if (operation.identifier === undefined) {
-      iface.members[ExistingNamedPropertyDeleterSymbol] ??=
-        operation.methodSteps;
+      iface.behaviors.existingNamedPropertyDeleter ??= operation.methodSteps;
     }
   } catch (e) {
     throw new SpecialOperationDefinitionError("deleter", context, { cause: e });

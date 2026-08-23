@@ -1,11 +1,8 @@
-import { SupportedPropertyNames as SupportedPropertyNamesSymbol } from "@t15i/webspecs/webidl";
-
 import { defineBehavior } from "./defineBehavior";
 import type { BehaviorDecorator } from "./types";
 
-export type SupportedPropertyNamesDecorator = BehaviorDecorator<
-  typeof SupportedPropertyNamesSymbol
->;
+export type SupportedPropertyNamesDecorator =
+  BehaviorDecorator<"supportedPropertyNames">;
 
 /**
  * Defines the decorated method as the behavior to get the supported property
@@ -37,4 +34,4 @@ export type SupportedPropertyNamesDecorator = BehaviorDecorator<
  * @see https://webidl.spec.whatwg.org/#idl-named-properties
  */
 export const SupportedPropertyNames: SupportedPropertyNamesDecorator =
-  defineBehavior.bind(undefined, SupportedPropertyNamesSymbol);
+  defineBehavior.bind(undefined, "supportedPropertyNames");

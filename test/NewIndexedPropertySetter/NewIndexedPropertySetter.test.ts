@@ -1,7 +1,5 @@
 import { Exposed, Interface, NewIndexedPropertySetter } from "lib";
 
-import { NewIndexedPropertySetter as NewIndexedPropertySetterSymbol } from "@t15i/webspecs/webidl";
-
 import { describe, expect, test } from "vitest";
 
 import { getInterface } from "../utils";
@@ -15,7 +13,7 @@ describe("@NewIndexedPropertySetter", () => {
       newIndexedPropertySetter() {}
     }
 
-    expect(getInterface(Test).members[NewIndexedPropertySetterSymbol]).toBe(
+    expect(getInterface(Test).behaviors.newIndexedPropertySetter).toBe(
       Test.prototype.newIndexedPropertySetter,
     );
   });

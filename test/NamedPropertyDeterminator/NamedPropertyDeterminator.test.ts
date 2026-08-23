@@ -1,4 +1,5 @@
 import {
+  Argument,
   Exposed,
   Getter,
   Interface,
@@ -7,7 +8,6 @@ import {
   SupportedPropertyNames,
 } from "lib";
 
-import { NamedPropertyDeterminator as NamedPropertyDeterminatorSymbol } from "@t15i/webspecs/webidl";
 import { DOMString } from "@t15i/webidl-types";
 
 import { describe, expect, test } from "vitest";
@@ -23,7 +23,7 @@ describe("@NamedPropertyDeterminator", () => {
       namedPropertyDeterminator() {}
     }
 
-    expect(getInterface(Test).members[NamedPropertyDeterminatorSymbol]).toBe(
+    expect(getInterface(Test).behaviors.namedPropertyDeterminator).toBe(
       Test.prototype.namedPropertyDeterminator,
     );
   });
@@ -35,7 +35,7 @@ describe("@NamedPropertyDeterminator", () => {
     @Interface
     class Test {
       @Getter
-      @Operation(DOMString, [DOMString])
+      @Operation(DOMString, [Argument(DOMString, "name")])
       [anonymous](name: string): string {
         return name;
       }
@@ -49,7 +49,7 @@ describe("@NamedPropertyDeterminator", () => {
       }
     }
 
-    expect(getInterface(Test).members[NamedPropertyDeterminatorSymbol]).toBe(
+    expect(getInterface(Test).behaviors.namedPropertyDeterminator).toBe(
       Test.prototype.namedPropertyDeterminator,
     );
   });

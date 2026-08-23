@@ -1,7 +1,4 @@
-import {
-  Exposed as ExposedSymbol,
-  InterfacePrototypeObject,
-} from "@t15i/webspecs/webidl";
+import { InterfacePrototypeObject } from "@t15i/webspecs/webidl";
 
 import type { InterfaceDecoratorTarget } from "@/types";
 
@@ -44,7 +41,7 @@ function defineExposed<Target extends InterfaceDecoratorTarget>(
     );
   }
 
-  iface.extendedAttributes[ExposedSymbol] = exposureSet;
+  iface.extendedAttributes.exposed = exposureSet;
 
   const global = globalThis as unknown as Record<PropertyKey, unknown>;
   if (!(iface.identifier in global)) {

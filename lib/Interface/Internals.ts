@@ -32,7 +32,7 @@
  *   }
  *
  *   \@Getter
- *   \@Operation(Nullable(InterfaceType(Element)), [UnsignedLong])
+ *   \@Operation(Nullable(InterfaceType(Element)), [Argument(UnsignedLong, "index")])
  *   item(index: number): Element | null {
  *     return this[Internals].items[index] ?? null;
  *   }

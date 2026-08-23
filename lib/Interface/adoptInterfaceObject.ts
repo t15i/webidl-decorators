@@ -2,7 +2,7 @@ import {
   computeEffectiveOverloadSet,
   defineStaticAttributes,
   defineStaticOperations,
-  getOwnConstructorOperation,
+  getOwnConstructorOperations,
   isInterfaceSupportIndexedProperties,
   isInterfaceSupportNamedProperties,
   PlatformObject,
@@ -21,13 +21,13 @@ import { LegacyPlatformObjectProxyHandler } from "./LegacyPlatformObjectProxyHan
  * @remarks
  * The returned value is a `Proxy` whose `construct` trap implements WebIDL
  * construction: it rejects the call when `iface` declares no constructor
- * operation (`Illegal constructor`) or is invoked without `new`, resolves the
- * matching constructor overload for the supplied arguments, then constructs the
- * decorated class and associates the resulting platform object with `iface` as
- * its primary interface.
+ * operation (`Illegal constructor`), resolves the matching constructor overload
+ * for the supplied arguments, then constructs the decorated class and
+ * associates the resulting platform object with `iface` as its primary
+ * interface.
  *
- * A legacy platform object — an interface supporting indexed or named properties
- * — is additionally wrapped in the {@link LegacyPlatformObjectProxyHandler}
+ * A legacy platform object - an interface supporting indexed or named properties
+ * - is additionally wrapped in the {@link LegacyPlatformObjectProxyHandler}
  * proxy, and `iface` is associated with both the raw object (so the proxy traps,
  * which forward the wrapped target to webspecs, resolve it) and the proxy (so
  * external callers holding the public object resolve it too).
@@ -41,14 +41,8 @@ export function adoptInterfaceObject<Ctor extends AnyConstructor>(
 ): Ctor {
   const F = new Proxy(ctor, {
     construct(target, args, newTarget) {
-      if (getOwnConstructorOperation(iface) === undefined) {
+      if (getOwnConstructorOperations(iface).length === 0) {
         throw TypeError("Illegal constructor");
-      }
-
-      if (newTarget === undefined) {
-        throw TypeError(
-          `Failed to construct '${iface.identifier}': Please use the 'new' operator, this DOM object constructor cannot be called as a function.`,
-        );
       }
 
       const n = args.length;

@@ -4,9 +4,7 @@ import { unnamedOperationRegistry } from "@/UnnamedOperationRegistry";
 
 import {
   createOperationFromContext,
-  getInterfaceDraftFromContext,
-  getMembersFromContext,
-  toArgumentList,
+  getOwnOperationSlotDraftFromContext,
 } from "@/utils";
 
 import {
@@ -20,15 +18,19 @@ import type { OperationDecorator } from "./types";
  * draft resolved from `context`.
  *
  * @remarks
- * Asserts that no member is already registered under the operation's identifier,
- * then builds an operation draft from `context`, `args`, and `returnType`. A
- * named operation is stored in the interface's member table under its
- * identifier; an anonymous one (a `static` or special operation keyed by a
- * symbol) is stored in the {@link unnamedOperationRegistry} instead.
+ * Builds an operation draft from `context`, `args`, and `returnType`, and adds
+ * it to the interface's member table under its identifier, alongside the
+ * overloads already declared under that identifier. The first overload of an
+ * identifier opens the slot; an identifier inherited from a parent interface is
+ * shadowed rather than extended, so a derived class redeclares the whole
+ * overload set. An anonymous operation (a special operation keyed by a symbol
+ * or by a private name that declares no overload) has no slot of its own, so it
+ * is parked in the {@link unnamedOperationRegistry} instead.
  *
  * Nothing is returned: the decorated method is left in place, and `Interface`
- * later defines the guarded method — created by webspecs from the registered
- * steps — on the interface prototype object.
+ * later defines the guarded method - created by webspecs from the registered
+ * steps, resolving the overload the call matches - on the interface prototype
+ * object.
  *
  * @internal
  */
@@ -38,8 +40,7 @@ function defineOperation<Params extends Type[], Return extends Type>(
   target: OperationDecoratorTarget<Params, Return>,
   context: OperationDecoratorContext<Params, Return>,
 ): void {
-  const iface = getInterfaceDraftFromContext(context);
-  const members = getMembersFromContext(context, iface);
+  const { id, members, slot } = getOwnOperationSlotDraftFromContext(context);
   const op = createOperationFromContext({
     target,
     args,
@@ -47,11 +48,17 @@ function defineOperation<Params extends Type[], Return extends Type>(
     context,
   });
 
-  if (op.identifier !== undefined) {
-    members[op.identifier] = op;
-  } else {
+  if (id === undefined) {
     unnamedOperationRegistry.add(context.metadata, context.name, op);
+    return;
   }
+
+  if (slot === undefined) {
+    members[id] = [op];
+    return;
+  }
+
+  slot.push(op);
 }
 
 /**
@@ -63,8 +70,9 @@ function defineOperation<Params extends Type[], Return extends Type>(
  *
  * @remarks
  * The argument list is omitted, so it defaults to empty: the decorated method
- * must take no arguments. Pass a second argument — the tuple of WebIDL argument
- * types — to declare an operation that takes arguments.
+ * must take no arguments. Pass a second argument - the operation's argument
+ * list, built with {@link Argument} - to declare an operation that takes
+ * arguments.
  *
  * @example
  * ```ts
@@ -86,20 +94,25 @@ export function Operation<Return extends Type>(
 
 /**
  * Creates a decorator that defines a method as a WebIDL operation of the WebIDL
- * interface, with `returnType` as its WebIDL return type and `params` as the
- * tuple of the operation's argument types.
+ * interface, with `returnType` as its WebIDL return type and `args` as the
+ * operation's argument list.
  *
  * @param returnType - The WebIDL type the operation returns.
- * @param params - The tuple of the operation's WebIDL argument types. The
- *   decorated method's parameter types must match this tuple.
+ * @param args - The operation's WebIDL argument list, each argument built with
+ *   {@link Argument} and optionally wrapped in {@link Optional}. The decorated
+ *   method's parameter types must match it.
  *
  * @remarks
  * The decorator may be applied to a method, including its `static` variant. When
  * the decorated method is `static`, the operation is registered as a static
  * operation on the interface; otherwise it is registered as a regular operation.
  *
- * The decorated method's identifier becomes the operation identifier. Defining a
- * member that is already defined under the same identifier is rejected.
+ * The decorated method's identifier becomes the operation identifier. A private
+ * method whose name ends in digits declares an overload: the digits are dropped
+ * and the operation is registered under what remains, alongside the other
+ * overloads of that identifier. WebIDL picks the overload a call matches from
+ * the types of the arguments passed, so the numbering only has to make the
+ * method names distinct.
  *
  * For the registered operation to take effect, the enclosing class must also be
  * decorated with {@link Interface}.
@@ -108,10 +121,31 @@ export function Operation<Return extends Type>(
  * ```ts
  * \@Interface
  * class HTMLCollection {
- *   \@Operation(Nullable(InterfaceType(Element)), [UnsignedLong])
+ *   \@Operation(Nullable(InterfaceType(Element)), [Argument(UnsignedLong, "index")])
  *   item(index: number): Element | null {
  *     // ...
  *     return value;
+ *   }
+ * }
+ * ```
+ *
+ * @example
+ * ```ts
+ * \@Interface
+ * class HTMLSelectElement {
+ *   declare remove: {
+ *     (): undefined;
+ *     (index: number): undefined;
+ *   };
+ *
+ *   \@Operation(Undefined)
+ *   #remove1(): undefined {
+ *     // ...
+ *   }
+ *
+ *   \@Operation(Undefined, [Argument(Long, "index")])
+ *   #remove2(index: number): undefined {
+ *     // ...
  *   }
  * }
  * ```
@@ -120,17 +154,20 @@ export function Operation<Return extends Type>(
  */
 export function Operation<Return extends Type, Params extends Type[]>(
   returnType: Return,
-  params: [...Params],
+  args: ArgumentList<Params>,
 ): OperationDecorator<Params, Return>;
 
 export function Operation<Return extends Type, Params extends Type[] = []>(
   returnType: Return,
-  params?: [...Params],
+  args?: ArgumentList<Params>,
 ): OperationDecorator<Params, Return> {
   const defineOperationT = defineOperation<Params, Return>;
   return defineOperationT.bind(
     undefined,
-    toArgumentList((params ?? []) as [...Params]),
+    args ?? ([] as unknown as ArgumentList<Params>),
     returnType,
   );
 }
+
+export { Argument } from "./Argument";
+export { Optional } from "./Optional";

@@ -1,8 +1,4 @@
 import {
-  IndexedPropertyDeterminator as IndexedPropertyDeterminatorSymbol,
-  IndexedPropertyGetter as IndexedPropertyGetterSymbol,
-  NamedPropertyGetter as NamedPropertyGetterSymbol,
-  NamedPropertyDeterminator as NamedPropertyDeterminatorSymbol,
   isDOMStringType,
   isUnsignedLongType,
   type DOMStringType,
@@ -10,7 +6,10 @@ import {
   type UnsignedLongType,
 } from "@t15i/webspecs/webidl";
 
-import { getOwnOperationDraftFromContext } from "@/utils";
+import {
+  getOverloadFromTarget,
+  getOwnOperationSlotDraftFromContext,
+} from "@/utils";
 import { assertDefined } from "@/utils/assertions";
 import { SpecialOperationDefinitionError } from "@/utils/errors";
 
@@ -22,7 +21,7 @@ import type {
 
 /**
  * Marks the decorated operation as the `[IndexedPropertyGetter]` of the WebIDL
- * interface — the internal method invoked when an indexed property is read on
+ * interface - the internal method invoked when an indexed property is read on
  * an instance.
  *
  * @param target - The decorated method.
@@ -43,7 +42,7 @@ import type {
  * \@Interface
  * class NodeList {
  *   \@Getter
- *   \@Operation(Nullable(InterfaceType(Node)), [UnsignedLong])
+ *   \@Operation(Nullable(InterfaceType(Node)), [Argument(UnsignedLong, "index")])
  *   item(index: number): Node | null {
  *     // ...
  *     return value;
@@ -60,7 +59,7 @@ export function Getter(
 
 /**
  * Marks the decorated operation as the `[NamedPropertyGetter]` of the WebIDL
- * interface — the internal method invoked when a named property is read on an
+ * interface - the internal method invoked when a named property is read on an
  * instance.
  *
  * @param target - The decorated method.
@@ -81,7 +80,7 @@ export function Getter(
  * \@Interface
  * class HTMLCollection {
  *   \@Getter
- *   \@Operation(Nullable(InterfaceType(Element)), [DOMString])
+ *   \@Operation(Nullable(InterfaceType(Element)), [Argument(DOMString, "name")])
  *   namedItem(name: string): Element | null {
  *     // ...
  *     return value;
@@ -97,7 +96,7 @@ export function Getter(
 ): void;
 
 export function Getter(
-  _:
+  target:
     | OperationDecoratorTarget<[UnsignedLongType], Type>
     | OperationDecoratorTarget<[DOMStringType], Type>,
   context:
@@ -105,9 +104,11 @@ export function Getter(
     | Special<OperationDecoratorContext<[DOMStringType], Type>>,
 ): void {
   try {
-    const { iface, operation: op } = getOwnOperationDraftFromContext(context);
+    const { iface, slot } = getOwnOperationSlotDraftFromContext(context);
 
-    assertDefined(op, context);
+    assertDefined(slot, context);
+
+    const op = getOverloadFromTarget(slot, target);
 
     op.keywords.add("getter");
 
@@ -116,16 +117,16 @@ export function Getter(
     }
 
     if (isUnsignedLongType(op.arguments[0]!.type)) {
-      iface.members[IndexedPropertyGetterSymbol] = op;
+      iface.indexedPropertyGetter = op;
       if (op.identifier === undefined) {
-        iface.members[IndexedPropertyDeterminatorSymbol] ??= op.methodSteps;
+        iface.behaviors.indexedPropertyDeterminator ??= op.methodSteps;
       }
     }
 
     if (isDOMStringType(op.arguments[0]!.type)) {
-      iface.members[NamedPropertyGetterSymbol] = op;
+      iface.namedPropertyGetter = op;
       if (op.identifier === undefined) {
-        iface.members[NamedPropertyDeterminatorSymbol] ??= op.methodSteps;
+        iface.behaviors.namedPropertyDeterminator ??= op.methodSteps;
       }
     }
   } catch (e) {

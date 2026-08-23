@@ -8,9 +8,10 @@ import type { OperationDraft } from "./types";
  * the decorated member's property name.
  *
  * @remarks
- * A named operation is stored directly in its interface draft's member table
- * under its identifier. An anonymous one — a `static` or special operation keyed
- * by a symbol — has no such slot, so {@link Operation} parks it here for the
+ * A named operation is stored directly in its interface draft's member table,
+ * among the overloads declared under its identifier. An anonymous one - a
+ * special operation keyed by a symbol, or by a private name that declares no
+ * overload - has no such slot, so {@link Operation} parks it here for the
  * supplementing decorators ({@link Getter}, {@link Setter}, {@link Deleter}) to
  * read back by the same property name. The {@link Interface} decorator drops the
  * class's entry once the class is fully decorated.

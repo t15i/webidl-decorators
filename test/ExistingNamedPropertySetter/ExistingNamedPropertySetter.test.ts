@@ -1,7 +1,5 @@
 import { ExistingNamedPropertySetter, Exposed, Interface } from "lib";
 
-import { ExistingNamedPropertySetter as ExistingNamedPropertySetterSymbol } from "@t15i/webspecs/webidl";
-
 import { describe, expect, test } from "vitest";
 
 import { getInterface } from "../utils";
@@ -15,7 +13,7 @@ describe("@ExistingNamedPropertySetter", () => {
       existingNamedPropertySetter() {}
     }
 
-    expect(getInterface(Test).members[ExistingNamedPropertySetterSymbol]).toBe(
+    expect(getInterface(Test).behaviors.existingNamedPropertySetter).toBe(
       Test.prototype.existingNamedPropertySetter,
     );
   });

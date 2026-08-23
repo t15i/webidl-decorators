@@ -1,4 +1,4 @@
-import type { InterfaceMembers } from "@t15i/webspecs/webidl";
+import type { InterfaceBehaviors } from "@t15i/webspecs/webidl";
 
 import type { AnyFunction } from "@/types";
 
@@ -7,10 +7,10 @@ type BehaviorKeys<T> = {
 }[keyof T] &
   keyof T;
 
-export type BehaviorKey = BehaviorKeys<Required<InterfaceMembers>>;
+export type BehaviorKey = BehaviorKeys<Required<InterfaceBehaviors>>;
 
 export type BehaviorDecoratorTarget<K extends BehaviorKey> =
-  InterfaceMembers[K];
+  Required<InterfaceBehaviors>[K];
 
 export type BehaviorDecoratorContext = ClassMemberDecoratorContext;
 

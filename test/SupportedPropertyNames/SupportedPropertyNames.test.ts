@@ -1,7 +1,5 @@
 import { Exposed, Interface, SupportedPropertyNames } from "lib";
 
-import { SupportedPropertyNames as SupportedPropertyNamesSymbol } from "@t15i/webspecs/webidl";
-
 import { describe, expect, test } from "vitest";
 
 import { getInterface } from "../utils";
@@ -17,7 +15,7 @@ describe("@SupportedPropertyNames", () => {
       }
     }
 
-    expect(getInterface(Test).members[SupportedPropertyNamesSymbol]).toBe(
+    expect(getInterface(Test).behaviors.supportedPropertyNames).toBe(
       Test.prototype.supportedPropertyNames,
     );
   });

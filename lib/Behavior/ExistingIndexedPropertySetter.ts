@@ -1,11 +1,8 @@
-import { ExistingIndexedPropertySetter as ExistingIndexedPropertySetterSymbol } from "@t15i/webspecs/webidl";
-
 import { defineBehavior } from "./defineBehavior";
 import type { BehaviorDecorator } from "./types";
 
-export type ExistingIndexedPropertySetterDecorator = BehaviorDecorator<
-  typeof ExistingIndexedPropertySetterSymbol
->;
+export type ExistingIndexedPropertySetterDecorator =
+  BehaviorDecorator<"existingIndexedPropertySetter">;
 
 /**
  * Defines the decorated method as the behavior to set the value of an existing
@@ -35,4 +32,4 @@ export type ExistingIndexedPropertySetterDecorator = BehaviorDecorator<
  * @see https://webidl.spec.whatwg.org/#idl-indexed-properties
  */
 export const ExistingIndexedPropertySetter: ExistingIndexedPropertySetterDecorator =
-  defineBehavior.bind(undefined, ExistingIndexedPropertySetterSymbol);
+  defineBehavior.bind(undefined, "existingIndexedPropertySetter");

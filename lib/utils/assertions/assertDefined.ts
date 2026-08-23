@@ -1,12 +1,13 @@
-import type { MemberDecoratorContext, MemberDraft } from "@/types";
+import type { MemberDecoratorContext } from "@/types";
 
 /**
- * Throws `TypeError` unless a member draft is registered under the decorated
- * identifier. The `asserts` signature narrows `member` from
- * `MemberDraft | undefined` to {@link MemberDraft} for the caller.
+ * Throws `TypeError` unless something is registered under the decorated
+ * identifier. The `asserts` signature narrows `member` from `T | undefined` to
+ * `T` for the caller.
  *
- * @param member - The own member draft registered under the decorated
- *  identifier, or `undefined` when none is.
+ * @param member - What the interface draft holds under the decorated
+ *  identifier - an attribute draft, or the slot of operations overloaded under
+ *  it - or `undefined` when it holds nothing.
  * @param context - The decorator context of the member being decorated, used to
  *  name the identifier in the error message.
  *
@@ -15,10 +16,10 @@ import type { MemberDecoratorContext, MemberDraft } from "@/types";
  * declared further down the decoration stack. This confirms that member was
  * actually registered before the decorator tries to extend it.
  */
-export function assertDefined(
-  member: MemberDraft | undefined,
+export function assertDefined<T>(
+  member: T | undefined,
   context: MemberDecoratorContext,
-): asserts member is MemberDraft {
+): asserts member is T {
   if (member !== undefined) {
     return;
   }

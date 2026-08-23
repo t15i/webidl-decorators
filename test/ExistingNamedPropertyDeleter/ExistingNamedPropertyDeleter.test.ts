@@ -1,7 +1,5 @@
 import { ExistingNamedPropertyDeleter, Exposed, Interface } from "lib";
 
-import { ExistingNamedPropertyDeleter as ExistingNamedPropertyDeleterSymbol } from "@t15i/webspecs/webidl";
-
 import { describe, expect, test } from "vitest";
 
 import { getInterface } from "../utils";
@@ -15,7 +13,7 @@ describe("@ExistingNamedPropertyDeleter", () => {
       existingNamedPropertyDeleter() {}
     }
 
-    expect(getInterface(Test).members[ExistingNamedPropertyDeleterSymbol]).toBe(
+    expect(getInterface(Test).behaviors.existingNamedPropertyDeleter).toBe(
       Test.prototype.existingNamedPropertyDeleter,
     );
   });

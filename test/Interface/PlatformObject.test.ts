@@ -1,4 +1,5 @@
 import {
+  Argument,
   Attribute,
   Constructor,
   Exposed,
@@ -62,7 +63,7 @@ describe("PlatformObject proxy", () => {
       @Constructor
       class Test {
         @Getter
-        @Operation(UnsignedLong, [UnsignedLong])
+        @Operation(UnsignedLong, [Argument(UnsignedLong, "index")])
         item(i: number): number {
           return i;
         }

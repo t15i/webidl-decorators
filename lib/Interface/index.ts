@@ -44,22 +44,30 @@ function defineInterface<T extends InterfaceDecoratorTarget>(
   context: InterfaceDecoratorContext,
 ): typeof target {
   try {
-    if (identifier === undefined && context.name === undefined) {
-      throw TypeError(
-        "Expected at least one identifier or context.name to be 'string'",
-      );
-    }
-
     const iface = getInterfaceDraftFromContext(context) as Interface;
     iface.identifier = (identifier ?? context.name)!;
 
     const parent = Object.getPrototypeOf(target.prototype);
+    /* istanbul ignore else -- only `extends null` leaves a class prototype
+       without one to inherit from, and such a class cannot be decorated at
+       all: the transform reads `Symbol.metadata` off the null parent and
+       throws before any decorator runs (it tests the parent against
+       `undefined` rather than `null`) */
     if (parent !== null) {
       const parentIface = InterfacePrototypeObject.getInterfaceOf(parent);
+
       if (parentIface !== null) {
         iface.inherit = parentIface;
+
+        // The interface itself inherits from the one it extends, so anything
+        // it does not define of its own resolves to the parent's. The tables
+        // are the exception: each is an object the draft owns, and writing a
+        // member must not reach through to the parent's table, so they are
+        // chained one by one. `extendedAttributes` is deliberately not chained.
+        Object.setPrototypeOf(iface, parentIface);
         Object.setPrototypeOf(iface.members, parentIface.members);
         Object.setPrototypeOf(iface.staticMembers, parentIface.staticMembers);
+        Object.setPrototypeOf(iface.behaviors, parentIface.behaviors);
       }
     }
 
@@ -74,6 +82,8 @@ function defineInterface<T extends InterfaceDecoratorTarget>(
         // tree-shake the entire webspecs validation subtree out of the shipped
         // output. In development the token is `"development"`, so the checks
         // run as before. See README for the tree-shaking contract.
+        /* istanbul ignore else -- the token is a build-time constant; a
+           production bundle folds this branch away entirely */
         if (process.env.NODE_ENV !== "production") {
           assertInterface(iface);
           validateInterface(iface);
@@ -125,7 +135,7 @@ const InterfaceDefault = defineInterface.bind(undefined, undefined);
  * \@Interface
  * class HTMLCollection {
  *   \@Getter
- *   \@Operation(Nullable(InterfaceType(Element)), [UnsignedLong])
+ *   \@Operation(Nullable(InterfaceType(Element)), [Argument(UnsignedLong, "index")])
  *   item(index: number): Element | null {
  *     // ...
  *     return value;
@@ -166,7 +176,7 @@ export function Interface<T extends InterfaceDecoratorTarget>(
  * \@Interface("HTMLCollection")
  * class HTMLCollectionImpl {
  *   \@Getter
- *   \@Operation(Nullable(InterfaceType(Element)), [UnsignedLong])
+ *   \@Operation(Nullable(InterfaceType(Element)), [Argument(UnsignedLong, "index")])
  *   item(index: number): Element | null {
  *     // ...
  *     return value;

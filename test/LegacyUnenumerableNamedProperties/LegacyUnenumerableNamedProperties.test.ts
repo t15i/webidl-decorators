@@ -1,7 +1,5 @@
 import { Exposed, Interface, LegacyUnenumerableNamedProperties } from "lib";
 
-import { LegacyUnenumerableNamedProperties as LegacyUnenumerableNamedPropertiesSymbol } from "@t15i/webspecs/webidl";
-
 import { describe, expect, test } from "vitest";
 
 import { getInterface } from "../utils";
@@ -16,7 +14,7 @@ describe("@LegacyUnenumerableNamedProperties", () => {
     const i = getInterface(Test);
 
     expect(
-      LegacyUnenumerableNamedPropertiesSymbol in i.extendedAttributes,
+      Object.hasOwn(i.extendedAttributes, "legacyUnenumerableNamedProperties"),
     ).toBe(true);
   });
 
@@ -28,7 +26,7 @@ describe("@LegacyUnenumerableNamedProperties", () => {
     const i = getInterface(Test);
 
     expect(
-      LegacyUnenumerableNamedPropertiesSymbol in i.extendedAttributes,
+      Object.hasOwn(i.extendedAttributes, "legacyUnenumerableNamedProperties"),
     ).toBe(false);
   });
 });

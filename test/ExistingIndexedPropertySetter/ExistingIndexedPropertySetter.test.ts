@@ -1,7 +1,5 @@
 import { ExistingIndexedPropertySetter, Exposed, Interface } from "lib";
 
-import { ExistingIndexedPropertySetter as ExistingIndexedPropertySetterSymbol } from "@t15i/webspecs/webidl";
-
 import { describe, expect, test } from "vitest";
 
 import { getInterface } from "../utils";
@@ -15,8 +13,8 @@ describe("@ExistingIndexedPropertySetter", () => {
       existingIndexedPropertySetter() {}
     }
 
-    expect(
-      getInterface(Test).members[ExistingIndexedPropertySetterSymbol],
-    ).toBe(Test.prototype.existingIndexedPropertySetter);
+    expect(getInterface(Test).behaviors.existingIndexedPropertySetter).toBe(
+      Test.prototype.existingIndexedPropertySetter,
+    );
   });
 });

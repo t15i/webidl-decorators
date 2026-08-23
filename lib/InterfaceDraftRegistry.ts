@@ -8,9 +8,12 @@ import type { InterfaceDraft } from "./types";
  * The registry hands out {@link InterfaceDraft}s: member decorators accumulate
  * their definitions into the draft, and the {@link Interface} decorator
  * validates it into a complete `Interface` once the class is fully decorated.
- * A draft prototype-inherits from the parent class's draft — including its
- * `extendedAttributes`, `staticMembers`, and `members` tables — so inherited
- * definitions stay visible while own ones shadow them.
+ * A draft starts out standalone, with empty tables of its own. It is the
+ * `Interface` decorator that chains it - and its `behaviors`, `staticMembers`,
+ * and `members` tables, though not its `extendedAttributes` - onto the
+ * interface of the class the decorated one extends, so inherited definitions
+ * stay visible while own ones shadow them. Member decorators run before that,
+ * and so only ever see what their own class declares.
  */
 export class InterfaceDraftRegistry {
   protected drafts_: WeakMap<object, InterfaceDraft> = new WeakMap();
@@ -23,6 +26,7 @@ export class InterfaceDraftRegistry {
     const draft: InterfaceDraft = {
       inherit: null,
       extendedAttributes: {},
+      behaviors: {},
       members: {},
       staticMembers: {},
     };

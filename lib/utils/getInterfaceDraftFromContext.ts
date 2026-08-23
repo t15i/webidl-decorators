@@ -8,10 +8,11 @@ import type { DecoratorContext, InterfaceDraft } from "@/types";
  *
  * @remarks
  * The draft is looked up in the shared {@link interfaceDraftRegistry} by the
- * decoration metadata, creating it — inheriting from the parent class's
- * draft, if any — on first access. Every decorator applied to the same class
- * therefore resolves the same draft object, and the {@link Interface}
- * decorator finalizes that same object into the complete interface.
+ * decoration metadata, creating an empty one on first access. Every decorator
+ * applied to the same class therefore resolves the same draft object, and the
+ * {@link Interface} decorator chains that same object onto the interface of
+ * the class the decorated one extends and finalizes it into the complete
+ * interface.
  */
 export function getInterfaceDraftFromContext(
   context: DecoratorContext,

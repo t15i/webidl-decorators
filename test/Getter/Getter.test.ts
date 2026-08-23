@@ -1,4 +1,5 @@
 import {
+  Argument,
   Attribute,
   Constructor,
   Exposed,
@@ -9,12 +10,6 @@ import {
   SupportedPropertyNames,
 } from "lib";
 
-import {
-  IndexedPropertyDeterminator as IndexedPropertyDeterminatorSymbol,
-  IndexedPropertyGetter as IndexedPropertyGetterSymbol,
-  NamedPropertyDeterminator as NamedPropertyDeterminatorSymbol,
-  NamedPropertyGetter as NamedPropertyGetterSymbol,
-} from "@t15i/webspecs/webidl";
 import { DOMString, UnsignedLong } from "@t15i/webidl-types";
 
 import { describe, expect, test } from "vitest";
@@ -29,7 +24,7 @@ describe("@Getter", () => {
       @Constructor
       class Test {
         @Getter
-        @Operation(UnsignedLong, [UnsignedLong])
+        @Operation(UnsignedLong, [Argument(UnsignedLong, "index")])
         item(i: number) {
           return i;
         }
@@ -46,8 +41,7 @@ describe("@Getter", () => {
       }
 
       const instance = new Test();
-      const operation =
-        getInterface(Test).members[IndexedPropertyGetterSymbol]!;
+      const operation = getInterface(Test).indexedPropertyGetter!;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const methodSteps = Test.prototype.item as any;
 
@@ -56,7 +50,9 @@ describe("@Getter", () => {
       expect(operation.keywords.has("getter")).toBe(true);
       expect(operation.identifier).toBe("item");
       expect(operation.returnType).toBe(UnsignedLong);
-      expect(operation.arguments).toEqual([{ type: UnsignedLong }]);
+      expect(operation.arguments).toEqual([
+        { type: UnsignedLong, identifier: "index", keywords: new Set() },
+      ]);
       expect(typeof operation.methodSteps).toBe("function");
       expect(methodSteps.length).toBe(1);
       expect(methodSteps.name).toBe("item");
@@ -77,7 +73,7 @@ describe("@Getter", () => {
       @Interface
       class Test {
         @Getter
-        @Operation(UnsignedLong, [UnsignedLong])
+        @Operation(UnsignedLong, [Argument(UnsignedLong, "index")])
         item(i: number) {
           return i;
         }
@@ -95,7 +91,7 @@ describe("@Getter", () => {
 
       const i = getInterface(Test);
 
-      expect(i.members["item"]).toBe(i.members[IndexedPropertyGetterSymbol]);
+      expect(i.members["item"]).toContain(i.indexedPropertyGetter);
     });
 
     test("should not register the behavior to determine the value of an indexed property for a named getter", () => {
@@ -103,7 +99,7 @@ describe("@Getter", () => {
       @Interface
       class Test {
         @Getter
-        @Operation(UnsignedLong, [UnsignedLong])
+        @Operation(UnsignedLong, [Argument(UnsignedLong, "index")])
         item(v: number) {
           return v;
         }
@@ -121,8 +117,8 @@ describe("@Getter", () => {
 
       const i = getInterface(Test);
 
-      expect(i.members[IndexedPropertyGetterSymbol]!.identifier).toBe("item");
-      expect(i.members[IndexedPropertyDeterminatorSymbol]).toBeUndefined();
+      expect(i.indexedPropertyGetter!.identifier).toBe("item");
+      expect(i.behaviors.indexedPropertyDeterminator).toBeUndefined();
     });
 
     test("should also register the behavior to determine the value of an indexed property for an anonymous getter", () => {
@@ -132,7 +128,7 @@ describe("@Getter", () => {
       @Interface
       class Test {
         @Getter
-        @Operation(UnsignedLong, [UnsignedLong])
+        @Operation(UnsignedLong, [Argument(UnsignedLong, "index")])
         [anonymous](v: number) {
           return v;
         }
@@ -150,11 +146,9 @@ describe("@Getter", () => {
 
       const i = getInterface(Test);
 
-      expect(
-        i.members[IndexedPropertyGetterSymbol]!.identifier,
-      ).toBeUndefined();
-      expect(i.members[IndexedPropertyDeterminatorSymbol]).toBe(
-        i.members[IndexedPropertyGetterSymbol]!.methodSteps,
+      expect(i.indexedPropertyGetter!.identifier).toBeUndefined();
+      expect(i.behaviors.indexedPropertyDeterminator).toBe(
+        i.indexedPropertyGetter!.methodSteps,
       );
     });
   });
@@ -166,7 +160,7 @@ describe("@Getter", () => {
       @Constructor
       class Test {
         @Getter
-        @Operation(DOMString, [DOMString])
+        @Operation(DOMString, [Argument(DOMString, "name")])
         namedItem(name: string) {
           return name;
         }
@@ -178,7 +172,7 @@ describe("@Getter", () => {
       }
 
       const instance = new Test();
-      const operation = getInterface(Test).members[NamedPropertyGetterSymbol]!;
+      const operation = getInterface(Test).namedPropertyGetter!;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const methodSteps = Test.prototype.namedItem as any;
 
@@ -187,7 +181,9 @@ describe("@Getter", () => {
       expect(operation.keywords.has("getter")).toBe(true);
       expect(operation.identifier).toBe("namedItem");
       expect(operation.returnType).toBe(DOMString);
-      expect(operation.arguments).toEqual([{ type: DOMString }]);
+      expect(operation.arguments).toEqual([
+        { type: DOMString, identifier: "name", keywords: new Set() },
+      ]);
       expect(typeof operation.methodSteps).toBe("function");
       expect(methodSteps.length).toBe(1);
       expect(methodSteps.name).toBe("namedItem");
@@ -208,7 +204,7 @@ describe("@Getter", () => {
       @Interface
       class Test {
         @Getter
-        @Operation(DOMString, [DOMString])
+        @Operation(DOMString, [Argument(DOMString, "name")])
         namedItem(v: string) {
           return v;
         }
@@ -221,10 +217,8 @@ describe("@Getter", () => {
 
       const i = getInterface(Test);
 
-      expect(i.members[NamedPropertyGetterSymbol]!.identifier).toBe(
-        "namedItem",
-      );
-      expect(i.members[NamedPropertyDeterminatorSymbol]).toBeUndefined();
+      expect(i.namedPropertyGetter!.identifier).toBe("namedItem");
+      expect(i.behaviors.namedPropertyDeterminator).toBeUndefined();
     });
 
     test("should also register the behavior to determine the value of a named property for an anonymous getter", () => {
@@ -234,7 +228,7 @@ describe("@Getter", () => {
       @Interface
       class Test {
         @Getter
-        @Operation(DOMString, [DOMString])
+        @Operation(DOMString, [Argument(DOMString, "name")])
         [anonymous](v: string) {
           return v;
         }
@@ -247,11 +241,99 @@ describe("@Getter", () => {
 
       const i = getInterface(Test);
 
-      expect(i.members[NamedPropertyGetterSymbol]!.identifier).toBeUndefined();
-      expect(i.members[NamedPropertyDeterminatorSymbol]).toBe(
-        i.members[NamedPropertyGetterSymbol]!.methodSteps,
+      expect(i.namedPropertyGetter!.identifier).toBeUndefined();
+      expect(i.behaviors.namedPropertyDeterminator).toBe(
+        i.namedPropertyGetter!.methodSteps,
       );
     });
+  });
+
+  test("should carry an indexed property getter over to a derived interface", () => {
+    @Exposed("Window")
+    @Interface
+    @Constructor
+    class Base {
+      @Getter
+      @Operation(UnsignedLong, [Argument(UnsignedLong, "index")])
+      item(i: number) {
+        return i;
+      }
+
+      @Attribute(UnsignedLong)
+      get length() {
+        return 1;
+      }
+
+      @SupportedPropertyIndices
+      supportedPropertyIndices() {
+        return new Set<number>([0]);
+      }
+    }
+
+    @Exposed("Window")
+    @Interface
+    @Constructor
+    class Derived extends Base {}
+
+    const derived = getInterface(Derived);
+    const instance = new Derived();
+
+    expect(Object.hasOwn(derived, "indexedPropertyGetter")).toBe(false);
+    expect(derived.indexedPropertyGetter).toBe(
+      getInterface(Base).indexedPropertyGetter,
+    );
+
+    // A derived interface supports indexed properties too, so its instances are
+    // legacy platform objects: reading index 0 goes through the inherited
+    // getter rather than resolving as an ordinary property.
+    expect((instance as unknown as Record<number, unknown>)[0]).toBe(0);
+  });
+
+  test("should leave an operation taking no arguments unmarked as a getter", () => {
+    expect(() => {
+      @Exposed("Window")
+      @Interface
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      class Test {
+        @Getter
+        @Operation(UnsignedLong)
+        item() {
+          return 0;
+        }
+      }
+    }).toThrow(
+      expect.objectContaining({
+        cause: expect.objectContaining({
+          message:
+            "This operation is declared as a special operation but, taking no arguments, matches no getter, setter, or deleter declaration.",
+        }),
+      }),
+    );
+  });
+
+  test("should reject a @Getter without a preceding @Operation under a name Object.prototype carries", () => {
+    // The member table is a plain object, so an identifier such as "toString"
+    // resolves to the `Object.prototype` property of that name unless the lookup
+    // asks for an own key - and a member that is not there at all must be
+    // reported as missing, not as one of another kind.
+    expect(() => {
+      @Exposed("Window")
+      @Interface
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      class Test {
+        @Getter
+        toString() {
+          return "x";
+        }
+      }
+    }).toThrow(
+      expect.objectContaining({
+        cause: expect.objectContaining({
+          message:
+            "No WebIDL member is registered under the decorated identifier 'toString'",
+        }),
+      }),
+    );
   });
 
   test("should reject a @Getter without a preceding @Operation", () => {
@@ -266,5 +348,35 @@ describe("@Getter", () => {
         }
       }
     }).toThrow();
+  });
+
+  test("should reject a @Getter without a preceding @Operation when an overload of the identifier is registered", () => {
+    // The slot under "item" is open, but every overload in it was declared by
+    // '#item1': the decorated method has no operation of its own to mark, and
+    // marking the neighbour's would leave 'item' registered nowhere.
+    expect(() => {
+      @Exposed("Window")
+      @Interface
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      class Test {
+        @Operation(UnsignedLong, [Argument(UnsignedLong, "index")])
+        // eslint-disable-next-line no-unused-private-class-members
+        #item1(i: number) {
+          return i;
+        }
+
+        @Getter
+        item(i: number) {
+          return i;
+        }
+      }
+    }).toThrow(
+      expect.objectContaining({
+        cause: expect.objectContaining({
+          message:
+            "No WebIDL operation is registered for the decorated method; apply @Operation to it",
+        }),
+      }),
+    );
   });
 });

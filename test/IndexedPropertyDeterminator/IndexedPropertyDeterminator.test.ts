@@ -1,7 +1,5 @@
 import { Exposed, IndexedPropertyDeterminator, Interface } from "lib";
 
-import { IndexedPropertyDeterminator as IndexedPropertyDeterminatorSymbol } from "@t15i/webspecs/webidl";
-
 import { describe, expect, test } from "vitest";
 
 import { getInterface } from "../utils";
@@ -15,7 +13,7 @@ describe("@IndexedPropertyDeterminator", () => {
       indexedPropertyDeterminator() {}
     }
 
-    expect(getInterface(Test).members[IndexedPropertyDeterminatorSymbol]).toBe(
+    expect(getInterface(Test).behaviors.indexedPropertyDeterminator).toBe(
       Test.prototype.indexedPropertyDeterminator,
     );
   });

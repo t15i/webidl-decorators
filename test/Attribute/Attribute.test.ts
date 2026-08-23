@@ -1,7 +1,7 @@
 import { Attribute, Constructor, Exposed, Interface } from "lib";
 
 import { isReadonlyAttribute, isStaticAttribute } from "@t15i/webspecs/webidl";
-import { DOMString, USVString } from "@t15i/webidl-types";
+import { DOMString, USVString, UnsignedLong } from "@t15i/webidl-types";
 
 import { describe, expect, test } from "vitest";
 
@@ -278,5 +278,54 @@ describe("@Attribute", () => {
     expect(own.type).toBe(USVString);
     expect(inherited.type).toBe(DOMString);
     expect(own).not.toBe(inherited);
+  });
+
+  test("should reject an attribute on a member with no WebIDL identifier", () => {
+    const anonymous = Symbol("anonymous");
+
+    expect(() => {
+      @Exposed("Window")
+      @Interface
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      class Test {
+        // The types already refuse a symbol-keyed attribute; the guard is what
+        // an untyped consumer runs into.
+        // @ts-expect-error an attribute member must have a WebIDL identifier
+        @Attribute(UnsignedLong)
+        get [anonymous]() {
+          return 0;
+        }
+      }
+    }).toThrow(
+      expect.objectContaining({
+        cause: expect.objectContaining({
+          message: expect.stringContaining("has no WebIDL identifier"),
+        }),
+      }),
+    );
+  });
+
+  test("should reject a private accessor whose name ends in digits", () => {
+    expect(() => {
+      @Exposed("Window")
+      @Interface
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      class Test {
+        // Trailing digits name an overload, and only operations are
+        // overloaded: a private accessor is anonymous whatever it is called.
+        // @ts-expect-error an attribute member must have a WebIDL identifier
+        @Attribute(UnsignedLong)
+        // eslint-disable-next-line no-unused-private-class-members
+        get #value1() {
+          return 0;
+        }
+      }
+    }).toThrow(
+      expect.objectContaining({
+        cause: expect.objectContaining({
+          message: expect.stringContaining("has no WebIDL identifier"),
+        }),
+      }),
+    );
   });
 });
