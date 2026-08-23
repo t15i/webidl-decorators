@@ -5,6 +5,7 @@ import {
   Exposed,
   Getter,
   Interface,
+  Internals,
   Operation,
   SupportedPropertyIndices,
 } from "lib";
@@ -86,6 +87,69 @@ describe("PlatformObject proxy", () => {
     afterEach(() => {
       restore?.();
       restore = null;
+    });
+
+    test("get with string key should forward to [[GetOwnProperty]]", () => {
+      const o = override("getOwnProperty", () => ({ value: 42 }));
+      restore = o.restore;
+
+      const Test = defineLegacyClass();
+      const instance = new Test() as unknown as Record<string, unknown>;
+
+      expect(instance["0"]).toBe(42);
+      expect(o.calls.length).toBe(1);
+      expect(o.calls[0]![1]).toBe("0");
+    });
+
+    test("get with string key should fall back to Reflect.get when [[GetOwnProperty]] finds nothing", () => {
+      const Test = defineLegacyClass();
+      const instance = new Test();
+
+      // 'item' is no own property of the instance, so [[GetOwnProperty]]
+      // yields undefined for it and the read resolves ordinarily - on the
+      // interface prototype object, through the proxy.
+      expect(instance.item(3)).toBe(3);
+    });
+
+    test("get with symbol key should fall back to Reflect.get", () => {
+      interface State {
+        items: number[];
+      }
+
+      @Exposed("Window")
+      @Interface
+      @Constructor
+      class Test {
+        declare [Internals]: State;
+
+        constructor() {
+          this[Internals] = { items: [7] };
+        }
+
+        @Getter
+        @Operation(UnsignedLong, [Argument(UnsignedLong, "index")])
+        item(i: number): number {
+          return this[Internals]!.items[i] ?? -1;
+        }
+
+        @Attribute(UnsignedLong)
+        get length() {
+          return this[Internals]!.items.length;
+        }
+
+        @SupportedPropertyIndices
+        supportedPropertyIndices() {
+          return new Set(this[Internals]!.items.keys());
+        }
+      }
+
+      const instance = new Test();
+
+      // A symbol key is never a supported property name, so it is forwarded
+      // to the target as is: the documented [Internals] slot stays readable
+      // through the proxy, from outside and from the instance's own methods.
+      expect(instance[Internals]!.items).toEqual([7]);
+      expect(instance.item(0)).toBe(7);
     });
 
     test("getOwnPropertyDescriptor with string key should forward to [[GetOwnProperty]]", () => {

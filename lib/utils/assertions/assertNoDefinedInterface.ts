@@ -16,20 +16,7 @@ import { InterfacePrototypeObject } from "@t15i/webspecs/webidl";
 export function assertNoDefinedInterface(
   constr: InterfaceDecoratorTarget,
 ): void {
-  const own = InterfacePrototypeObject.getInterfaceOf(constr.prototype);
-
-  if (own === null) {
-    return;
-  }
-
-  // A derived class being decorated for the first time inherits its base's
-  // interface prototype object. Only an interface that differs from the
-  // inherited one is the class's own.
-  const inherited = InterfacePrototypeObject.getInterfaceOf(
-    Object.getPrototypeOf(constr.prototype),
-  );
-
-  if (own !== inherited) {
+  if (InterfacePrototypeObject.getInterfaceOf(constr.prototype) !== null) {
     throw new TypeError(
       `A WebIDL interface is already defined for '${constr.name}'`,
     );

@@ -25,12 +25,6 @@ import type { AttributeDecorator } from "./types";
  * attribute already registered under the same identifier, installing the
  * getter's steps as the attribute's getter steps.
  *
- * @remarks
- * When no attribute is registered yet, one is created from `context` and — as a
- * lone getter — starts out `readonly`. When one already exists (its setter was
- * defined first), it is extended in place after asserting it is an attribute of
- * type `T`, and stays `readonly` only while it has no setter steps.
- *
  * Nothing is returned: the decorated getter is left in place, and `Interface`
  * later defines the guarded accessor — created by webspecs from the registered
  * steps — on the interface prototype object.
@@ -50,9 +44,6 @@ function defineAttributeGetter<T extends Type>(
     if (attribute) {
       assertStrictOneOfType(attribute.type, T);
 
-      if (attribute.setterSteps === undefined) {
-        attribute.keywords.add("readonly");
-      }
       attribute.getterSteps = target;
     } else {
       members[id] = createAttributeFromContext(T, context);

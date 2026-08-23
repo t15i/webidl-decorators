@@ -40,6 +40,16 @@ describe("@Exposed", () => {
     expect(globals["HTMLCollection"]).toBe(original);
   });
 
+  test("should reject an exposure with no @Interface applied inside it", () => {
+    expect(() => {
+      @Exposed("Window")
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      class Test {}
+    }).toThrow(
+      "@Exposed requires @Interface applied inside it (`@Exposed @Interface`)",
+    );
+  });
+
   test("should reject an interface that is never marked as exposed", () => {
     let error: unknown;
 

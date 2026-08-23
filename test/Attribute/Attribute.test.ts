@@ -126,6 +126,25 @@ describe("@Attribute", () => {
     }).toThrow("Cannot extend the existing definition");
   });
 
+  test("should reject extending a static attribute with a getter and setter of different types", () => {
+    expect(() => {
+      @Exposed("Window")
+      @Interface
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      class Test {
+        @Attribute(DOMString)
+        static get foo() {
+          return "";
+        }
+
+        @Attribute(USVString)
+        static set foo(_value: string) {}
+      }
+    }).toThrow(
+      "Cannot extend the existing definition of static attribute 'foo'",
+    );
+  });
+
   test("should register a static attribute under the staticMembers slot", () => {
     @Exposed("Window")
     @Interface

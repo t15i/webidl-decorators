@@ -379,4 +379,22 @@ describe("@Getter", () => {
       }),
     );
   });
+
+  test("should reject an anonymous @Getter without a preceding @Operation", () => {
+    const anonymous = Symbol("anonymous");
+
+    // An anonymous special operation has no identifier to name, so the failure
+    // reports the kind alone.
+    expect(() => {
+      @Exposed("Window")
+      @Interface
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      class Test {
+        @Getter
+        [anonymous](index: number) {
+          return index;
+        }
+      }
+    }).toThrow("Cannot define getter");
+  });
 });
