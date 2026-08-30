@@ -12,7 +12,12 @@ import {
 } from "lib";
 
 import type { Operation as IDLOperation } from "@t15i/webspecs/webidl";
-import { DOMString, Undefined, UnsignedLong } from "@t15i/webidl-types";
+import {
+  DOMString,
+  InterfaceType,
+  Undefined,
+  UnsignedLong,
+} from "@t15i/webidl-types";
 
 import { describe, expect, test } from "vitest";
 
@@ -48,9 +53,7 @@ describe("@Operation", () => {
       new TypeError("Illegal invocation"),
     );
     expect(() => methodSteps.call(instance)).toThrow(
-      new TypeError(
-        "Failed to execute 'item' on 'Test': At least 1 argument required, but only 0 passed",
-      ),
+      new TypeError("At least 1 argument required, but only 0 passed"),
     );
     expect(() => methodSteps.call(instance, 0)).not.toThrow();
     expect(() => methodSteps.call(instance, 0, 1)).not.toThrow();
@@ -88,6 +91,90 @@ describe("@Operation", () => {
     const operation = getOperation(getInterface(Test), "count")!;
 
     expect(operation.arguments).toEqual([]);
+  });
+
+  test("should reject a method declaring a parameter narrower than its argument", () => {
+    @Exposed("Window")
+    @Interface
+    class Test {
+      // @ts-expect-error a method may not promise to take less than its argument admits
+      @Operation(Undefined, [Argument(InterfaceType(Element), "element")])
+      add(element: HTMLDivElement): undefined {
+        void element;
+        return undefined;
+      }
+    }
+
+    expect(getOperation(getInterface(Test), "add")).toBeDefined();
+  });
+
+  test("should apply to the implementation of a method that has overload signatures", () => {
+    const seen: Element[] = [];
+
+    @Exposed("Window")
+    @Interface
+    @Constructor
+    class Test {
+      // What callers get: the interface the argument type is narrowed to after
+      // the class bodies, once its module can be imported.
+      add(element: HTMLDivElement): undefined;
+
+      // What the decorator gets: the argument type as it stands.
+      @Operation(Undefined, [Argument(InterfaceType(Element), "element")])
+      add(element: Element): undefined {
+        seen.push(element);
+        return undefined;
+      }
+    }
+
+    const instance = new Test();
+    const span = document.createElement("span");
+    const add = Test.prototype.add as (this: object, element: Element) => void;
+
+    add.call(instance, span);
+
+    expect(getOperation(getInterface(Test), "add")!.arguments).toEqual([
+      {
+        type: InterfaceType(Element),
+        identifier: "element",
+        keywords: new Set(),
+      },
+    ]);
+    expect(seen).toEqual([span]);
+  });
+
+  test("should accept a method declaring a parameter wider than its argument", () => {
+    @Exposed("Window")
+    @Interface
+    @Constructor
+    class Test {
+      @Operation(Undefined, [Argument(DOMString, "value")])
+      set(value: string | number): undefined {
+        void value;
+        return undefined;
+      }
+    }
+
+    const operation = getOperation(getInterface(Test), "set")!;
+
+    expect(operation.arguments).toEqual([
+      { type: DOMString, identifier: "value", keywords: new Set() },
+    ]);
+  });
+
+  test("should reject a method declaring a parameter unrelated to its argument", () => {
+    @Exposed("Window")
+    @Interface
+    class Test {
+      // @ts-expect-error a number parameter has nothing to do with a string argument
+      @Operation(Undefined, [Argument(DOMString, "value")])
+      set(value: number): undefined {
+        void value;
+        return undefined;
+      }
+    }
+
+    expect(getOperation(getInterface(Test), "set")).toBeDefined();
   });
 
   test("should support multiple arguments", () => {

@@ -60,9 +60,7 @@ describe("@Getter", () => {
         new TypeError("Illegal invocation"),
       );
       expect(() => methodSteps.call(instance)).toThrow(
-        new TypeError(
-          "Failed to execute 'item' on 'Test': At least 1 argument required, but only 0 passed",
-        ),
+        new TypeError("At least 1 argument required, but only 0 passed"),
       );
       expect(() => methodSteps.call(instance, 0)).not.toThrow();
       expect(() => methodSteps.call(instance, 0, 1)).not.toThrow();
@@ -191,9 +189,7 @@ describe("@Getter", () => {
         new TypeError("Illegal invocation"),
       );
       expect(() => methodSteps.call(instance)).toThrow(
-        new TypeError(
-          "Failed to execute 'namedItem' on 'Test': At least 1 argument required, but only 0 passed",
-        ),
+        new TypeError("At least 1 argument required, but only 0 passed"),
       );
       expect(() => methodSteps.call(instance, "x")).not.toThrow();
       expect(() => methodSteps.call(instance, "x", "y")).not.toThrow();
