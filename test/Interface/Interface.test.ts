@@ -8,6 +8,7 @@ import {
 } from "lib";
 
 import { Long } from "@t15i/webidl-types";
+import { InterfaceObject } from "@t15i/webspecs/webidl";
 
 import { describe, expect, test } from "vitest";
 
@@ -20,6 +21,16 @@ describe("@Interface", () => {
     class Test {}
 
     expect(getInterface(Test)).toBeDefined();
+  });
+
+  test("should register the class itself as the interface object", () => {
+    @Exposed("Window")
+    @Interface
+    class Test {}
+
+    // The two sides of the interface answer with the same one: the class as
+    // handed to a caller, and the prototype hanging off it.
+    expect(InterfaceObject.getInterfaceOf(Test)).toBe(getInterface(Test));
   });
 
   test("should reject an interface that is not exposed", () => {
