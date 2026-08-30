@@ -2,6 +2,7 @@ import type { ReflectedTargetAssociations } from "@t15i/webspecs/html";
 import type { Attribute, Type } from "@t15i/webspecs/webidl";
 
 import { attributeChangeStepsRegistry } from "@/AttributeChangeStepsRegistry";
+import { customElementReactions } from "@/CustomElementReactions";
 import type {
   ReflectedAttributeAccessor,
   ReflectedAttributeAccessorContext,
@@ -20,6 +21,11 @@ import type { ReflectionContext, ReflectedAttributeSpec } from "../types";
  * class decorator to wire into `attributeChangedCallback`. The returned getter
  * and setter are installed as the attribute's steps, so webspecs coerces the
  * assigned value through the attribute's WebIDL type before the setter runs.
+ *
+ * The setter runs as a `[CEReactions]` operation, which every reflected IDL
+ * attribute is declared as: the reactions its write queues are held back until
+ * its last step, so a callback reads the assignment finished rather than
+ * halfway through. See {@link customElementReactions}.
  *
  * @param spec - The getter, setter, and optional attribute change steps for the
  *  attribute's WebIDL type.
@@ -80,12 +86,14 @@ export function createReflectedAccessor<
       );
     },
     set(value) {
-      return setter.call(
-        targets.get(this)!,
-        idlAttribute,
-        contentAttributeName,
-        value,
-      );
+      customElementReactions.run(() => {
+        setter.call(
+          targets.get(this)!,
+          idlAttribute,
+          contentAttributeName,
+          value,
+        );
+      });
     },
   };
 }

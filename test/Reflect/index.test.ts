@@ -365,31 +365,27 @@ describe("@Reflect", () => {
     );
   });
 
-  test("invalidates the cached getter when the content attribute changes externally", () => {
+  test("reads the content attribute through on every get", () => {
     @Exposed("Window")
-    @Interface("ReflectCacheInvalidation")
+    @Interface("ReflectReadThrough")
     @Constructor
-    class ReflectCacheInvalidation extends HTMLElement {
+    class ReflectReadThrough extends HTMLElement {
       @Reflect
       @Attribute(DOMString)
       accessor foo: string = "";
     }
 
-    customElements.define(
-      "reflect-cache-invalidation",
-      ReflectCacheInvalidation,
-    );
+    customElements.define("reflect-read-through", ReflectReadThrough);
     const el = document.createElement(
-      "reflect-cache-invalidation",
-    ) as ReflectCacheInvalidation;
+      "reflect-read-through",
+    ) as ReflectReadThrough;
 
     el.foo = "a";
-    expect(el.foo).toBe("a"); // fills the getter cache
-    expect(el.foo).toBe("a"); // served from the cache
+    expect(el.foo).toBe("a");
 
-    // An external content attribute change must run the attribute change steps
-    // (wired through the element's observedAttributes and
-    // attributeChangedCallback by @Interface) and drop the stale cached value.
+    // Nothing stands between the getter and the content attribute, so a change
+    // made from outside is visible on the next read, without the attribute
+    // having to be observed for it.
     el.setAttribute("foo", "b");
     expect(el.foo).toBe("b");
   });
@@ -487,9 +483,11 @@ describe("@Reflect", () => {
     @Interface("ReflectWithOwnCallback")
     @Constructor
     class ReflectWithOwnCallback extends HTMLElement {
+      // An attr-element reflection, which is what registers attribute change
+      // steps: the reflected content attribute is observed for them.
       @Reflect
-      @Attribute(DOMString)
-      accessor foo: string = "";
+      @Attribute(Nullable(InterfaceType(HTMLElement)))
+      accessor anchor: HTMLElement | null = null;
 
       attributeChangedCallback(
         name: string,
@@ -504,13 +502,71 @@ describe("@Reflect", () => {
     const el = document.createElement(
       "reflect-with-own-callback",
     ) as ReflectWithOwnCallback;
+    const target = document.createElement("div");
+    target.id = "reflect-own-callback-target";
+    document.body.append(el, target);
 
-    // Changing the reflected content attribute runs the reflection steps (so the
-    // IDL getter observes the new value) and still reaches the class's own
+    // Changing the reflected content attribute runs the reflection steps (so
+    // the IDL getter observes the new value) and still reaches the class's own
     // attributeChangedCallback, which @Interface wraps rather than replaces.
+    el.setAttribute("anchor", "reflect-own-callback-target");
+    expect(el.anchor).toBe(target);
+    expect(changes).toContainEqual([
+      "anchor",
+      null,
+      "reflect-own-callback-target",
+    ]);
+
+    el.remove();
+    target.remove();
+  });
+
+  test("wraps a class's own attributeChangedCallback when nothing is reflected into observedAttributes", () => {
+    const changes: [string, string | null, string | null][] = [];
+
+    @Exposed("Window")
+    @Interface("ReflectWithoutChangeSteps")
+    @Constructor
+    class ReflectWithoutChangeSteps extends HTMLElement {
+      @Reflect
+      @Attribute(DOMString)
+      accessor foo: string = "";
+
+      static observedAttributes: string[] = ["custom"];
+
+      attributeChangedCallback(
+        name: string,
+        oldValue: string | null,
+        newValue: string | null,
+      ): void {
+        changes.push([name, oldValue, newValue]);
+      }
+    }
+
+    // A DOMString reflection registers no attribute change steps - its getter
+    // reads the content attribute through - so nothing is appended to what the
+    // class observes.
+    expect([...ReflectWithoutChangeSteps.observedAttributes]).toEqual([
+      "custom",
+    ]);
+
+    customElements.define(
+      "reflect-without-change-steps",
+      ReflectWithoutChangeSteps,
+    );
+    const el = document.createElement(
+      "reflect-without-change-steps",
+    ) as ReflectWithoutChangeSteps;
+
+    // The class's own callback is wrapped all the same, so what the class does
+    // observe still reaches it.
+    el.setAttribute("custom", "x");
+    expect(changes).toEqual([["custom", null, "x"]]);
+
+    // The reflected attribute is not among them, and does not need to be.
     el.setAttribute("foo", "bar");
     expect(el.foo).toBe("bar");
-    expect(changes).toContainEqual(["foo", null, "bar"]);
+    expect(changes).toEqual([["custom", null, "x"]]);
   });
 
   test("normalizes the namespace of a namespaced content attribute change", () => {
@@ -522,8 +578,8 @@ describe("@Reflect", () => {
     @Constructor
     class ReflectWithNamespacedChange extends HTMLElement {
       @Reflect
-      @Attribute(DOMString)
-      accessor foo: string = "";
+      @Attribute(Nullable(InterfaceType(HTMLElement)))
+      accessor anchor: HTMLElement | null = null;
 
       attributeChangedCallback(
         name: string,
@@ -542,14 +598,22 @@ describe("@Reflect", () => {
     const el = document.createElement(
       "reflect-with-namespaced-change",
     ) as ReflectWithNamespacedChange;
+    const target = document.createElement("div");
+    document.body.append(el, target);
+
+    el.anchor = target;
 
     // A content attribute in a namespace still reaches the callback, with its
-    // namespace passed through rather than dropped. Reflection reads the
-    // null-namespace attribute, so the IDL attribute is left alone.
-    el.setAttributeNS(NAMESPACE, "foo", "bar");
+    // namespace passed through rather than dropped. The reflection steps read
+    // the namespace and stop there, so the explicitly set element is left
+    // alone.
+    el.setAttributeNS(NAMESPACE, "anchor", "bar");
 
-    expect(el.foo).toBe("");
-    expect(changes).toContainEqual(["foo", null, "bar", NAMESPACE]);
+    expect(el.anchor).toBe(target);
+    expect(changes).toContainEqual(["anchor", null, "bar", NAMESPACE]);
+
+    el.remove();
+    target.remove();
   });
 
   test("reflects an annotated IDL type through its underlying type", () => {
@@ -582,8 +646,8 @@ describe("@Reflect", () => {
     @Constructor
     class ReflectWithObservedGetter extends HTMLElement {
       @Reflect
-      @Attribute(DOMString)
-      accessor foo: string = "";
+      @Attribute(Nullable(InterfaceType(HTMLElement)))
+      accessor foo: HTMLElement | null = null;
 
       static get observedAttributes(): string[] {
         return ["custom"];
@@ -604,9 +668,20 @@ describe("@Reflect", () => {
     const el = document.createElement(
       "reflect-with-observed-getter",
     ) as ReflectWithObservedGetter;
+    const target = document.createElement("div");
+    document.body.append(el, target);
 
-    el.setAttribute("foo", "bar");
-    expect(el.foo).toBe("bar");
+    // Observing it is what makes the change steps run: an external write
+    // clears the explicitly set element, leaving the getter to resolve the id
+    // the content attribute now holds.
+    el.foo = target;
+    expect(el.foo).toBe(target);
+
+    el.setAttribute("foo", "no-such-id");
+    expect(el.foo).toBeNull();
+
+    el.remove();
+    target.remove();
   });
 
   test("merges reflected content attributes into a static getter that observes nothing", () => {
@@ -615,8 +690,8 @@ describe("@Reflect", () => {
     @Constructor
     class ReflectWithEmptyObservedGetter extends HTMLElement {
       @Reflect
-      @Attribute(DOMString)
-      accessor foo: string = "";
+      @Attribute(Nullable(InterfaceType(HTMLElement)))
+      accessor foo: HTMLElement | null = null;
 
       // The wrapper tolerates a getter that yields nothing, so the reflected
       // content attribute is still observed.
@@ -636,9 +711,17 @@ describe("@Reflect", () => {
     const el = document.createElement(
       "reflect-with-empty-observed-getter",
     ) as ReflectWithEmptyObservedGetter;
+    const target = document.createElement("div");
+    document.body.append(el, target);
 
-    el.setAttribute("foo", "bar");
-    expect(el.foo).toBe("bar");
+    el.foo = target;
+    expect(el.foo).toBe(target);
+
+    el.setAttribute("foo", "no-such-id");
+    expect(el.foo).toBeNull();
+
+    el.remove();
+    target.remove();
   });
 
   test("merges reflected content attributes into a static observedAttributes field", () => {
@@ -647,8 +730,8 @@ describe("@Reflect", () => {
     @Constructor
     class ReflectWithObservedField extends HTMLElement {
       @Reflect
-      @Attribute(DOMString)
-      accessor foo: string = "";
+      @Attribute(Nullable(InterfaceType(HTMLElement)))
+      accessor foo: HTMLElement | null = null;
 
       // A static field initializes after the class decorator runs; the merge
       // is deferred to a class initializer so it survives that initialization.
@@ -667,8 +750,60 @@ describe("@Reflect", () => {
     const el = document.createElement(
       "reflect-with-observed-field",
     ) as ReflectWithObservedField;
+    const target = document.createElement("div");
+    document.body.append(el, target);
 
-    el.setAttribute("foo", "baz");
-    expect(el.foo).toBe("baz");
+    el.foo = target;
+    expect(el.foo).toBe(target);
+
+    el.setAttribute("foo", "no-such-id");
+    expect(el.foo).toBeNull();
+
+    el.remove();
+    target.remove();
+  });
+  test("observes every reflected content attribute the same class declares", () => {
+    @Exposed("Window")
+    @Interface("ReflectTwoObserved")
+    @Constructor
+    class ReflectTwoObserved extends HTMLElement {
+      @Reflect
+      @Attribute(Nullable(InterfaceType(HTMLElement)))
+      accessor anchor: HTMLElement | null = null;
+
+      @Reflect
+      @Attribute(Nullable(FrozenArray(InterfaceType(HTMLElement))))
+      accessor targets: readonly HTMLElement[] | null = null;
+
+      // Declared for the type checker only; what stands behind it is the
+      // merge, which the class itself contributes nothing to.
+      declare static observedAttributes: string[];
+    }
+
+    expect([...ReflectTwoObserved.observedAttributes]).toEqual([
+      "anchor",
+      "targets",
+    ]);
+
+    customElements.define("reflect-two-observed", ReflectTwoObserved);
+    const el = document.createElement(
+      "reflect-two-observed",
+    ) as ReflectTwoObserved;
+    const target = document.createElement("div");
+    document.body.append(el, target);
+
+    el.anchor = target;
+    el.targets = [target];
+    expect(el.anchor).toBe(target);
+    expect(el.targets).toEqual([target]);
+
+    // Each attribute's steps are registered under its own name, so a write to
+    // one leaves what the other holds alone.
+    el.setAttribute("anchor", "no-such-id");
+    expect(el.anchor).toBeNull();
+    expect(el.targets).toEqual([target]);
+
+    el.remove();
+    target.remove();
   });
 });

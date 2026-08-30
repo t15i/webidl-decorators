@@ -1,4 +1,5 @@
 import { attributeChangeStepsRegistry } from "@/AttributeChangeStepsRegistry";
+import { customElementReactions } from "@/CustomElementReactions";
 import { getPropertyDescriptor } from "@/utils";
 
 import type { CustomElementConstructor, CustomElementContext } from "./types";
@@ -9,17 +10,6 @@ import type { CustomElementConstructor, CustomElementContext } from "./types";
  *
  * @param target - The custom element constructor to extend.
  * @param names - The reflected content attribute names to observe.
- *
- * @remarks
- * `observedAttributes` is idiomatically an inherited `static get`, which cannot
- * be assigned to. So rather than writing the property, its own-or-inherited
- * descriptor is resolved, mutated in place, and redefined on `target`: an
- * accessor's getter is wrapped to append `names` (falling back to an empty list
- * when the original getter yields nothing), and a data property's value has
- * `names` appended. Reusing the resolved descriptor keeps its original
- * `enumerable`/`configurable`/`writable` flags, so the redefinition stays as
- * unobtrusive as possible. When the property is not declared anywhere, a fresh
- * writable data descriptor stands in.
  */
 function observeReflectedAttributes(
   target: CustomElementConstructor,
@@ -54,6 +44,14 @@ function observeReflectedAttributes(
  * registered for the changed attribute runs before the class's original
  * callback.
  *
+ * The two are not the same kind of thing and are not run the same way. The
+ * registered steps are the spec's attribute change steps: they belong to the
+ * mutation and run where the DOM delivered it. The class's own callback is a
+ * custom element reaction, which the platform holds back until the
+ * `[CEReactions]` operation that caused the mutation is done - so it is
+ * offered to {@link customElementReactions} first, and run here only when
+ * there is no such operation to wait for.
+ *
  * The `observedAttributes` merge is deferred to a class initializer because a
  * `static observedAttributes` field initializes after class decorators run and
  * would otherwise overwrite a merge done here; class initializers run after
@@ -63,10 +61,6 @@ function observeReflectedAttributes(
  * @param context - The interface decorator context, whose `metadata` keys the
  *  drained change steps and whose `addInitializer` defers the merge.
  *
- * @remarks
- * Applied by {@link Interface} to classes that extend `HTMLElement`; it is what
- * makes content-attribute mutations propagate to reflected IDL attributes.
- *
  * @internal
  */
 export function CustomElement(
@@ -75,16 +69,19 @@ export function CustomElement(
 ): void {
   const steps = attributeChangeStepsRegistry.drain(context.metadata);
 
-  if (steps.size === 0) {
+  const originalAttributeChangedCallback =
+    target.prototype.attributeChangedCallback;
+
+  if (steps.size === 0 && originalAttributeChangedCallback === undefined) {
     return;
   }
 
-  context.addInitializer(function () {
-    observeReflectedAttributes(target, [...steps.keys()]);
-  });
+  if (steps.size > 0) {
+    context.addInitializer(function () {
+      observeReflectedAttributes(target, [...steps.keys()]);
+    });
+  }
 
-  const originalAttributeChangedCallback =
-    target.prototype.attributeChangedCallback;
   target.prototype.attributeChangedCallback = function (
     name,
     oldValue,
@@ -98,12 +95,18 @@ export function CustomElement(
 
     steps.get(name)?.call(this, name, oldValue, value, namespace);
 
-    originalAttributeChangedCallback?.call(
+    if (originalAttributeChangedCallback === undefined) {
+      return;
+    }
+
+    const reaction = originalAttributeChangedCallback.bind(
       this,
       name,
       oldValue,
       value,
       namespace,
     );
+
+    if (!customElementReactions.enqueue(reaction)) reaction();
   };
 }
