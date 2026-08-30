@@ -7,7 +7,7 @@ import type {
 } from "@/types";
 
 import { ElementReflectedTargetAssociations } from "../ReflectedTargetAssociation";
-import { createCachedReflectedAccessor } from "./createCachedReflectedAccessor";
+import { createReflectedAccessor } from "./createReflectedAccessor";
 
 /**
  * Builds the reflected auto-accessor for a `double` reflected IDL attribute.
@@ -19,7 +19,7 @@ export function createReflectedDoubleAccessor(
   contentAttributeName: string,
   context: ReflectedAttributeAccessorContext<DoubleType>,
 ): ReflectedAttributeAccessor<DoubleType> {
-  return createCachedReflectedAccessor(
+  return createReflectedAccessor(
     {
       getter: ReflectedDouble.getter,
       setter: ReflectedDouble.setter,

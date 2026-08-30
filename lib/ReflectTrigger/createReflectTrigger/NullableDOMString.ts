@@ -11,7 +11,7 @@ import type {
 } from "@/types";
 
 import { ElementReflectedTargetAssociations } from "../ReflectedTargetAssociation";
-import { createCachedReflectedAccessor } from "./createCachedReflectedAccessor";
+import { createReflectedAccessor } from "./createReflectedAccessor";
 
 export type NullableDOMStringType = NullableType<DOMStringType>;
 
@@ -25,7 +25,7 @@ export function createReflectedNullableDOMStringAccessor(
   contentAttributeName: string,
   context: ReflectedAttributeAccessorContext<NullableDOMStringType>,
 ): ReflectedAttributeAccessor<NullableDOMStringType> {
-  return createCachedReflectedAccessor(
+  return createReflectedAccessor(
     {
       getter: ReflectedNullableDOMString.getter,
       setter: ReflectedNullableDOMString.setter,
