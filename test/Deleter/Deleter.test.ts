@@ -59,9 +59,7 @@ describe("@Deleter", () => {
       new TypeError("Illegal invocation"),
     );
     expect(() => methodSteps.call(instance)).toThrow(
-      new TypeError(
-        "Failed to execute 'namedPropertyDeleter' on 'Test': At least 1 argument required, but only 0 passed",
-      ),
+      new TypeError("At least 1 argument required, but only 0 passed"),
     );
     expect(() => methodSteps.call(instance, "x")).not.toThrow();
     expect(() => methodSteps.call(instance, "x", "y")).not.toThrow();

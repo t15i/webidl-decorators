@@ -7,7 +7,7 @@ import type {
 } from "@/types";
 
 import { ElementReflectedTargetAssociations } from "../ReflectedTargetAssociation";
-import { createCachedReflectedAccessor } from "./createCachedReflectedAccessor";
+import { createReflectedAccessor } from "./createReflectedAccessor";
 
 /**
  * Builds the reflected auto-accessor for an `unsigned long` reflected IDL
@@ -20,7 +20,7 @@ export function createReflectedUnsignedLongAccessor(
   contentAttributeName: string,
   context: ReflectedAttributeAccessorContext<UnsignedLongType>,
 ): ReflectedAttributeAccessor<UnsignedLongType> {
-  return createCachedReflectedAccessor(
+  return createReflectedAccessor(
     {
       getter: ReflectedUnsignedLong.getter,
       setter: ReflectedUnsignedLong.setter,

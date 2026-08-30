@@ -7,7 +7,7 @@ import type {
 } from "@/types";
 
 import { ElementReflectedTargetAssociations } from "../ReflectedTargetAssociation";
-import { createCachedReflectedAccessor } from "./createCachedReflectedAccessor";
+import { createReflectedAccessor } from "./createReflectedAccessor";
 
 /**
  * Builds the reflected auto-accessor for a `USVString` reflected IDL attribute.
@@ -19,7 +19,7 @@ export function createReflectedUSVStringAccessor(
   contentAttributeName: string,
   context: ReflectedAttributeAccessorContext<USVStringType>,
 ): ReflectedAttributeAccessor<USVStringType> {
-  return createCachedReflectedAccessor(
+  return createReflectedAccessor(
     {
       getter: ReflectedUSVString.getter,
       setter: ReflectedUSVString.setter,

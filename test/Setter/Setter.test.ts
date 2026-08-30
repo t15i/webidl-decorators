@@ -83,9 +83,7 @@ describe("@Setter", () => {
         new TypeError("Illegal invocation"),
       );
       expect(() => methodSteps.call(instance, 0)).toThrow(
-        new TypeError(
-          "Failed to execute 'indexedPropertySetter' on 'Test': At least 2 arguments required, but only 1 passed",
-        ),
+        new TypeError("At least 2 arguments required, but only 1 passed"),
       );
       expect(() => methodSteps.call(instance, 0, 0)).not.toThrow();
       expect(() => methodSteps.call(instance, 0, 0, 0)).not.toThrow();
@@ -227,9 +225,7 @@ describe("@Setter", () => {
         new TypeError("Illegal invocation"),
       );
       expect(() => methodSteps.call(instance, "x")).toThrow(
-        new TypeError(
-          "Failed to execute 'namedPropertySetter' on 'Test': At least 2 arguments required, but only 1 passed",
-        ),
+        new TypeError("At least 2 arguments required, but only 1 passed"),
       );
       expect(() => methodSteps.call(instance, "x", "y")).not.toThrow();
       expect(() => methodSteps.call(instance, "x", "y", "z")).not.toThrow();

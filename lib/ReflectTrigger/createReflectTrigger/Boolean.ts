@@ -7,7 +7,7 @@ import type {
 } from "@/types";
 
 import { ElementReflectedTargetAssociations } from "../ReflectedTargetAssociation";
-import { createCachedReflectedAccessor } from "./createCachedReflectedAccessor";
+import { createReflectedAccessor } from "./createReflectedAccessor";
 
 /**
  * Builds the reflected auto-accessor for a `boolean` reflected IDL attribute.
@@ -19,7 +19,7 @@ export function createReflectedBooleanAccessor(
   contentAttributeName: string,
   context: ReflectedAttributeAccessorContext<BooleanType>,
 ): ReflectedAttributeAccessor<BooleanType> {
-  return createCachedReflectedAccessor(
+  return createReflectedAccessor(
     {
       getter: ReflectedBoolean.getter,
       setter: ReflectedBoolean.setter,

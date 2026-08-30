@@ -190,6 +190,21 @@ return type must satisfy every one of them. `@Operation(Boolean)` and
 assignable to neither, while `long` and `unsigned long` can, since both are
 `number`.
 
+Parameters go the other way from return types: a method may declare one wider
+than its argument - which is what the stacking above needs, since
+`remove(index?: number)` stands for the declaration taking nothing too - but
+never narrower, because a method may not promise to take less than its argument
+admits.
+
+The rule bites in one place: an argument whose type cannot name its interface
+yet, because that interface is declared by a module still being evaluated, and
+is patched to the real type after the class bodies. A method there wants to
+declare the interface the argument will have rather than the one it has, which
+is either an overload signature above the implementation - the decorator
+applies to the implementation - or a `@ts-expect-error` on the decorator. The
+call is unaffected either way: its arguments are converted through the types of
+the declaration it matched before the method is entered.
+
 Stacking is a convenience for the case that fits it, not the mechanism
 overloading rests on. A private method per overload expresses any set of
 declarations: each body gets exactly the types of its own declaration, and the
@@ -237,7 +252,82 @@ factory (`@Reflect("data-name")`). `@ReflectNonNegative`, `@ReflectPositive`,
 `@ReflectPositiveWithFallback`, and `@ReflectURL` reflect with the corresponding
 limits; `@ReflectDefault` and `@ReflectRange` supplement a reflect trigger with
 a default value or a clamped range; `@ReflectSetter` reflects on assignment
-only, keeping the separately declared getter.
+only - on a `set` member, keeping the separately declared getter, or on an
+`accessor`, whose reads return the backing field.
+
+`@Reflect` accepts `long`, `unsigned long`, `double`, `boolean`, `DOMString`,
+`USVString`, `DOMString?`, `Element?`, and `FrozenArray<Element>?`; any other
+IDL type is rejected where the decorator is applied. The narrower triggers
+accept less: `USVString` for `@ReflectURL`, `long` for `@ReflectNonNegative`,
+`double` or `unsigned long` for `@ReflectPositive`, `unsigned long` for
+`@ReflectPositiveWithFallback`, and `double`, `long`, or `unsigned long` for
+`@ReflectDefault`.
+
+#### Reflecting elements
+
+An `Element?` or `FrozenArray<Element>?` attribute reflects an
+[attr-element](https://html.spec.whatwg.org/multipage/common-dom-interfaces.html#attr-associated-element):
+the content attribute holds an id, the IDL attribute holds the element itself.
+
+```ts
+import {
+  Interface,
+  Exposed,
+  Attribute,
+  Reflect,
+} from "@t15i/webidl-decorators";
+import { Nullable, InterfaceType } from "@t15i/webidl-types";
+
+@Exposed("Window")
+@Interface
+class HTMLInputElement extends HTMLElement {
+  @Reflect("anchor")
+  @Attribute(Nullable(InterfaceType(HTMLElement)))
+  accessor anchorElement: HTMLElement | null = null;
+}
+```
+
+#### Custom element callbacks
+
+A class that extends `HTMLElement` is meant to be registered with
+`customElements.define`, and `@Interface` wires the reflection into the two
+custom element hooks it concerns.
+
+Content attributes whose reflection needs to see changes are added to
+`observedAttributes`, preserving what the class already declares - a static
+field, a static getter, or one inherited from a base class. Only element
+reflection needs this; a value-typed reflected attribute (`DOMString`, `long`,
+...) reads its content attribute through on every get and so observes nothing.
+
+`attributeChangedCallback` is wrapped rather than replaced: the reflection's own
+attribute change steps run first, then the class's own callback, with the
+arguments normalized to strings or `null`.
+
+```ts
+@Exposed("Window")
+@Interface
+class HTMLInputElement extends HTMLElement {
+  @Reflect("anchor")
+  @Attribute(Nullable(InterfaceType(HTMLElement)))
+  accessor anchorElement: HTMLElement | null = null;
+
+  // Merged into ["disabled", "anchor"] by @Interface.
+  static observedAttributes: string[] = ["disabled"];
+
+  attributeChangedCallback(
+    name: string,
+    oldValue: string | null,
+    newValue: string | null,
+  ): void {
+    // Runs for "disabled" and for "anchor".
+  }
+}
+```
+
+By the time the callback runs, the reflected IDL attribute already holds the
+new value: reading `this.anchorElement` there returns what the change left
+behind, never a half-applied state, whether the change came from an assignment
+to the IDL attribute or from a write to the content attribute directly.
 
 ### Private state on legacy platform objects
 

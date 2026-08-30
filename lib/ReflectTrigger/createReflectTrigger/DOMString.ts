@@ -7,7 +7,7 @@ import type {
 } from "@/types";
 
 import { ElementReflectedTargetAssociations } from "../ReflectedTargetAssociation";
-import { createCachedReflectedAccessor } from "./createCachedReflectedAccessor";
+import { createReflectedAccessor } from "./createReflectedAccessor";
 
 /**
  * Builds the reflected auto-accessor for a `DOMString` reflected IDL attribute.
@@ -19,7 +19,7 @@ export function createReflectedDOMStringAccessor(
   contentAttributeName: string,
   context: ReflectedAttributeAccessorContext<DOMStringType>,
 ): ReflectedAttributeAccessor<DOMStringType> {
-  return createCachedReflectedAccessor(
+  return createReflectedAccessor(
     {
       getter: ReflectedDOMString.getter,
       setter: ReflectedDOMString.setter,

@@ -7,7 +7,7 @@ import type {
 } from "@/types";
 
 import { ElementReflectedTargetAssociations } from "../ReflectedTargetAssociation";
-import { createCachedReflectedAccessor } from "./createCachedReflectedAccessor";
+import { createReflectedAccessor } from "./createReflectedAccessor";
 
 /**
  * Builds the reflected auto-accessor for a `long` reflected IDL attribute.
@@ -19,7 +19,7 @@ export function createReflectedLongAccessor(
   contentAttributeName: string,
   context: ReflectedAttributeAccessorContext<LongType>,
 ): ReflectedAttributeAccessor<LongType> {
-  return createCachedReflectedAccessor(
+  return createReflectedAccessor(
     {
       getter: ReflectedLong.getter,
       setter: ReflectedLong.setter,

@@ -3,6 +3,7 @@ import {
   defineStaticAttributes,
   defineStaticOperations,
   getOwnConstructorOperations,
+  InterfaceObject,
   isInterfaceSupportIndexedProperties,
   isInterfaceSupportNamedProperties,
   PlatformObject,
@@ -33,7 +34,10 @@ import { LegacyPlatformObjectProxyHandler } from "./LegacyPlatformObjectProxyHan
  * external callers holding the public object resolve it too).
  *
  * The interface's static attributes and operations are installed on the wrapper
- * itself.
+ * itself, and the wrapper is registered as the interface object of `iface` -
+ * the other side of what `adoptInterfacePrototypeObject` records for the
+ * prototype. A caller holding the class hands it over as it is, where handing
+ * over its prototype takes a cast.
  */
 export function adoptInterfaceObject<Ctor extends AnyConstructor>(
   ctor: Ctor,
@@ -75,6 +79,8 @@ export function adoptInterfaceObject<Ctor extends AnyConstructor>(
 
   defineStaticAttributes(iface, F);
   defineStaticOperations(iface, F);
+
+  InterfaceObject.setInterfaceOf(F, iface);
 
   return F;
 }
